@@ -1,0 +1,1041 @@
+/* =========================================
+   BASIC PAGE SETUP
+========================================= */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+
+html {
+    scroll-behavior: smooth;
+}
+
+
+body {
+
+    font-family: Arial, Helvetica, sans-serif;
+
+    background:
+        radial-gradient(
+            circle at top,
+            #28104f 0%,
+            #120b2d 35%,
+            #080715 75%
+        );
+
+    color: white;
+
+    min-height: 100vh;
+}
+
+
+
+/* =========================================
+   COLORS
+========================================= */
+
+:root {
+
+    --purple: #8a2eff;
+
+    --bright-purple: #bb35ff;
+
+    --dark-purple: #100724;
+
+    --gold: #ffcf40;
+
+    --yellow: #ffd84d;
+
+    --light-purple: #cab8ed;
+
+    --card-background: rgba(18, 14, 43, 0.88);
+
+}
+
+
+
+/* =========================================
+   HEADER
+========================================= */
+
+.header {
+
+    height: 90px;
+
+    display: flex;
+
+    align-items: center;
+
+    padding: 0 5%;
+
+    background:
+        linear-gradient(
+            90deg,
+            rgba(20, 8, 52, 0.98),
+            rgba(9, 7, 28, 0.98)
+        );
+
+    border-top: 2px solid var(--purple);
+
+    border-bottom:
+        1px solid rgba(255, 216, 77, 0.55);
+
+    box-shadow:
+        0 0 20px rgba(138, 46, 255, 0.25);
+
+}
+
+
+
+.brand {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 20px;
+
+}
+
+
+
+.brand h1 {
+
+    font-family: Georgia, "Times New Roman", serif;
+
+    font-size: 3rem;
+
+    color: var(--gold);
+
+    letter-spacing: 1px;
+
+    text-shadow:
+        0 0 10px rgba(255, 207, 64, 0.25);
+
+}
+
+
+
+.brand-text {
+
+    display: flex;
+
+    flex-direction: column;
+
+    border-left:
+        1px solid rgba(255, 255, 255, 0.18);
+
+    padding-left: 20px;
+
+}
+
+
+
+.brand-text span {
+
+    color: #c992ff;
+
+    font-size: 1.4rem;
+
+    letter-spacing: 2px;
+
+}
+
+
+
+.brand-text small {
+
+    margin-top: 5px;
+
+    color: #c3b5dc;
+
+    letter-spacing: 1.5px;
+
+}
+
+
+
+/* =========================================
+   HERO / SAN FRANCISCO BANNER
+========================================= */
+
+.hero {
+
+    min-height: 390px;
+
+    display: flex;
+
+    justify-content: center;
+
+    align-items: center;
+
+    position: relative;
+
+    overflow: hidden;
+
+    text-align: center;
+
+    padding: 80px 20px 60px;
+
+
+    /*
+       The first two layers are gradients.
+
+       The final layer is the actual
+       San Francisco background image.
+    */
+
+    background:
+
+        linear-gradient(
+            180deg,
+            rgba(12, 5, 30, 0.35) 0%,
+            rgba(19, 5, 46, 0.50) 45%,
+            rgba(8, 7, 21, 0.98) 100%
+        ),
+
+        linear-gradient(
+            90deg,
+            rgba(28, 5, 70, 0.90) 0%,
+            rgba(104, 28, 170, 0.38) 50%,
+            rgba(26, 5, 67, 0.90) 100%
+        ),
+
+        url("images/sf-banner.jpg");
+
+
+    background-size: cover;
+
+    background-position: center;
+
+    background-repeat: no-repeat;
+
+}
+
+
+
+/*
+   Purple glow behind hero text
+*/
+
+.hero::before {
+
+    content: "";
+
+    position: absolute;
+
+    width: 650px;
+
+    height: 250px;
+
+    background:
+        radial-gradient(
+            ellipse,
+            rgba(135, 49, 255, 0.35),
+            transparent 70%
+        );
+
+    filter: blur(35px);
+
+    pointer-events: none;
+
+}
+
+
+
+/*
+   Bottom fade.
+
+   This helps the banner fade smoothly
+   into the rest of the website.
+*/
+
+.hero::after {
+
+    content: "";
+
+    position: absolute;
+
+    left: 0;
+
+    bottom: 0;
+
+    width: 100%;
+
+    height: 100px;
+
+    background:
+        linear-gradient(
+            transparent,
+            #0b081b
+        );
+
+    pointer-events: none;
+
+}
+
+
+
+.hero-content {
+
+    position: relative;
+
+    z-index: 2;
+
+}
+
+
+
+.hero h1 {
+
+    font-size:
+        clamp(3rem, 8vw, 5.5rem);
+
+    font-weight: 900;
+
+    letter-spacing: 3px;
+
+    color: white;
+
+    text-shadow:
+
+        0 0 8px
+        rgba(255, 255, 255, 0.7),
+
+        0 0 15px
+        rgba(141, 64, 255, 0.9),
+
+        0 0 35px
+        rgba(132, 39, 255, 0.7);
+
+}
+
+
+
+.hero h1 span {
+
+    color: var(--gold);
+
+    text-shadow:
+
+        0 0 10px
+        rgba(255, 207, 64, 0.7),
+
+        0 0 25px
+        rgba(255, 197, 35, 0.45);
+
+}
+
+
+
+.title-line {
+
+    width: 250px;
+
+    height: 2px;
+
+    margin: 15px auto 20px;
+
+    background:
+        linear-gradient(
+            90deg,
+            transparent,
+            var(--gold),
+            transparent
+        );
+
+    box-shadow:
+        0 0 8px
+        rgba(255, 207, 64, 0.6);
+
+}
+
+
+
+.hero h2 {
+
+    color: var(--gold);
+
+    font-size: 2.1rem;
+
+    font-weight: 400;
+
+    letter-spacing: 8px;
+
+}
+
+
+
+.hero p {
+
+    color: #d2c7e5;
+
+    margin-top: 15px;
+
+    font-size: 1.1rem;
+
+    letter-spacing: 0.5px;
+
+    text-shadow:
+        0 2px 6px
+        rgba(0, 0, 0, 0.8);
+
+}
+
+
+
+/* =========================================
+   TEAM SECTION
+========================================= */
+
+.team-section {
+
+    width: min(1200px, 92%);
+
+    margin: 0 auto;
+
+    padding:
+
+        30px
+        0
+        80px;
+
+}
+
+
+
+.team-grid {
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(3, 1fr);
+
+    gap: 30px;
+
+}
+
+
+
+/* =========================================
+   PROFILE CARDS
+========================================= */
+
+.profile-card {
+
+    min-height: 430px;
+
+    padding:
+        38px
+        25px
+        30px;
+
+    border-radius: 17px;
+
+    background:
+        linear-gradient(
+            150deg,
+            rgba(30, 18, 63, 0.88),
+            rgba(8, 9, 28, 0.92)
+        );
+
+    border:
+        2px solid
+        var(--purple);
+
+    display: flex;
+
+    flex-direction: column;
+
+    align-items: center;
+
+    position: relative;
+
+    overflow: hidden;
+
+    transition:
+        transform 0.3s ease,
+        border-color 0.3s ease,
+        box-shadow 0.3s ease;
+
+}
+
+
+
+.profile-card::before {
+
+    content: "";
+
+    position: absolute;
+
+    width: 250px;
+
+    height: 160px;
+
+    left: -90px;
+
+    top: -90px;
+
+    background:
+        rgba(174, 43, 255, 0.10);
+
+    filter: blur(35px);
+
+}
+
+
+
+.profile-card:hover {
+
+    transform:
+        translateY(-8px);
+
+    border-color:
+        var(--gold);
+
+    box-shadow:
+
+        0 0 15px
+        rgba(166, 43, 255, 0.65),
+
+        0 0 35px
+        rgba(92, 24, 255, 0.22);
+
+}
+
+
+
+/* =========================================
+   PROFILE PICTURES
+========================================= */
+
+.profile-image-wrapper {
+
+    width: 155px;
+
+    height: 155px;
+
+    padding: 4px;
+
+    border-radius: 50%;
+
+    margin-bottom: 25px;
+
+    background:
+        linear-gradient(
+            135deg,
+            #811fff,
+            #cc31ff,
+            #ffd84d,
+            #8930ff
+        );
+
+    box-shadow:
+
+        0 0 12px
+        rgba(156, 43, 255, 0.8),
+
+        0 0 25px
+        rgba(255, 207, 64, 0.25);
+
+}
+
+
+
+.profile-image {
+
+    width: 100%;
+
+    height: 100%;
+
+    object-fit: cover;
+
+    border-radius: 50%;
+
+    background-color: #292541;
+
+    border:
+        4px solid
+        #110b24;
+
+}
+
+
+
+/* =========================================
+   PROFILE INFORMATION
+========================================= */
+
+.profile-card h3 {
+
+    font-size: 1.55rem;
+
+    margin-bottom: 10px;
+
+    text-align: center;
+
+}
+
+
+
+.role {
+
+    color: var(--gold);
+
+    font-size: 1.15rem;
+
+    margin-bottom: 35px;
+
+    text-align: center;
+
+}
+
+
+
+/* =========================================
+   VIEW PROFILE BUTTON
+========================================= */
+
+.profile-button {
+
+    width: 90%;
+
+    margin-top: auto;
+
+    padding:
+        13px
+        20px;
+
+    border-radius: 30px;
+
+    background:
+        linear-gradient(
+            90deg,
+            rgba(17, 10, 39, 0.9),
+            rgba(31, 13, 65, 0.9)
+        );
+
+    border:
+        2px solid
+        var(--bright-purple);
+
+    color: white;
+
+    font-size: 1rem;
+
+    font-weight: bold;
+
+    cursor: pointer;
+
+    transition:
+
+        background 0.25s ease,
+
+        border-color 0.25s ease,
+
+        box-shadow 0.25s ease,
+
+        transform 0.25s ease;
+
+}
+
+
+
+.profile-button span {
+
+    font-size: 1.3rem;
+
+    margin-left: 8px;
+
+}
+
+
+
+.profile-button:hover {
+
+    border-color:
+        var(--gold);
+
+    background:
+        linear-gradient(
+            90deg,
+            rgba(67, 22, 108, 0.8),
+            rgba(89, 34, 125, 0.8)
+        );
+
+    box-shadow:
+        0 0 15px
+        rgba(255, 207, 64, 0.25);
+
+    transform:
+        scale(1.02);
+
+}
+
+
+
+/* =========================================
+   TEAM INFORMATION
+========================================= */
+
+.team-info {
+
+    margin-top: 60px;
+
+    padding: 30px;
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(3, 1fr);
+
+    background:
+        linear-gradient(
+            120deg,
+            rgba(28, 20, 53, 0.92),
+            rgba(10, 10, 29, 0.92)
+        );
+
+    border:
+        1px solid
+        rgba(181, 112, 255, 0.55);
+
+    border-radius: 18px;
+
+    box-shadow:
+        0 0 25px
+        rgba(109, 37, 193, 0.14);
+
+}
+
+
+
+.info-box {
+
+    padding:
+        15px
+        30px;
+
+    min-height: 150px;
+
+}
+
+
+
+.info-box:not(:last-child) {
+
+    border-right:
+        1px solid
+        rgba(190, 168, 222, 0.18);
+
+}
+
+
+
+.info-icon {
+
+    color: var(--gold);
+
+    font-size: 1.9rem;
+
+    margin-bottom: 14px;
+
+}
+
+
+
+.info-box h3 {
+
+    font-size: 1.1rem;
+
+    margin-bottom: 10px;
+
+}
+
+
+
+.info-box p {
+
+    color: #bdb1d2;
+
+    line-height: 1.8;
+
+    font-size: 0.95rem;
+
+}
+
+
+
+/* =========================================
+   FOOTER
+========================================= */
+
+.footer {
+
+    padding:
+        25px
+        5%;
+
+    display: flex;
+
+    justify-content:
+        space-between;
+
+    align-items: center;
+
+    border-top:
+        1px solid
+        var(--purple);
+
+    border-bottom:
+        1px solid
+        var(--gold);
+
+    background:
+        linear-gradient(
+            90deg,
+            #13092c,
+            #080817
+        );
+
+}
+
+
+
+.footer-brand {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 20px;
+
+}
+
+
+
+.footer-brand h2 {
+
+    font-family:
+        Georgia,
+        "Times New Roman",
+        serif;
+
+    color:
+        var(--gold);
+
+    font-size: 2.8rem;
+
+}
+
+
+
+.footer-brand p {
+
+    color:
+        #c7afea;
+
+    font-size: 1rem;
+
+}
+
+
+
+.footer-brand small {
+
+    display: block;
+
+    color:
+        #786e90;
+
+    margin-top: 5px;
+
+}
+
+
+
+.footer-message {
+
+    color:
+        #a99abc;
+
+    font-family:
+        Georgia,
+        "Times New Roman",
+        serif;
+
+    font-style: italic;
+
+}
+
+
+
+/* =========================================
+   TABLET
+========================================= */
+
+@media (max-width: 900px) {
+
+    .team-grid {
+
+        grid-template-columns:
+            repeat(2, 1fr);
+
+    }
+
+
+    .team-info {
+
+        grid-template-columns:
+            1fr;
+
+    }
+
+
+    .info-box:not(:last-child) {
+
+        border-right:
+            none;
+
+        border-bottom:
+            1px solid
+            rgba(190, 168, 222, 0.18);
+
+    }
+
+
+    .footer {
+
+        flex-direction:
+            column;
+
+        gap: 20px;
+
+        text-align: center;
+
+    }
+
+}
+
+
+
+/* =========================================
+   MOBILE
+========================================= */
+
+@media (max-width: 600px) {
+
+    .header {
+
+        justify-content:
+            center;
+
+        height: auto;
+
+        padding: 20px;
+
+    }
+
+
+    .brand h1 {
+
+        font-size:
+            2.4rem;
+
+    }
+
+
+    .brand-text span {
+
+        font-size:
+            1rem;
+
+    }
+
+
+    .brand-text small {
+
+        font-size:
+            0.7rem;
+
+    }
+
+
+    .hero {
+
+        min-height:
+            350px;
+
+        padding:
+
+            60px
+            20px
+            50px;
+
+    }
+
+
+    .hero h2 {
+
+        font-size:
+            1.4rem;
+
+        letter-spacing:
+            4px;
+
+    }
+
+
+    .team-grid {
+
+        grid-template-columns:
+            1fr;
+
+    }
+
+
+    .profile-card {
+
+        max-width:
+            420px;
+
+        width:
+            100%;
+
+        margin:
+            auto;
+
+    }
+
+
+    .team-info {
+
+        padding:
+            18px;
+
+    }
+
+
+    .info-box {
+
+        padding:
+            25px
+            15px;
+
+    }
+
+
+    .footer-brand {
+
+        flex-direction:
+            column;
+
+        gap:
+            5px;
+
+    }
+
+}
