@@ -38,8 +38,8 @@ const modalBio =
 const modalGithub =
     document.getElementById("modalGithub");
 
-const modalDiscord =
-    document.getElementById("modalDiscord");
+const modalLinkedin =
+    document.getElementById("modalLinkedin");
 
 
 
@@ -64,8 +64,8 @@ profileButtons.forEach(button => {
         const github =
             button.dataset.github;
 
-        const discord =
-            button.dataset.discord;
+        const linkedin =
+            button.dataset.linkedin;
 
 
         // Put the information into the modal
@@ -83,8 +83,8 @@ profileButtons.forEach(button => {
         modalGithub.href =
             github;
 
-        modalDiscord.href =
-            discord;
+        modalLinkedin.href =
+            linkedin;
 
 
         // Show modal
