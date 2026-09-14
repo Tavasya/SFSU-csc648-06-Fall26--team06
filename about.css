@@ -15,7 +15,6 @@ html {
 
 
 body {
-
     font-family: Arial, Helvetica, sans-serif;
 
     background:
@@ -38,21 +37,13 @@ body {
 ========================================= */
 
 :root {
-
     --purple: #8a2eff;
-
     --bright-purple: #bb35ff;
-
     --dark-purple: #100724;
-
     --gold: #ffcf40;
-
     --yellow: #ffd84d;
-
     --light-purple: #cab8ed;
-
     --card-background: rgba(18, 14, 43, 0.88);
-
 }
 
 
@@ -62,7 +53,6 @@ body {
 ========================================= */
 
 .header {
-
     height: 90px;
 
     display: flex;
@@ -85,25 +75,19 @@ body {
 
     box-shadow:
         0 0 20px rgba(138, 46, 255, 0.25);
-
 }
 
 
-
 .brand {
-
     display: flex;
 
     align-items: center;
 
     gap: 20px;
-
 }
 
 
-
 .brand h1 {
-
     font-family: Georgia, "Times New Roman", serif;
 
     font-size: 3rem;
@@ -114,13 +98,10 @@ body {
 
     text-shadow:
         0 0 10px rgba(255, 207, 64, 0.25);
-
 }
 
 
-
 .brand-text {
-
     display: flex;
 
     flex-direction: column;
@@ -129,41 +110,33 @@ body {
         1px solid rgba(255, 255, 255, 0.18);
 
     padding-left: 20px;
-
 }
 
 
-
 .brand-text span {
-
     color: #c992ff;
 
     font-size: 1.4rem;
 
     letter-spacing: 2px;
-
 }
 
 
-
 .brand-text small {
-
     margin-top: 5px;
 
     color: #c3b5dc;
 
     letter-spacing: 1.5px;
-
 }
 
 
 
 /* =========================================
-   HERO / SAN FRANCISCO BANNER
+   HERO / BANNER
 ========================================= */
 
 .hero {
-
     min-height: 390px;
 
     display: flex;
@@ -179,14 +152,6 @@ body {
     text-align: center;
 
     padding: 80px 20px 60px;
-
-
-    /*
-       The first two layers are gradients.
-
-       The final layer is the actual
-       San Francisco background image.
-    */
 
     background:
 
@@ -206,23 +171,15 @@ body {
 
         url("images/sf-banner.jpg");
 
-
     background-size: cover;
 
     background-position: center;
 
     background-repeat: no-repeat;
-
 }
 
 
-
-/*
-   Purple glow behind hero text
-*/
-
 .hero::before {
-
     content: "";
 
     position: absolute;
@@ -241,20 +198,10 @@ body {
     filter: blur(35px);
 
     pointer-events: none;
-
 }
 
 
-
-/*
-   Bottom fade.
-
-   This helps the banner fade smoothly
-   into the rest of the website.
-*/
-
 .hero::after {
-
     content: "";
 
     position: absolute;
@@ -274,23 +221,17 @@ body {
         );
 
     pointer-events: none;
-
 }
-
 
 
 .hero-content {
-
     position: relative;
 
     z-index: 2;
-
 }
 
 
-
 .hero h1 {
-
     font-size:
         clamp(3rem, 8vw, 5.5rem);
 
@@ -301,38 +242,22 @@ body {
     color: white;
 
     text-shadow:
-
-        0 0 8px
-        rgba(255, 255, 255, 0.7),
-
-        0 0 15px
-        rgba(141, 64, 255, 0.9),
-
-        0 0 35px
-        rgba(132, 39, 255, 0.7);
-
+        0 0 8px rgba(255, 255, 255, 0.7),
+        0 0 15px rgba(141, 64, 255, 0.9),
+        0 0 35px rgba(132, 39, 255, 0.7);
 }
-
 
 
 .hero h1 span {
-
     color: var(--gold);
 
     text-shadow:
-
-        0 0 10px
-        rgba(255, 207, 64, 0.7),
-
-        0 0 25px
-        rgba(255, 197, 35, 0.45);
-
+        0 0 10px rgba(255, 207, 64, 0.7),
+        0 0 25px rgba(255, 197, 35, 0.45);
 }
 
 
-
 .title-line {
-
     width: 250px;
 
     height: 2px;
@@ -348,15 +273,11 @@ body {
         );
 
     box-shadow:
-        0 0 8px
-        rgba(255, 207, 64, 0.6);
-
+        0 0 8px rgba(255, 207, 64, 0.6);
 }
 
 
-
 .hero h2 {
-
     color: var(--gold);
 
     font-size: 2.1rem;
@@ -364,13 +285,10 @@ body {
     font-weight: 400;
 
     letter-spacing: 8px;
-
 }
 
 
-
 .hero p {
-
     color: #d2c7e5;
 
     margin-top: 15px;
@@ -380,9 +298,7 @@ body {
     letter-spacing: 0.5px;
 
     text-shadow:
-        0 2px 6px
-        rgba(0, 0, 0, 0.8);
-
+        0 2px 6px rgba(0, 0, 0, 0.8);
 }
 
 
@@ -392,30 +308,21 @@ body {
 ========================================= */
 
 .team-section {
-
     width: min(1200px, 92%);
 
     margin: 0 auto;
 
-    padding:
-
-        30px
-        0
-        80px;
-
+    padding: 30px 0 80px;
 }
 
 
-
 .team-grid {
-
     display: grid;
 
     grid-template-columns:
         repeat(3, 1fr);
 
     gap: 30px;
-
 }
 
 
@@ -425,13 +332,10 @@ body {
 ========================================= */
 
 .profile-card {
-
     min-height: 430px;
 
     padding:
-        38px
-        25px
-        30px;
+        38px 25px 30px;
 
     border-radius: 17px;
 
@@ -443,8 +347,7 @@ body {
         );
 
     border:
-        2px solid
-        var(--purple);
+        2px solid var(--purple);
 
     display: flex;
 
@@ -460,13 +363,10 @@ body {
         transform 0.3s ease,
         border-color 0.3s ease,
         box-shadow 0.3s ease;
-
 }
 
 
-
 .profile-card::before {
-
     content: "";
 
     position: absolute;
@@ -483,13 +383,10 @@ body {
         rgba(174, 43, 255, 0.10);
 
     filter: blur(35px);
-
 }
 
 
-
 .profile-card:hover {
-
     transform:
         translateY(-8px);
 
@@ -497,13 +394,8 @@ body {
         var(--gold);
 
     box-shadow:
-
-        0 0 15px
-        rgba(166, 43, 255, 0.65),
-
-        0 0 35px
-        rgba(92, 24, 255, 0.22);
-
+        0 0 15px rgba(166, 43, 255, 0.65),
+        0 0 35px rgba(92, 24, 255, 0.22);
 }
 
 
@@ -513,7 +405,6 @@ body {
 ========================================= */
 
 .profile-image-wrapper {
-
     width: 155px;
 
     height: 155px;
@@ -534,19 +425,12 @@ body {
         );
 
     box-shadow:
-
-        0 0 12px
-        rgba(156, 43, 255, 0.8),
-
-        0 0 25px
-        rgba(255, 207, 64, 0.25);
-
+        0 0 12px rgba(156, 43, 255, 0.8),
+        0 0 25px rgba(255, 207, 64, 0.25);
 }
 
 
-
 .profile-image {
-
     width: 100%;
 
     height: 100%;
@@ -558,9 +442,7 @@ body {
     background-color: #292541;
 
     border:
-        4px solid
-        #110b24;
-
+        4px solid #110b24;
 }
 
 
@@ -570,19 +452,15 @@ body {
 ========================================= */
 
 .profile-card h3 {
-
     font-size: 1.55rem;
 
     margin-bottom: 10px;
 
     text-align: center;
-
 }
 
 
-
 .role {
-
     color: var(--gold);
 
     font-size: 1.15rem;
@@ -590,7 +468,6 @@ body {
     margin-bottom: 35px;
 
     text-align: center;
-
 }
 
 
@@ -600,14 +477,12 @@ body {
 ========================================= */
 
 .profile-button {
-
     width: 90%;
 
     margin-top: auto;
 
     padding:
-        13px
-        20px;
+        13px 20px;
 
     border-radius: 30px;
 
@@ -619,8 +494,7 @@ body {
         );
 
     border:
-        2px solid
-        var(--bright-purple);
+        2px solid var(--bright-purple);
 
     color: white;
 
@@ -631,31 +505,21 @@ body {
     cursor: pointer;
 
     transition:
-
         background 0.25s ease,
-
         border-color 0.25s ease,
-
         box-shadow 0.25s ease,
-
         transform 0.25s ease;
-
 }
-
 
 
 .profile-button span {
-
     font-size: 1.3rem;
 
     margin-left: 8px;
-
 }
 
 
-
 .profile-button:hover {
-
     border-color:
         var(--gold);
 
@@ -667,12 +531,10 @@ body {
         );
 
     box-shadow:
-        0 0 15px
-        rgba(255, 207, 64, 0.25);
+        0 0 15px rgba(255, 207, 64, 0.25);
 
     transform:
         scale(1.02);
-
 }
 
 
@@ -682,7 +544,6 @@ body {
 ========================================= */
 
 .team-info {
-
     margin-top: 60px;
 
     padding: 30px;
@@ -700,71 +561,51 @@ body {
         );
 
     border:
-        1px solid
-        rgba(181, 112, 255, 0.55);
+        1px solid rgba(181, 112, 255, 0.55);
 
     border-radius: 18px;
 
     box-shadow:
-        0 0 25px
-        rgba(109, 37, 193, 0.14);
-
+        0 0 25px rgba(109, 37, 193, 0.14);
 }
-
 
 
 .info-box {
-
     padding:
-        15px
-        30px;
+        15px 30px;
 
     min-height: 150px;
-
 }
-
 
 
 .info-box:not(:last-child) {
-
     border-right:
-        1px solid
-        rgba(190, 168, 222, 0.18);
-
+        1px solid rgba(190, 168, 222, 0.18);
 }
 
 
-
 .info-icon {
-
     color: var(--gold);
 
     font-size: 1.9rem;
 
     margin-bottom: 14px;
-
 }
-
 
 
 .info-box h3 {
-
     font-size: 1.1rem;
 
     margin-bottom: 10px;
-
 }
 
 
-
 .info-box p {
-
     color: #bdb1d2;
 
     line-height: 1.8;
 
     font-size: 0.95rem;
-
 }
 
 
@@ -774,10 +615,8 @@ body {
 ========================================= */
 
 .footer {
-
     padding:
-        25px
-        5%;
+        25px 5%;
 
     display: flex;
 
@@ -787,12 +626,10 @@ body {
     align-items: center;
 
     border-top:
-        1px solid
-        var(--purple);
+        1px solid var(--purple);
 
     border-bottom:
-        1px solid
-        var(--gold);
+        1px solid var(--gold);
 
     background:
         linear-gradient(
@@ -800,25 +637,19 @@ body {
             #13092c,
             #080817
         );
-
 }
 
 
-
 .footer-brand {
-
     display: flex;
 
     align-items: center;
 
     gap: 20px;
-
 }
 
 
-
 .footer-brand h2 {
-
     font-family:
         Georgia,
         "Times New Roman",
@@ -828,37 +659,28 @@ body {
         var(--gold);
 
     font-size: 2.8rem;
-
 }
 
 
-
 .footer-brand p {
-
     color:
         #c7afea;
 
     font-size: 1rem;
-
 }
 
 
-
 .footer-brand small {
-
     display: block;
 
     color:
         #786e90;
 
     margin-top: 5px;
-
 }
 
 
-
 .footer-message {
-
     color:
         #a99abc;
 
@@ -868,7 +690,396 @@ body {
         serif;
 
     font-style: italic;
+}
 
+
+
+/* =========================================
+   PROFILE MODAL
+========================================= */
+
+.profile-modal {
+    position: fixed;
+
+    inset: 0;
+
+    display: flex;
+
+    justify-content: center;
+
+    align-items: center;
+
+    z-index: 1000;
+
+    padding: 20px;
+
+    opacity: 0;
+
+    visibility: hidden;
+
+    transition:
+        opacity 0.25s ease,
+        visibility 0.25s ease;
+}
+
+
+.profile-modal.active {
+    opacity: 1;
+
+    visibility: visible;
+}
+
+
+
+/* =========================================
+   MODAL OVERLAY
+========================================= */
+
+.modal-overlay {
+    position: absolute;
+
+    inset: 0;
+
+    background:
+        rgba(4, 2, 12, 0.82);
+
+    backdrop-filter:
+        blur(6px);
+}
+
+
+
+/* =========================================
+   MODAL WINDOW
+========================================= */
+
+.modal-content {
+    position: relative;
+
+    z-index: 2;
+
+    width:
+        min(550px, 95%);
+
+    padding:
+        35px;
+
+    border-radius:
+        20px;
+
+    background:
+
+        radial-gradient(
+            circle at top left,
+            rgba(104, 35, 180, 0.28),
+            transparent 45%
+        ),
+
+        linear-gradient(
+            145deg,
+            #19102f,
+            #090817
+        );
+
+    border:
+        2px solid var(--purple);
+
+    box-shadow:
+        0 0 20px rgba(145, 46, 255, 0.65),
+        0 0 55px rgba(106, 31, 207, 0.32);
+
+    transform:
+        translateY(25px)
+        scale(0.96);
+
+    transition:
+        transform 0.25s ease;
+}
+
+
+.profile-modal.active .modal-content {
+    transform:
+        translateY(0)
+        scale(1);
+}
+
+
+
+/* =========================================
+   MODAL CLOSE BUTTON
+========================================= */
+
+.modal-close {
+    position: absolute;
+
+    top: 15px;
+
+    right: 18px;
+
+    width: 38px;
+
+    height: 38px;
+
+    border-radius: 50%;
+
+    border:
+        1px solid rgba(187, 53, 255, 0.7);
+
+    background:
+        rgba(20, 10, 42, 0.85);
+
+    color: white;
+
+    font-size: 1.6rem;
+
+    line-height: 1;
+
+    cursor: pointer;
+
+    transition:
+        border-color 0.2s ease,
+        color 0.2s ease,
+        box-shadow 0.2s ease,
+        transform 0.2s ease;
+}
+
+
+.modal-close:hover {
+    color:
+        var(--gold);
+
+    border-color:
+        var(--gold);
+
+    box-shadow:
+        0 0 12px rgba(255, 207, 64, 0.35);
+
+    transform:
+        rotate(90deg);
+}
+
+
+
+/* =========================================
+   MODAL HEADER
+========================================= */
+
+.modal-header {
+    display: flex;
+
+    align-items: center;
+
+    gap: 20px;
+
+    padding-right: 45px;
+}
+
+
+.modal-icon {
+    width: 75px;
+
+    height: 75px;
+
+    min-width: 75px;
+
+    display: flex;
+
+    justify-content: center;
+
+    align-items: center;
+
+    border-radius: 50%;
+
+    background:
+        linear-gradient(
+            135deg,
+            #5a15b6,
+            #231043
+        );
+
+    border:
+        2px solid var(--gold);
+
+    color:
+        var(--gold);
+
+    font-family:
+        Georgia,
+        "Times New Roman",
+        serif;
+
+    font-weight:
+        bold;
+
+    box-shadow:
+        0 0 10px rgba(133, 44, 255, 0.8),
+        0 0 20px rgba(255, 207, 64, 0.18);
+}
+
+
+.modal-label {
+    color:
+        var(--gold);
+
+    font-size:
+        0.75rem;
+
+    letter-spacing:
+        3px;
+
+    margin-bottom:
+        6px;
+}
+
+
+.modal-header h2 {
+    font-size:
+        1.8rem;
+
+    color:
+        white;
+}
+
+
+
+/* =========================================
+   MODAL DIVIDER
+========================================= */
+
+.modal-divider {
+    height: 1px;
+
+    margin:
+        25px 0;
+
+    background:
+        linear-gradient(
+            90deg,
+            var(--purple),
+            var(--gold),
+            transparent
+        );
+
+    box-shadow:
+        0 0 8px rgba(147, 44, 255, 0.4);
+}
+
+
+
+/* =========================================
+   MODAL INFORMATION
+========================================= */
+
+.modal-info {
+    display:
+        flex;
+
+    flex-direction:
+        column;
+
+    gap:
+        25px;
+}
+
+
+.modal-section h3 {
+    color:
+        var(--gold);
+
+    font-size:
+        1.05rem;
+
+    margin-bottom:
+        8px;
+}
+
+
+.modal-section p {
+    color:
+        #c8bdd8;
+
+    line-height:
+        1.7;
+
+    font-size:
+        1rem;
+}
+
+
+
+/* =========================================
+   GITHUB + DISCORD LINKS
+========================================= */
+
+.modal-links {
+    display: flex;
+
+    gap: 15px;
+
+    margin-top: 10px;
+}
+
+
+.profile-link {
+    flex: 1;
+
+    text-align: center;
+
+    padding:
+        12px 18px;
+
+    border-radius:
+        30px;
+
+    text-decoration:
+        none;
+
+    color:
+        white;
+
+    font-weight:
+        bold;
+
+    border:
+        2px solid var(--bright-purple);
+
+    background:
+        linear-gradient(
+            90deg,
+            rgba(20, 10, 45, 0.95),
+            rgba(40, 15, 75, 0.95)
+        );
+
+    transition:
+        transform 0.2s ease,
+        border-color 0.2s ease,
+        box-shadow 0.2s ease,
+        color 0.2s ease;
+}
+
+
+.profile-link:hover {
+    transform:
+        translateY(-2px);
+
+    border-color:
+        var(--gold);
+
+    color:
+        var(--gold);
+
+    box-shadow:
+        0 0 14px rgba(255, 207, 64, 0.28);
+}
+
+
+
+/* =========================================
+   STOP PAGE SCROLL WHILE MODAL IS OPEN
+========================================= */
+
+body.modal-open {
+    overflow: hidden;
 }
 
 
@@ -880,42 +1091,35 @@ body {
 @media (max-width: 900px) {
 
     .team-grid {
-
         grid-template-columns:
             repeat(2, 1fr);
-
     }
 
 
     .team-info {
-
         grid-template-columns:
             1fr;
-
     }
 
 
     .info-box:not(:last-child) {
-
         border-right:
             none;
 
         border-bottom:
-            1px solid
-            rgba(190, 168, 222, 0.18);
-
+            1px solid rgba(190, 168, 222, 0.18);
     }
 
 
     .footer {
-
         flex-direction:
             column;
 
-        gap: 20px;
+        gap:
+            20px;
 
-        text-align: center;
-
+        text-align:
+            center;
     }
 
 }
@@ -929,76 +1133,60 @@ body {
 @media (max-width: 600px) {
 
     .header {
-
         justify-content:
             center;
 
-        height: auto;
+        height:
+            auto;
 
-        padding: 20px;
-
+        padding:
+            20px;
     }
 
 
     .brand h1 {
-
         font-size:
             2.4rem;
-
     }
 
 
     .brand-text span {
-
         font-size:
             1rem;
-
     }
 
 
     .brand-text small {
-
         font-size:
             0.7rem;
-
     }
 
 
     .hero {
-
         min-height:
             350px;
 
         padding:
-
-            60px
-            20px
-            50px;
-
+            60px 20px 50px;
     }
 
 
     .hero h2 {
-
         font-size:
             1.4rem;
 
         letter-spacing:
             4px;
-
     }
 
 
     .team-grid {
-
         grid-template-columns:
             1fr;
-
     }
 
 
     .profile-card {
-
         max-width:
             420px;
 
@@ -1007,35 +1195,72 @@ body {
 
         margin:
             auto;
-
     }
 
 
     .team-info {
-
         padding:
             18px;
-
     }
 
 
     .info-box {
-
         padding:
-            25px
-            15px;
-
+            25px 15px;
     }
 
 
     .footer-brand {
-
         flex-direction:
             column;
 
         gap:
             5px;
+    }
 
+
+    .modal-content {
+        padding:
+            30px 22px;
+    }
+
+
+    .modal-header {
+        align-items:
+            flex-start;
+    }
+
+
+    .modal-icon {
+        width:
+            60px;
+
+        height:
+            60px;
+
+        min-width:
+            60px;
+
+        font-size:
+            0.85rem;
+    }
+
+
+    .modal-header h2 {
+        font-size:
+            1.4rem;
+    }
+
+
+    .modal-label {
+        letter-spacing:
+            2px;
+    }
+
+
+    .modal-links {
+        flex-direction:
+            column;
     }
 
 }

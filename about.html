@@ -49,7 +49,7 @@
             <h2>Meet the Team</h2>
 
             <p>
-                Buzz Words. One liner.
+                Buzz words. one liner
             </p>
 
         </div>
@@ -58,35 +58,38 @@
 
 
     <!-- =====================================
-         TEAM
+         TEAM SECTION
     ====================================== -->
 
     <main class="team-section">
 
         <div class="team-grid">
 
-
             <!-- TEAM MEMBER 1 -->
-
             <article class="profile-card">
 
                 <div class="profile-image-wrapper">
-
                     <img
                         src="images/member1.jpg"
                         alt="Team Member 1"
                         class="profile-image"
                     >
-
                 </div>
 
                 <h3>Team Member 1</h3>
 
                 <p class="role">
-                    Project Manager
+                    role
                 </p>
 
-                <button class="profile-button">
+                <button
+                    class="profile-button"
+                    data-name="Team Member 1"
+                    data-role="Project Manager"
+                    data-bio="Bio description goes here."
+                    data-github="https://github.com/USERNAME"
+                    data-discord="https://discord.com/users/USERID"
+                >
                     View Profile
                     <span>→</span>
                 </button>
@@ -94,28 +97,31 @@
             </article>
 
 
-
             <!-- TEAM MEMBER 2 -->
-
             <article class="profile-card">
 
                 <div class="profile-image-wrapper">
-
                     <img
                         src="images/member2.jpg"
                         alt="Team Member 2"
                         class="profile-image"
                     >
-
                 </div>
 
                 <h3>Team Member 2</h3>
 
                 <p class="role">
-                    Front-End Developer
+                    role
                 </p>
 
-                <button class="profile-button">
+                <button
+                    class="profile-button"
+                    data-name="Team Member 2"
+                    data-role="Front-End Developer"
+                    data-bio="Bio description goes here."
+                    data-github="https://github.com/USERNAME"
+                    data-discord="https://discord.com/users/USERID"
+                >
                     View Profile
                     <span>→</span>
                 </button>
@@ -123,28 +129,31 @@
             </article>
 
 
-
             <!-- TEAM MEMBER 3 -->
-
             <article class="profile-card">
 
                 <div class="profile-image-wrapper">
-
                     <img
                         src="images/member3.jpg"
                         alt="Team Member 3"
                         class="profile-image"
                     >
-
                 </div>
 
                 <h3>Team Member 3</h3>
 
                 <p class="role">
-                    Back-End Developer
+                    role
                 </p>
 
-                <button class="profile-button">
+                <button
+                    class="profile-button"
+                    data-name="Team Member 3"
+                    data-role="Back-End Developer"
+                    data-bio="Bio description goes here."
+                    data-github="https://github.com/USERNAME"
+                    data-discord="https://discord.com/users/USERID"
+                >
                     View Profile
                     <span>→</span>
                 </button>
@@ -152,28 +161,31 @@
             </article>
 
 
-
             <!-- TEAM MEMBER 4 -->
-
             <article class="profile-card">
 
                 <div class="profile-image-wrapper">
-
                     <img
                         src="images/member4.jpg"
                         alt="Team Member 4"
                         class="profile-image"
                     >
-
                 </div>
 
                 <h3>Team Member 4</h3>
 
                 <p class="role">
-                    UI / UX Designer
+                    placeholder
                 </p>
 
-                <button class="profile-button">
+                <button
+                    class="profile-button"
+                    data-name="Team Member 4"
+                    data-role="UI / UX Designer"
+                    data-bio="Bio description goes here."
+                    data-github="https://github.com/USERNAME"
+                    data-discord="https://discord.com/users/USERID"
+                >
                     View Profile
                     <span>→</span>
                 </button>
@@ -181,28 +193,31 @@
             </article>
 
 
-
             <!-- TEAM MEMBER 5 -->
-
             <article class="profile-card">
 
                 <div class="profile-image-wrapper">
-
                     <img
                         src="images/member5.jpg"
                         alt="Team Member 5"
                         class="profile-image"
                     >
-
                 </div>
 
                 <h3>Team Member 5</h3>
 
                 <p class="role">
-                    Database Engineer
+                    place holder
                 </p>
 
-                <button class="profile-button">
+                <button
+                    class="profile-button"
+                    data-name="Team Member 5"
+                    data-role="Database Engineer"
+                    data-bio="Bio description goes here."
+                    data-github="https://github.com/USERNAME"
+                    data-discord="https://discord.com/users/USERID"
+                >
                     View Profile
                     <span>→</span>
                 </button>
@@ -210,28 +225,31 @@
             </article>
 
 
-
             <!-- TEAM MEMBER 6 -->
-
             <article class="profile-card">
 
                 <div class="profile-image-wrapper">
-
                     <img
                         src="images/member6.jpg"
                         alt="Team Member 6"
                         class="profile-image"
                     >
-
                 </div>
 
                 <h3>Team Member 6</h3>
 
                 <p class="role">
-                    QA & Documentation
+                    place holder
                 </p>
 
-                <button class="profile-button">
+                <button
+                    class="profile-button"
+                    data-name="Team Member 6"
+                    data-role="QA & Documentation"
+                    data-bio="Bio description goes here."
+                    data-github="https://github.com/USERNAME"
+                    data-discord="https://discord.com/users/USERID"
+                >
                     View Profile
                     <span>→</span>
                 </button>
@@ -312,26 +330,119 @@
             <h2>SFSU</h2>
 
             <div>
+                <p>San Francisco State University</p>
+                <small>buzz words</small>
+            </div>
 
-                <p>
-                    San Francisco State University
-                </p>
+        </div>
 
-                <small>
-                    Buzz words... pt2
-                </small>
+        <p class="footer-message">
+            Buzz Words
+        </p>
+
+    </footer>
+
+
+    <!-- =====================================
+         PROFILE MODAL
+    ====================================== -->
+
+    <div class="profile-modal" id="profileModal">
+
+        <div class="modal-overlay"></div>
+
+        <div class="modal-content">
+
+            <button
+                class="modal-close"
+                id="modalClose"
+                aria-label="Close profile"
+            >
+                ×
+            </button>
+
+
+            <div class="modal-header">
+
+                <div class="modal-icon">
+                    SFSU
+                </div>
+
+                <div>
+
+                    <p class="modal-label">
+                        TEAM PROFILE
+                    </p>
+
+                    <h2 id="modalName">
+                        Team Member
+                    </h2>
+
+                </div>
+
+            </div>
+
+
+            <div class="modal-divider"></div>
+
+
+            <div class="modal-info">
+
+                <div class="modal-section">
+
+                    <h3>Role:</h3>
+
+                    <p id="modalRole">
+                        Team Role
+                    </p>
+
+                </div>
+
+
+                <div class="modal-section">
+
+                    <h3>Bio:</h3>
+
+                    <p id="modalBio">
+                        Bio description will go here.
+                    </p>
+
+                </div>
+
+
+                <div class="modal-links">
+
+                    <a
+                        id="modalGithub"
+                        class="profile-link"
+                        href="#"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                    >
+                        GitHub
+                    </a>
+
+
+                    <a
+                        id="modalDiscord"
+                        class="profile-link"
+                        href="#"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                    >
+                        Discord
+                    </a>
+
+                </div>
 
             </div>
 
         </div>
 
+    </div>
 
-        <p class="footer-message">
-            Buzz words... pt3
-        </p>
 
-    </footer>
-
+    <script src="about.js"></script>
 
 </body>
 
