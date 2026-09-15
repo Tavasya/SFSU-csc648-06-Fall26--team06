@@ -6,12 +6,12 @@ import "./about.css";
 const TEAM_MEMBERS = [
   {
     image: "/images/member1.jpg",
-    name: "Team Member 1",
-    role: "role",
-    modalRole: "Project Manager",
-    bio: "Bio description goes here.",
-    github: "https://github.com/USERNAME",
-    discord: "https://discord.com/users/USERID",
+    name: "Emely Sarceno Bravo",
+    role: "Team Lead",
+    modalRole: "Team Lead",
+    bio: "I am a senior at San Francisco State University pursuing a major in Computer Science with a minor in Marketing. In my free time, I enjoy baking delicious pastries and taking pictures on my digital camera!",
+    github: "https://github.com/emelysarcenobravo",
+    linkedin: "https://www.linkedin.com/in/emely-sarceno-bravo",
   },
   {
     image: "/images/member2.jpg",
@@ -20,25 +20,25 @@ const TEAM_MEMBERS = [
     modalRole: "Front-End Developer",
     bio: "Bio description goes here.",
     github: "https://github.com/USERNAME",
-    discord: "https://discord.com/users/USERID",
+    linkedin: "https://discord.com/users/USERID",
   },
   {
     image: "/images/member3.jpg",
-    name: "Team Member 3",
-    role: "role",
-    modalRole: "Back-End Developer",
-    bio: "Bio description goes here.",
-    github: "https://github.com/USERNAME",
-    discord: "https://discord.com/users/USERID",
+    name: "Emerson Berido",
+    role: "Scrum Master",
+    modalRole: "Scrum Master",
+    bio: "I am a 4th year Computer Science student at SFSU. I enjoy developing video games and learning new skills that help me as a developer. I am also an officer of the Game Development Club at SFSU.",
+    github: "https://github.com/EmersonBerido",
+    linkedin: "https://www.linkedin.com/in/emerson-berido/",
   },
   {
     image: "/images/member4.jpg",
-    name: "Team Member 4",
-    role: "placeholder",
-    modalRole: "UI / UX Designer",
-    bio: "Bio description goes here.",
-    github: "https://github.com/USERNAME",
-    discord: "https://discord.com/users/USERID",
+    name: "Kelsey Codilla",
+    role: "Backend Developer",
+    modalRole: "Backend Developer",
+    bio: "I am a 4th year student at SFSU studying computer science. I enjoy playing basketball, game development, and watching movies.",
+    github: "https://github.com/Malv-Kelpo",
+    linkedin: "https://www.linkedin.com/in/kelsey-codilla/",
   },
   {
     image: "/images/member5.jpg",
@@ -47,7 +47,7 @@ const TEAM_MEMBERS = [
     modalRole: "Database Engineer",
     bio: "Bio description goes here.",
     github: "https://github.com/USERNAME",
-    discord: "https://discord.com/users/USERID",
+    linkedin: "https://discord.com/users/USERID",
   },
   {
     image: "/images/member6.jpg",
@@ -56,7 +56,7 @@ const TEAM_MEMBERS = [
     modalRole: "QA & Documentation",
     bio: "Bio description goes here.",
     github: "https://github.com/USERNAME",
-    discord: "https://discord.com/users/USERID",
+    linkedin: "https://discord.com/users/USERID",
   },
 ];
 
@@ -86,8 +86,8 @@ export default function AboutPage() {
         <div className="brand">
           <h1>SFSU</h1>
           <div className="brand-text">
-            <span>CSC 648</span>
-            <small>Build • Collaborate • Create</small>
+            <b><span>CSC 648</span></b>
+            <b><small>Build • Collaborate • Create</small></b>
           </div>
         </div>
       </header>
@@ -99,7 +99,10 @@ export default function AboutPage() {
           </h1>
           <div className="title-line"></div>
           <h2>Meet the Team</h2>
-          <p>Buzz words. one liner</p>
+          <p>
+            Get to know the team behind the Career Path App and the work we
+            are building together!
+          </p>
         </div>
       </section>
 
@@ -135,8 +138,10 @@ export default function AboutPage() {
             <div className="info-icon">◆</div>
             <h3>Our Goals</h3>
             <p>
-              A short description about our team&apos;s goals, what we are
-              building, and what we hope to accomplish together.
+              Our goal is to build a user-friendly career platform that helps
+              students explore career opportunities, identify areas for
+              growth, and connect their skills and aspirations with
+              meaningful career paths.
             </p>
           </div>
 
@@ -144,8 +149,9 @@ export default function AboutPage() {
             <div className="info-icon">◇</div>
             <h3>Meeting Schedule</h3>
             <p>
-              Our team meeting schedule and other information about when we
-              meet will go here.
+              We meet weekly on Fridays at 7PM via Discord voice channels to
+              discuss project progress, coordinate responsibilities, address
+              challenges, and plan upcoming tasks.
             </p>
           </div>
 
@@ -153,8 +159,9 @@ export default function AboutPage() {
             <div className="info-icon">○</div>
             <h3>Communication</h3>
             <p>
-              Information about how our team communicates and collaborates
-              will go here.
+              Our primary communication platform is Discord, with dedicated
+              channels for project updates, technical support, study
+              resources, and assignment-related information.
             </p>
           </div>
         </section>
@@ -165,11 +172,13 @@ export default function AboutPage() {
           <h2>SFSU</h2>
           <div>
             <p>San Francisco State University</p>
-            <small>buzz words</small>
+            <b><small>Build • Collaborate • Create</small></b>
           </div>
         </div>
 
-        <p className="footer-message">Buzz Words</p>
+        <p className="footer-message">
+          Empowering students to build their path forward.
+        </p>
       </footer>
 
       <div className={`profile-modal${activeMember ? " active" : ""}`}>
@@ -217,11 +226,11 @@ export default function AboutPage() {
 
               <a
                 className="profile-link"
-                href={activeMember?.discord ?? "#"}
+                href={activeMember?.linkedin ?? "#"}
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                Discord
+                LinkedIn
               </a>
             </div>
           </div>
