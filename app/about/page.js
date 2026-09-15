@@ -15,12 +15,12 @@ const TEAM_MEMBERS = [
   },
   {
     image: "/images/member2.jpg",
-    name: "Team Member 2",
-    role: "role",
-    modalRole: "Front-End Developer",
-    bio: "Bio description goes here.",
-    github: "https://github.com/USERNAME",
-    linkedin: "https://discord.com/users/USERID",
+    name: "Tavasya Ganpati",
+    role: "Github Master",
+    modalRole: "Github Master",
+    bio: "Hi! I'm a senior at SFSU. I love combat sports like Muy Thai, Brazilian jiu jitsu, and MMA.\n I also try and travel as much as I can! I just came back from Puerto Rico🇵🇷",
+    github: "https://github.com/tavasya",
+    linkedin: "https://www.linkedin.com/in/tavasyaganpati/",
   },
   {
     image: "/images/member3.jpg",
