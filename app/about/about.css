@@ -169,7 +169,7 @@ body {
             rgba(26, 5, 67, 0.90) 100%
         ),
 
-        url("images/sf-banner.jpg");
+        url("/images/sf-banner.jpg");
 
     background-size: cover;
 
