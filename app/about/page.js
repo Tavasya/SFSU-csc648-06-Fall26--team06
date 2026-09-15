@@ -51,12 +51,12 @@ const TEAM_MEMBERS = [
   },
   {
     image: "/images/member6.jpg",
-    name: "Team Member 6",
-    role: "place holder",
-    modalRole: "QA & Documentation",
-    bio: "Bio description goes here.",
-    github: "https://github.com/USERNAME",
-    linkedin: "https://discord.com/users/USERID",
+    name: "David Gomez",
+    role: "Front-End Developer",
+    modalRole: "Front-End Developer",
+    bio: "I am a 4th year Computer Science student at SFSU. I enjoy playing video games, going to the gym, and learning new skills that help me as a developer. Plan to enter Cybersecurity field.",
+    github: "https://github.com/Inkdg8",
+    linkedin: "https://www.linkedin.com/in/inkdg8",
   },
 ];
 
