@@ -33,7 +33,6 @@
 | Technology            | David | Kelsey | Emerson | Tavasya | Phong | Emely |
 | --------------------- | ----: | -----: | ------: | ------: | ----: | ----: |
 | **Vercel**                |     1 |      1 |       1 |       4 |     1 |     1 |
-| **Google Cloud Platform** |     1 |      1 |       1 |       4 |     1 |     1 |
 | **React**                 |     3 |      2 |       4 |       4 |     2 |     4 |
 | **Next.js**               |     2 |      2 |       1 |       3 |     1 |     3 |
 | **OpenAI API**            |     2 |      1 |       1 |       4 |     3 |     1 |
