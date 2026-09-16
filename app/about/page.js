@@ -42,7 +42,7 @@ const TEAM_MEMBERS = [
   },
   {
     image: "/images/member5.jpg",
-    name: "Team Member 5",
+    name: "Phong Nguyen",
     role: "AI Engineer",
     modalRole: "AI Engineer",
     bio: "I am a current 4th year at SFSU studying computer science. I enjoy working on cars and is from San Francisco.",
