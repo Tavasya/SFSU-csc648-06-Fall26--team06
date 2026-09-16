@@ -14,7 +14,7 @@
 | --- | --- | 
 | **Hosting Platform** | Vercel | 
 | **Database** | Supabase (Managed PostgreSQL 15 / 17) | 
-| **Front-End Technology**| React, Next.js | 
+| **Front-End Technology**| React | 
 | **Styling** | TailwindCSS
 | **Back-End Technology**  | Next.js, JavaScript | 
 | **AI Technology** | OpenAI API, Google Gemini API|
