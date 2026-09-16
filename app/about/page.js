@@ -42,12 +42,12 @@ const TEAM_MEMBERS = [
   },
   {
     image: "/images/member5.jpg",
-    name: "Team Member 5",
-    role: "place holder",
-    modalRole: "Database Engineer",
-    bio: "Bio description goes here.",
-    github: "https://github.com/USERNAME",
-    linkedin: "https://discord.com/users/USERID",
+    name: "Phong Nguyen",
+    role: "AI Engineer",
+    modalRole: "AI Engineer",
+    bio: "I am a current 4th year at SFSU studying computer science. I enjoy working on cars and is from San Francisco.",
+    github: "https://github.com/gitphongn",
+    linkedin: "https://www.linkedin.com/in/phong-nguyen-132868284/",
   },
   {
     image: "/images/member6.jpg",
