@@ -9,15 +9,18 @@
 | **Tavasya Ganpati** | GitHub Master | 
 | **Phong Nguyen** | AI Lead | 
 
-# Software Stack 
-| Category | Technology 
-| --- | --- | 
-| **Hosting Platform** | Vercel | 
-| **Database** | Supabase (Managed PostgreSQL 15 / 17) | 
-| **Front-End Technology**| React | 
-| **Styling** | TailwindCSS
-| **Back-End Technology**  | Next.js, JavaScript | 
-| **AI Technology** | OpenAI API|
+# Software Stack
+
+| Category | Technology |
+| --- | --- |
+| **Hosting Platform** | Vercel |
+| **Database / Backend Services** | Supabase (Managed PostgreSQL) |
+| **Front-End Technology** | React |
+| **Styling** | Tailwind CSS |
+| **Application Framework / Back-End Technology** | Next.js, JavaScript |
+| **AI Technology** | OpenAI API |
+| **3D Capture Technology** | Scaniverse (Niantic Spatial) |
+| **3D Development / Rendering** | Unity |
 
 # How to Access Hosting Platform
 
