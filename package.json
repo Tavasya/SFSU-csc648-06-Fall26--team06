@@ -10,11 +10,11 @@
     "test": "node --test tests/*.test.mjs"
   },
   "dependencies": {
-    "@supabase/ssr": "0.12.7",
-    "@supabase/supabase-js": "2.117.3",
+    "@supabase/ssr": "^0.12.7",
+    "@supabase/supabase-js": "^2.117.3",
     "lucide-react": "1.55.0",
-    "next": "16.4.0",
-    "react": "19.2.8",
+    "next": "^16.4.0",
+    "react": "^19.2.8",
     "react-dom": "19.2.8"
   },
   "devDependencies": {
@@ -22,5 +22,24 @@
     "eslint": "^9",
     "eslint-config-next": "16.4.0",
     "tailwindcss": "^4"
-  }
+  },
+  "description": "|Team Member | Role | \r | --- | --- |\r | **Emely Sarceno Bravo** | Team Lead | \r | **David Gomez** | Front-End Lead | \r | **Kelsey Codilla** | Back-End Lead | \r | **Emerson Berido** | Scrum Master | \r | **Tavasya Ganpati** | GitHub Master | \r | **Phong Nguyen** | AI Lead |",
+  "main": "proxy.js",
+  "directories": {
+    "doc": "docs",
+    "lib": "lib",
+    "test": "tests"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Tavasya/SFSU-csc648-06-Fall26--team06.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "bugs": {
+    "url": "https://github.com/Tavasya/SFSU-csc648-06-Fall26--team06/issues"
+  },
+  "homepage": "https://github.com/Tavasya/SFSU-csc648-06-Fall26--team06#readme"
 }
