@@ -30,6 +30,7 @@ import { useMemo, useRef, useState } from "react";
 import { Check, ChevronDown, Search } from "lucide-react";
 import MapView, { getCampusFeature, OPTION_GROUPS } from "@/components/map/Map";
 import MapSidePanel from "@/components/map/MapSidePanel";
+import "@/components/map/map.css";
 
 const RANGES = [
   { id: "all", label: "All upcoming", text: "coming up" },
@@ -145,100 +146,100 @@ export default function MapExplorer({
   const rangeText = RANGES.find((r) => r.id === range).text;
 
   return (
-    <main className="min-h-screen bg-[#f7f5fb] text-[14px] leading-normal text-[#262332]">
-      <div className="mx-auto max-w-7xl px-5 pb-20 pt-8 sm:px-12 sm:pt-10.5">
-        <header className="mb-6">
-          <h1 className="text-[32px] font-bold leading-tight tracking-[-1px]">Campus Map</h1>
-          <p className="mt-2 text-[#777180]">
-            Find where events are happening. Select a building to see what events it has to offer.
-          </p>
-        </header>
+    // The sidebar layout (components/gatoraid/Shell.js) already provides the
+    // <main> element, page padding, max width and background.
+    <div className="campus-map text-[14px] leading-normal text-[#262332]">
+      <header className="mb-6">
+        <h1 className="text-[32px] font-bold leading-tight tracking-[-1px]">Campus Map</h1>
+        <p className="mt-2 text-[#777180]">
+          Find where events are happening. Select a building to see what events it has to offer.
+        </p>
+      </header>
 
-        {loadError && (
-          <p role="alert" className="mb-5 rounded-[13px] border border-[#f0dfaa] bg-[#fffbef] px-4 py-3 text-[13px] text-[#78672e]">
-            We couldn&apos;t load events right now. The map still works — please refresh to try again.
-          </p>
-        )}
+      {loadError && (
+        <p role="alert" className="mb-5 rounded-[13px] border border-[#f0dfaa] bg-[#fffbef] px-4 py-3 text-[13px] text-[#78672e]">
+          We couldn&apos;t load events right now. The map still works — please refresh to try again.
+        </p>
+      )}
 
-        {/* Filters + finder */}
-        <div className="mb-5 flex flex-wrap items-center gap-2.5">
-          <div role="group" aria-label="Time range" className="flex flex-wrap gap-2.5">
-            {RANGES.map((r) => (
-              <button
-                key={r.id}
-                type="button"
-                aria-pressed={range === r.id}
-                onClick={() => setRange(r.id)}
-                className={chipClass(range === r.id)}
-              >
-                {range === r.id && <Check size={15} aria-hidden="true" />}
-                {r.label}
-              </button>
+      {/* Filters + finder */}
+      <div className="mb-5 flex flex-wrap items-center gap-2.5">
+        <div role="group" aria-label="Time range" className="flex flex-wrap gap-2.5">
+          {RANGES.map((r) => (
+            <button
+              key={r.id}
+              type="button"
+              aria-pressed={range === r.id}
+              onClick={() => setRange(r.id)}
+              className={chipClass(range === r.id)}
+            >
+              {range === r.id && <Check size={15} aria-hidden="true" />}
+              {r.label}
+            </button>
+          ))}
+        </div>
+
+        <label className={`${chipClass(category !== "all")} relative cursor-pointer pr-9`}>
+          <span className="sr-only">Category</span>
+          <select
+            value={category}
+            onChange={(e) => setCategory(e.target.value)}
+            className="cursor-pointer appearance-none bg-transparent outline-none"
+          >
+            <option value="all">All categories</option>
+            {allTags.map((tag) => (
+              <option key={tag} value={tag}>
+                {tag}
+              </option>
             ))}
-          </div>
+          </select>
+          <ChevronDown size={15} className="pointer-events-none absolute right-3.5" aria-hidden="true" />
+        </label>
 
-          <label className={`${chipClass(category !== "all")} relative cursor-pointer pr-9`}>
-            <span className="sr-only">Category</span>
-            <select
-              value={category}
-              onChange={(e) => setCategory(e.target.value)}
-              className="cursor-pointer appearance-none bg-transparent outline-none"
-            >
-              <option value="all">All categories</option>
-              {allTags.map((tag) => (
-                <option key={tag} value={tag}>
-                  {tag}
-                </option>
-              ))}
-            </select>
-            <ChevronDown size={15} className="pointer-events-none absolute right-3.5" aria-hidden="true" />
-          </label>
-
-          <label className="relative flex w-full min-w-0 items-center sm:ml-auto sm:w-auto">
-            <span className="sr-only">Find a place</span>
-            <Search size={15} className="pointer-events-none absolute left-3.5 text-[#777180]" aria-hidden="true" />
-            <select
-              value={selectedId ?? ""}
-              onChange={(e) => e.target.value && focusPlace(e.target.value)}
-              className="w-full min-w-0 cursor-pointer appearance-none truncate rounded-full border border-[#ebe7f0] bg-white py-2 pl-9 pr-9 text-[13px] text-[#262332] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#604398] sm:max-w-[320px]"
-            >
-              <option value="">Find a building, outdoor space or room…</option>
-              {OPTION_GROUPS.map((group) => (
-                <optgroup key={group.label} label={group.label}>
-                  {group.items.map((item) => (
-                    <option key={item.id} value={item.id}>
-                      {item.label}
-                    </option>
-                  ))}
-                </optgroup>
-              ))}
-            </select>
-            <ChevronDown size={15} className="pointer-events-none absolute right-3.5 text-[#777180]" aria-hidden="true" />
-          </label>
-        </div>
-
-        <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
-          <section className="min-w-0 flex-1" aria-label="Campus map">
-            <MapView ref={mapRef} selectedId={selectedId} onSelect={setSelectedId} pins={buildingsWithEvents} />
-          </section>
-
-          <MapSidePanel
-            selection={selection}
-            buildings={buildingsWithEvents}
-            rangeText={rangeText}
-            isSample={isSample}
-            onSelect={focusPlace}
-            onBack={backToFullMap}
-          />
-        </div>
-
-        {unmatched.length > 0 && (
-          <p className="mt-4 text-[12px] text-[#78672e]">
-            {unmatched.length} {unmatched.length === 1 ? "event is" : "events are"} at a location that isn&apos;t on
-            the map yet: {unmatched.map((e) => `${e.title} (${e.locationName ?? "no location"})`).join(", ")}.
-          </p>
-        )}
+        <label className="relative flex w-full min-w-0 items-center sm:ml-auto sm:w-auto">
+          <span className="sr-only">Find a place</span>
+          <Search size={15} className="pointer-events-none absolute left-3.5 text-[#777180]" aria-hidden="true" />
+          <select
+            value={selectedId ?? ""}
+            onChange={(e) => e.target.value && focusPlace(e.target.value)}
+            className="w-full min-w-0 cursor-pointer appearance-none truncate rounded-full border border-[#ebe7f0] bg-white py-2 pl-9 pr-9 text-[13px] text-[#262332] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#604398] sm:max-w-[320px]"
+          >
+            <option value="">Find a building, outdoor space or room…</option>
+            {OPTION_GROUPS.map((group) => (
+              <optgroup key={group.label} label={group.label}>
+                {group.items.map((item) => (
+                  <option key={item.id} value={item.id}>
+                    {item.label}
+                  </option>
+                ))}
+              </optgroup>
+            ))}
+          </select>
+          <ChevronDown size={15} className="pointer-events-none absolute right-3.5 text-[#777180]" aria-hidden="true" />
+        </label>
       </div>
-    </main>
+
+      <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
+        <section className="min-w-0 flex-1" aria-label="Campus map">
+          <MapView ref={mapRef} selectedId={selectedId} onSelect={setSelectedId} pins={buildingsWithEvents} />
+        </section>
+
+        <MapSidePanel
+          selection={selection}
+          buildings={buildingsWithEvents}
+          rangeText={rangeText}
+          isSample={isSample}
+          onSelect={focusPlace}
+          onBack={backToFullMap}
+        />
+      </div>
+
+      {unmatched.length > 0 && (
+        <p className="mt-4 text-[12px] text-[#78672e]">
+          {unmatched.length} {unmatched.length === 1 ? "event is" : "events are"} at a location that isn&apos;t on
+          the map yet: {unmatched.map((e) => `${e.title} (${e.locationName ?? "no location"})`).join(", ")}.
+        </p>
+      )}
+    </div>
   );
 }

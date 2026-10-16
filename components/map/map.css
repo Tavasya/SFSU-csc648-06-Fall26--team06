@@ -1,0 +1,3 @@
+.ga .campus-map.campus-map :is(h1, h2, h3, h4, p, small, label, select, input) {
+  all: revert-layer;
+}
