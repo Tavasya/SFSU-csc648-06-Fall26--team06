@@ -1,5 +1,5 @@
 /*
- * app/map/page.js  —  the /map route (Map page)
+ * app/(platform)/map/page.js  —  the /map route (Map page)
  *
  * A Server Component: it runs on the server for every request, loads the
  * events, and sends finished HTML + data to the browser. All the clicking,
@@ -15,7 +15,7 @@
 
 import MapExplorer from "@/components/map/MapExplorer";
 import { loadMapEvents } from "@/lib/map/page-data";
-import { SAMPLE_EVENTS, SAMPLE_3D_ROOMS } from "@/lib/map/sample-events";
+import { SAMPLE_EVENTS, SAMPLE_SCANS } from "@/lib/map/sample-events";
 
 export const metadata = {
   title: "Campus Map | GatorAid",
@@ -26,7 +26,7 @@ export default async function MapPage({ searchParams }) {
   const { sample } = await searchParams;
 
   if (sample === "1") {
-    return <MapExplorer events={SAMPLE_EVENTS} threeDRooms={SAMPLE_3D_ROOMS} isSample />;
+    return <MapExplorer events={SAMPLE_EVENTS} scans={SAMPLE_SCANS} isSample />;
   }
 
   // Load first; only the loading is inside try/catch (rendering errors are
@@ -39,5 +39,5 @@ export default async function MapPage({ searchParams }) {
   }
 
   if (!data) return <MapExplorer loadError />;
-  return <MapExplorer events={data.events} unmatched={data.unmatched} />;
+  return <MapExplorer events={data.events} unmatched={data.unmatched} scans={data.scans} />;
 }

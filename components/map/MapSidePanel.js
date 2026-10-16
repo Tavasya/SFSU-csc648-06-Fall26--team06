@@ -8,111 +8,69 @@
 
 "use client";
 
-import {
-  BookOpen,
-  Box,
-  Briefcase,
-  CalendarDays,
-  ChevronLeft,
-  ChevronRight,
-  HeartPulse,
-  MapPin,
-  Palette,
-  Sparkles,
-  Trophy,
-  Users,
-} from "lucide-react";
+import { Box, ChevronLeft, ChevronRight, MapPin, Users } from "lucide-react";
 import { getCampusFeature } from "@/components/map/Map";
-
-// Cover images for an event, picked from its first tag.
-const COVERS = [
-  { tags: ["Career", "Networking"], Icon: Briefcase, bg: "from-[#7b5cc4] to-[#4b2f8a]" },
-  { tags: ["Technology", "Tech", "AI"], Icon: Sparkles, bg: "from-[#5b7fdb] to-[#9db4ee]" },
-  { tags: ["Sports"], Icon: Trophy, bg: "from-[#e0913a] to-[#f2c14e]" },
-  { tags: ["Academic", "Study"], Icon: BookOpen, bg: "from-[#3f9a8a] to-[#7fcab9]" },
-  { tags: ["Arts"], Icon: Palette, bg: "from-[#d35c7a] to-[#f19aac]" },
-  { tags: ["Social", "Clubs", "Free food"], Icon: Users, bg: "from-[#e0634f] to-[#f0a08f]" },
-  { tags: ["Health & Wellness"], Icon: HeartPulse, bg: "from-[#3f9a6a] to-[#8fd0a8]" },
-];
-function coverFor(event) {
-  const tag = event.tags?.[0];
-  return COVERS.find((c) => c.tags.includes(tag)) ?? { Icon: CalendarDays, bg: "from-[#5b7fdb] to-[#9db4ee]" };
-}
-
-// "Thu, Oct 22 · 4:48 PM – 6:00 PM", or for multi-day events
-// "Thu, Oct 22, 4:48 PM – Wed, Oct 28, 4:48 PM".
-function formatWhen(event) {
-  const day = (ymd) =>
-    new Date(`${ymd}T12:00:00`).toLocaleDateString("en-US", {
-      weekday: "short",
-      month: "short",
-      day: "numeric",
-    });
-  if (event.endDate && event.endDate !== event.date) {
-    return `${day(event.date)}, ${event.startTime} – ${day(event.endDate)}, ${event.endTime}`;
-  }
-  return `${day(event.date)} · ${event.startTime} – ${event.endTime}`;
-}
+import MapEventDetail, { coverFor } from "@/components/map/MapEventDetail";
+import { formatWhen, groupEventsByVenue } from "@/lib/map/events";
 
 const plural = (n, word) => `${n} ${word}${n === 1 ? "" : "s"}`;
 
-// Groups a building's events by room: named venues first (A-Z), then
-// events with no venue under "Elsewhere in this building".
-function groupEventsByVenue(events) {
-  const groups = new Map();
-  for (const event of events) {
-    const key = event.venueId ?? "";
-    if (!groups.has(key)) groups.set(key, []);
-    groups.get(key).push(event);
-  }
-  return [...groups.entries()]
-    .map(([venueId, groupEvents]) => ({
-      venueId,
-      label: venueId ? getCampusFeature(venueId)?.name ?? venueId : "Elsewhere in this building",
-      events: groupEvents,
-    }))
-    .sort((a, b) => (!a.venueId ? 1 : !b.venueId ? -1 : a.label.localeCompare(b.label)));
-}
-
-function EventRow({ event }) {
+// One event in a building's list. Clicking it opens the event detail view.
+// (Only <span>s inside the button, because headings and <div>s aren't allowed in buttons.)
+function EventRow({ event, onOpen }) {
   const { Icon, bg } = coverFor(event);
   return (
-    <li className="flex items-start gap-3 rounded-[13px] border border-[#ebe7f0] bg-white p-3">
-      <div className={`grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-linear-to-br ${bg}`}>
-        <Icon size={22} className="text-white" aria-hidden="true" />
-      </div>
-      <div className="min-w-0 flex-1">
-        <h4 className="text-[14px] font-semibold leading-snug text-[#262332]">{event.title}</h4>
-        <p className="mt-0.5 text-[12px] text-[#777180]">
-          {formatWhen(event)}
-          {event.roomNumber ? ` · Room ${event.roomNumber}` : ""}
-        </p>
-        <div className="mt-1.5 flex flex-wrap items-center gap-2">
-          {(event.tags ?? []).slice(0, 2).map((tag) => (
-            <span key={tag} className="rounded-md bg-[#f6f0fc] px-2 py-0.5 text-[11px] font-medium text-[#604398]">
-              {tag}
-            </span>
-          ))}
-          {event.rsvpCount != null && (
-            <span className="flex items-center gap-1 text-[11px] text-[#777180]">
-              <Users size={12} aria-hidden="true" />
-              {event.rsvpCount} going
-            </span>
-          )}
-        </div>
-      </div>
+    <li>
+      <button
+        type="button"
+        onClick={() => onOpen(event.id)}
+        className="flex w-full items-start gap-3 rounded-[13px] border border-[#ebe7f0] bg-white p-3 text-left transition hover:border-[#d9cfe8] hover:bg-[#fbfafd] focus-visible:outline-2 focus-visible:outline-[#604398]"
+      >
+        <span className={`grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-linear-to-br ${bg}`}>
+          <Icon size={22} className="text-white" aria-hidden="true" />
+        </span>
+        <span className="block min-w-0 flex-1">
+          <span className="block text-[14px] font-semibold leading-snug text-[#262332]">{event.title}</span>
+          <span className="mt-0.5 block text-[12px] text-[#777180]">
+            {formatWhen(event)}
+            {event.roomNumber ? ` · Room ${event.roomNumber}` : ""}
+          </span>
+          <span className="mt-1.5 flex flex-wrap items-center gap-2">
+            {(event.tags ?? []).slice(0, 2).map((tag) => (
+              <span key={tag} className="rounded-md bg-[#f6f0fc] px-2 py-0.5 text-[11px] font-medium text-[#604398]">
+                {tag}
+              </span>
+            ))}
+            {event.rsvpCount != null && (
+              <span className="flex items-center gap-1 text-[11px] text-[#777180]">
+                <Users size={12} aria-hidden="true" />
+                {event.rsvpCount} going
+              </span>
+            )}
+          </span>
+        </span>
+        <ChevronRight size={16} className="mt-1 shrink-0 text-[#777180]" aria-hidden="true" />
+      </button>
     </li>
   );
 }
 
 export default function MapSidePanel({
-  selection, // null, or { id, name, venue, parent, events, has3D, scannedRoom }
+  selection, // null, or { id, name, venue, parent, events, scannedRooms }
   buildings, // [{ id, name, count, has3D }] buildings with events in range
   rangeText, // "today" | "this week" | "coming up"
   isSample = false, // true when showing the demo events
   onSelect,
   onBack,
+  openEvent = null, // the event shown in the detail view, or null for the list
+  onOpenEvent,
+  onCloseEvent,
 }) {
+  // Where the open event is: its Supabase location name, or the room / building on the map.
+  const openEventPlace =
+    openEvent &&
+    (openEvent.locationName ?? getCampusFeature(openEvent.venueId ?? openEvent.mapId)?.name);
+
   return (
     <aside className="w-full shrink-0 rounded-[13px] border border-[#ebe7f0] bg-white p-5 lg:w-90">
       {!selection ? (
@@ -146,6 +104,14 @@ export default function MapSidePanel({
             </ul>
           )}
         </>
+      ) : openEvent ? (
+        <MapEventDetail
+          event={openEvent}
+          placeName={openEventPlace}
+          backLabel={selection.name}
+          isSample={isSample}
+          onBack={onCloseEvent}
+        />
       ) : (
         <>
           <button
@@ -198,22 +164,21 @@ export default function MapSidePanel({
                 )}
                 <ul className="space-y-2.5">
                   {group.events.map((event) => (
-                    <EventRow key={event.id} event={event} />
+                    <EventRow key={event.id} event={event} onOpen={onOpenEvent} />
                   ))}
                 </ul>
               </section>
             ))}
           </div>
 
-          {selection.has3D && (
+          {/* Only buildings with a scanned room (locations.has_3d_view in Supabase) show this card. */}
+          {selection.scannedRooms.length > 0 && (
             <div className="mt-2 rounded-[13px] bg-[#f3eefa] p-4">
               <p className="flex items-center gap-2 text-[14px] font-semibold text-[#262332]">
                 <Box size={18} className="text-[#604398]" aria-hidden="true" />
                 3D room scan available
               </p>
-              {selection.scannedRoom && (
-                <p className="mt-1 text-[13px] text-[#777180]">{selection.scannedRoom}</p>
-              )}
+              <p className="mt-1 text-[13px] text-[#777180]">{selection.scannedRooms.join(" · ")}</p>
               <button
                 type="button"
                 aria-disabled="true"

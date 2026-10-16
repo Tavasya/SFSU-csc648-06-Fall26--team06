@@ -12,14 +12,16 @@
  *    on the map and a row in the side panel
  *  - keeps track of the selected building / outdoor space / room and tells
  *    the map to fly to it
+ *  - keeps track of which event is open in the side panel's detail view
  *  - shows a notice if the events couldn't be loaded, and lists events
  *    whose location isn't on the map yet
  *
  * Props:
  *  - events:      [{ id, title, date, endDate, startTime, endTime, tags, rsvpCount,
- *                    roomNumber, has3D, mapId, venueId }]
+ *                    roomNumber, mapId, venueId, ...detail fields }]
+ *                  (built by toMapEvent in lib/map/events.js)
  *  - unmatched:   events whose location isn't on the map (same shape)
- *  - threeDRooms: { [mapId]: "room name" } for the 3D card (optional)
+ *  - scans:       { [mapId]: ["room name", ...] } buildings with a 3D room scan
  *  - isSample:    true when showing lib/map/sample-events.js
  *  - loadError:   true when Supabase couldn't be reached
  */
@@ -30,6 +32,7 @@ import { useMemo, useRef, useState } from "react";
 import { Check, ChevronDown, Search } from "lucide-react";
 import MapView, { getCampusFeature, OPTION_GROUPS } from "@/components/map/Map";
 import MapSidePanel from "@/components/map/MapSidePanel";
+import { inRange } from "@/lib/map/events";
 import "@/components/map/map.css";
 
 const RANGES = [
@@ -37,27 +40,6 @@ const RANGES = [
   { id: "today", label: "Today", text: "today" },
   { id: "week", label: "This week", text: "this week" },
 ];
-
-const ymd = (d) =>
-  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-
-
-// Check whether an event belongs in the selected time range.
-// Multi-day events remain visible until their end date has passed.
-// "Today" includes events that started earlier but have not finished,
-// while "This week" includes events starting on or before Sunday.
-function inRange(event, range, today) {
-  const todayStr = ymd(today);
-  const endDate = event.endDate ?? event.date;
-  if (endDate < todayStr) return false;
-  if (range === "today") return event.date <= todayStr;
-  if (range === "week") {
-    const sunday = new Date(today);
-    sunday.setDate(today.getDate() + ((7 - today.getDay()) % 7));
-    return event.date <= ymd(sunday);
-  }
-  return true;
-}
 
 const chipClass = (active) =>
   `inline-flex items-center gap-1.5 rounded-full border px-4 py-2 text-[13px] font-medium transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#604398] ${
@@ -69,7 +51,7 @@ const chipClass = (active) =>
 export default function MapExplorer({
   events = [],
   unmatched = [],
-  threeDRooms = {},
+  scans = {},
   isSample = false,
   loadError = false,
 }) {
@@ -78,6 +60,8 @@ export default function MapExplorer({
   const [range, setRange] = useState("all");
   const [category, setCategory] = useState("all");
   const [selectedId, setSelectedId] = useState(null);
+  // The event open in the side panel's detail view (null = show the list).
+  const [openEventId, setOpenEventId] = useState(null);
 
   const allTags = useMemo(
     () => [...new Set(events.flatMap((e) => e.tags ?? []))].sort(),
@@ -105,7 +89,7 @@ export default function MapExplorer({
         name: feature?.name ?? mapId,
         label: feature?.mapLabel ?? mapId,
         count: list.length,
-        has3D: list.some((e) => e.has3D),
+        has3D: Boolean(scans[mapId]),
       };
     })
     .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
@@ -118,36 +102,44 @@ export default function MapExplorer({
     if (!feature) return null;
     const building = feature.isVenue ? feature.parent : feature;
     const buildingEvents = filtered.get(building?.id) ?? [];
-    const allBuildingEvents = events.filter((e) => e.mapId === building?.id);
     return {
       id: selectedId,
       name: feature.name,
       venue: feature.isVenue ? feature : null,
       parent: feature.isVenue ? building : null,
-      has3D: allBuildingEvents.some((e) => e.has3D) || Boolean(threeDRooms[building?.id]),
-      scannedRoom: threeDRooms[building?.id] ?? null,
+      scannedRooms: scans[building?.id] ?? [],
       events: feature.isVenue
         ? buildingEvents.filter((e) => e.venueId === selectedId)
         : buildingEvents,
     };
-  }, [selectedId, filtered, events, threeDRooms]);
+  }, [selectedId, filtered, scans]);
+
+  // The open event, if it's still part of the selection. If a filter hides
+  // it, the side panel goes back to the list on its own.
+  const openEvent = selection?.events.find((e) => e.id === openEventId) ?? null;
+
+  // Clicking a shape on the map selects it and closes any open event.
+  function selectFromMap(id) {
+    setSelectedId(id);
+    setOpenEventId(null);
+  }
 
   // From the list, the finder or an "inside X" link: select and fly there.
   function focusPlace(id) {
     setSelectedId(id);
+    setOpenEventId(null);
     mapRef.current?.flyTo(id);
   }
 
   function backToFullMap() {
     setSelectedId(null);
+    setOpenEventId(null);
     mapRef.current?.reset();
   }
 
   const rangeText = RANGES.find((r) => r.id === range).text;
 
   return (
-    // The sidebar layout (components/gatoraid/Shell.js) already provides the
-    // <main> element, page padding, max width and background.
     <div className="campus-map text-[14px] leading-normal text-[#262332]">
       <header className="mb-6">
         <h1 className="text-[32px] font-bold leading-tight tracking-[-1px]">Campus Map</h1>
@@ -221,7 +213,7 @@ export default function MapExplorer({
 
       <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
         <section className="min-w-0 flex-1" aria-label="Campus map">
-          <MapView ref={mapRef} selectedId={selectedId} onSelect={setSelectedId} pins={buildingsWithEvents} />
+          <MapView ref={mapRef} selectedId={selectedId} onSelect={selectFromMap} pins={buildingsWithEvents} />
         </section>
 
         <MapSidePanel
@@ -231,6 +223,9 @@ export default function MapExplorer({
           isSample={isSample}
           onSelect={focusPlace}
           onBack={backToFullMap}
+          openEvent={openEvent}
+          onOpenEvent={setOpenEventId}
+          onCloseEvent={() => setOpenEventId(null)}
         />
       </div>
 
