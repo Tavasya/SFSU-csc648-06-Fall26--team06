@@ -81,7 +81,7 @@ export default function AboutPage() {
   }, []);
 
   return (
-    <>
+    <div className="about-page">
       <header className="header">
         <div className="brand">
           <h1>SFSU</h1>
@@ -100,7 +100,7 @@ export default function AboutPage() {
           <div className="title-line"></div>
           <h2>Meet the Team</h2>
           <p>
-            Get to know the team behind the Career Path App and the work we
+            Get to know the team behind the GatorAid campus events app and the work we
             are building together!
           </p>
         </div>
@@ -138,10 +138,9 @@ export default function AboutPage() {
             <div className="info-icon">◆</div>
             <h3>Our Goals</h3>
             <p>
-              Our goal is to build a user-friendly career platform that helps
-              students explore career opportunities, identify areas for
-              growth, and connect their skills and aspirations with
-              meaningful career paths.
+              Our goal is to help SFSU students discover campus events, find
+              opportunities that match their interests, and connect with
+              their campus community.
             </p>
           </div>
 
@@ -236,6 +235,6 @@ export default function AboutPage() {
           </div>
         </div>
       </div>
-    </>
+    </div>
   );
 }
