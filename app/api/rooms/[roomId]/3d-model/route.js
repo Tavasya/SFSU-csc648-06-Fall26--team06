@@ -9,7 +9,6 @@ export async function GET(request, { params }) {
     const db = await createClient();
 
     const { roomId } = await params;
-    console.log("roomId is ", roomId);
 
     // query your rooms table
     const { data: room, error: roomError } = await db
@@ -19,7 +18,6 @@ export async function GET(request, { params }) {
       .single();
 
     if (roomError || !room) {
-      console.error("Error fetching room:", roomError);
       return new Response(
         JSON.stringify({
           error: "room not found"
@@ -35,8 +33,7 @@ export async function GET(request, { params }) {
 
     // no 3d model exists yet
     if (!room.has_3d_view) {
-      console.log("room has no 3D model");
-      return new Response(
+return new Response(
         JSON.stringify({
           error: "room has no 3D model"
         }),
@@ -55,9 +52,7 @@ export async function GET(request, { params }) {
       .download(room.model_view_path);
 
     if (error) {
-      console.log(room.model_view_path);
-      console.error("Error downloading GLB file:", error);
-      return new Response(
+        return new Response(
         JSON.stringify({
           error: "GLB file not found"
         }),
@@ -81,7 +76,6 @@ export async function GET(request, { params }) {
     });
 
   } catch (err) {
-    console.error(err);
 
     return new Response(
       JSON.stringify({

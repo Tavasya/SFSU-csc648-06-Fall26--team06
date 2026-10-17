@@ -1,13 +1,37 @@
 "use client";
 
 import { useEffect, useRef, useState } from 'react';
+import { useParams } from 'next/navigation';
 
 export default function Page() {
 
     const canvasRef = useRef(null)
     const unityInstanceRef = useRef(null)
-    const [windowLocation, setWindowLocation] = useState("");
-    
+    const [roomInfo, setRoomInfo] = useState(null);
+
+    const params = useParams();
+    console.log("params are ", params);
+
+    // Load Room Info
+    useEffect(() => {
+        const fetchRoomInfo = async () => {
+            try {
+                const response = await fetch(`/api/rooms/${params.roomId}/info`);
+                const data = await response.json();
+                if (response.ok) {
+                    setRoomInfo(data);
+                } else {
+                    console.error('Failed to fetch room info:', data.error);
+                }
+            } catch (error) {
+                console.error('Error fetching room info:', error);
+            }
+        };
+
+        fetchRoomInfo();
+    }, [params.roomId]);
+    console.log("roomInfo is ", roomInfo);
+
     // Load Unity WebGL build
     useEffect(() => {
     let instance = null
@@ -35,9 +59,13 @@ export default function Page() {
         }
         instance = created
         unityInstanceRef.current = instance
-        setWindowLocation(window.location.origin);
-        created?.SendMessage("GLTF Importer", "SetBaseAPIUrl", windowLocation);
-        created?.SendMessage("GLTF Importer", "ImportScan", String(1));
+
+        const messageBody = {
+            baseAPIUrl: window.location.origin,
+            scanId: params.roomId
+        }
+        created?.SendMessage("GLTF Importer", "ImportScan", JSON.stringify(messageBody));
+
         } catch (err) {
         console.error('Unity failed to load:', err)
         }
@@ -62,36 +90,17 @@ export default function Page() {
         <canvas
             id="unity-canvas"
             ref={canvasRef}
-            style={{ width: '100%', aspectRatio: '1 / 1', display: 'block' }}
+            style={{ width: '100%', height: '100%', display: 'block', borderRadius: '20px' }}
         />
     );
 
-    useEffect(() => {
-    }, [])
-
-    console.log("API would be ", windowLocation)
-    // send message to Unity
-
-    const UpdateAPI = () => {
-        if (unityInstanceRef.current) {
-            unityInstanceRef.current.SendMessage("GLTF Importer", "SetBaseAPIUrl", windowLocation);
-            // unityInstanceRef.current.SendMessage("GLTF Importer", "ImportScan", String(1));
-        }
-    }
-
-    const ReloadSceneImport = () => {
-        if (unityInstanceRef.current) {
-            unityInstanceRef.current.SendMessage("GLTF Importer", "ImportScan", String(1));
-        }
-    }
-
     return (
-        <>
-            <div style={{ width: '100%', height: '100%', backgroundColor: 'black', aspectRatio: '1/1' }}>
+        <main style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center'}}>
+            <h1>{roomInfo?.room_name || "Room"}</h1>
+            <p>3D scan · one featured room per building · scanned {roomInfo?.scan_date || "N/A"}</p>
+            <div style={{ width: '80%', height: '60%', backgroundColor: 'black', aspectRatio: '3/2', borderRadius: '20px' }}>
                 {UnityPlayer()}
             </div>
-            <button onClick={UpdateAPI} style={{ marginTop: '10px' }}>Update API URL</button>
-            <button onClick={ReloadSceneImport} style={{ marginTop: '10px', marginLeft: '10px' }}>Reload Scene Import</button>
-        </>
+        </main>
     );
 }
