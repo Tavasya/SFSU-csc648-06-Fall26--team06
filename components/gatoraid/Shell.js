@@ -10,6 +10,7 @@ import {
   LogOut,
   ArrowLeftRight,
   MapPin,
+  Map as MapIcon,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 export default function Shell({ children }) {
@@ -41,6 +42,13 @@ export default function Shell({ children }) {
           >
             <Home size={18} />
             Explore events
+          </Link>
+          <Link
+            className={path.startsWith("/map") ? "active" : ""}
+            href="/map"
+          >
+            <MapIcon size={18} />
+            Campus map
           </Link>
           <Link href="/about">
             <GraduationCap size={18} />
