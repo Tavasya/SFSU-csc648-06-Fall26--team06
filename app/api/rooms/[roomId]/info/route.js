@@ -6,6 +6,7 @@ export async function GET(request, { params }) {
 
     const { roomId } = await params;
 
+    // query your rooms table
     const { data: room, error: roomError } = await db
       .from("rooms")
       .select("room_name, scan_date")
@@ -25,6 +26,7 @@ export async function GET(request, { params }) {
       });
     }
 
+    // return room info
     return new Response(
       JSON.stringify({
         room_name: room.room_name,

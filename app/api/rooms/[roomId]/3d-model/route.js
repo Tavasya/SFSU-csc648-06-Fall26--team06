@@ -1,7 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
 
-
-
 const BUCKET = "rooms";
 
 export async function GET(request, { params }) {
@@ -33,7 +31,7 @@ export async function GET(request, { params }) {
 
     // no 3d model exists yet
     if (!room.has_3d_view) {
-return new Response(
+      return new Response(
         JSON.stringify({
           error: "room has no 3D model"
         }),
@@ -45,8 +43,8 @@ return new Response(
         }
       );
     }
-    
 
+    // download the GLB file from Supabase storage
     const { data, error } = await db.storage
       .from(BUCKET)
       .download(room.model_view_path);
