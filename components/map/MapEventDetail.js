@@ -18,35 +18,22 @@ import Link from "next/link";
 import {
   Accessibility,
   ArrowRight,
-  BookOpen,
-  Briefcase,
   CalendarDays,
   ChevronLeft,
   Clock,
   Hand,
-  HeartPulse,
   Mail,
   MapPin,
-  Palette,
-  Sparkles,
-  Trophy,
   Users,
 } from "lucide-react";
 import { formatLongDate } from "@/lib/map/events";
+import { bannerFor, bannerStyle } from "@/lib/events/banner";
 
-// Cover images for an event without an uploaded cover, picked from its first tag.
-const COVERS = [
-  { tags: ["Career", "Networking"], Icon: Briefcase, bg: "from-[#7b5cc4] to-[#4b2f8a]" },
-  { tags: ["Technology", "Tech", "AI"], Icon: Sparkles, bg: "from-[#5b7fdb] to-[#9db4ee]" },
-  { tags: ["Sports"], Icon: Trophy, bg: "from-[#e0913a] to-[#f2c14e]" },
-  { tags: ["Academic", "Study"], Icon: BookOpen, bg: "from-[#3f9a8a] to-[#7fcab9]" },
-  { tags: ["Arts"], Icon: Palette, bg: "from-[#d35c7a] to-[#f19aac]" },
-  { tags: ["Social", "Clubs", "Free food"], Icon: Users, bg: "from-[#e0634f] to-[#f0a08f]" },
-  { tags: ["Health & Wellness"], Icon: HeartPulse, bg: "from-[#3f9a6a] to-[#8fd0a8]" },
-];
+// Banner for an event without an uploaded cover: its first tag picks the colors
+// and icon, using the same rule as Explore events (lib/events/banner.js).
 export function coverFor(event) {
-  const tag = event.tags?.[0];
-  return COVERS.find((c) => c.tags.includes(tag)) ?? { Icon: CalendarDays, bg: "from-[#5b7fdb] to-[#9db4ee]" };
+  const banner = bannerFor(event.tags?.[0]);
+  return { Icon: banner.Icon, style: bannerStyle(banner) };
 }
 
 // "Oct" and "22" for the small date tile on the cover.
@@ -66,7 +53,7 @@ export default function MapEventDetail({
   onBack,
 }) {
   const headingRef = useRef(null);
-  const { Icon, bg } = coverFor(event);
+  const { Icon, style } = coverFor(event);
   const tile = dateTile(event.date);
 
   // Move keyboard / screen reader focus to the event title when it opens.
@@ -110,7 +97,7 @@ export default function MapEventDetail({
       </button>
 
       {/* Cover: the uploaded image, or a colored tile based on the category */}
-      <div className={`relative mt-3 grid h-36 place-items-center overflow-hidden rounded-[13px] bg-linear-to-br ${bg}`}>
+      <div className="relative mt-3 grid h-36 place-items-center overflow-hidden rounded-[13px]" style={style}>
         {event.coverUrl ? (
           <Image unoptimized fill src={event.coverUrl} alt={`Cover for ${event.title}`} className="object-cover" />
         ) : (
@@ -162,7 +149,7 @@ export default function MapEventDetail({
       {/* Admission and RSVP (same wording as the full event page) */}
       <section className="mt-5 rounded-[13px] border border-[#ebe7f0] bg-[#fbfafd] p-4">
         <h4 className="text-[15px] font-semibold text-[#262332]">
-          {event.admissionType === "paid" ? "Paid admission" : "Free"}
+          {event.admissionType === "paid" ? "Paid admission" : "Free admission"}
         </h4>
         <p className="mt-0.5 text-[12px] text-[#777180]">
           {event.capacity ? `${event.capacity} attendee capacity` : "Open capacity"}

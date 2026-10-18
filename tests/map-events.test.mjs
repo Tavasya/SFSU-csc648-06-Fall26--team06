@@ -9,6 +9,8 @@ import {
   formatWhen,
   groupEventsByVenue,
   inRange,
+  isMapPlace,
+  placeForLocation,
   toMapEvent,
 } from "../lib/map/events.js";
 
@@ -107,14 +109,55 @@ test("an event that crosses midnight Pacific gets the next day as its end date",
   assert.equal(event.endDate, "2026-10-23"); // 1 AM Pacific
 });
 
-test("buildScanIndex lists scanned rooms under their building", () => {
+// Rows shaped like the Supabase "rooms" query in lib/map/page-data.js (loadRoomScans)
+const roomRow = (id, name, buildingName) => ({
+  id,
+  room_name: name,
+  scan_date: "2026-10-04",
+  location: buildingName ? { building_name: buildingName } : null,
+});
+
+test("buildScanIndex lists scanned rooms under their map building", () => {
   const scans = buildScanIndex(
-    [{ building_name: "Jack Adams Hall" }, { building_name: "Quad" }, { building_name: "Unknown" }],
+    [
+      roomRow(1, "Rigoberta Menchu Hall Floor 1", "Cesar Chavez Student Center"),
+      roomRow(2, "Jack Adams Hall stage", "Jack Adams Hall"), // a venue: listed under its building
+      roomRow(3, "Quad lawn", "Quad"),
+    ],
     lookup,
   );
-  assert.deepEqual(scans, { ccsc: ["Jack Adams Hall"], quad: ["Quad"] });
+  assert.deepEqual(scans, {
+    ccsc: [
+      { id: 1, name: "Rigoberta Menchu Hall Floor 1", scanDate: "2026-10-04", venueId: null },
+      { id: 2, name: "Jack Adams Hall stage", scanDate: "2026-10-04", venueId: "jack-adams" },
+    ],
+    quad: [{ id: 3, name: "Quad lawn", scanDate: "2026-10-04", venueId: null }],
+  });
+});
+
+test("buildScanIndex skips rooms that aren't linked to a map location", () => {
+  const scans = buildScanIndex(
+    [roomRow(1, "No location yet", null), roomRow(2, "Somewhere else", "Downtown Campus")],
+    lookup,
+  );
+  assert.deepEqual(scans, {});
   assert.deepEqual(buildScanIndex([], lookup), {});
   assert.deepEqual(buildScanIndex(null, lookup), {});
+});
+
+test("placeForLocation finds the map place for a Supabase location name", () => {
+  assert.deepEqual(placeForLocation("Burk Hall", lookup), { mapId: "bh", venueId: null });
+  assert.deepEqual(placeForLocation("Bookstore", lookup), { mapId: "ccsc", venueId: "bookstore" });
+  assert.equal(placeForLocation("Downtown Campus", lookup), null);
+  assert.equal(placeForLocation(undefined, lookup), null);
+});
+
+test("isMapPlace only accepts ids the map knows (for /map?place= links)", () => {
+  assert.equal(isMapPlace("ccsc"), true);
+  assert.equal(isMapPlace("bookstore"), true);
+  assert.equal(isMapPlace("quad"), true);
+  assert.equal(isMapPlace("not-a-place"), false);
+  assert.equal(isMapPlace(undefined), false);
 });
 
 // Thursday, October 15, 2026 (local time); that week's Sunday is October 18.

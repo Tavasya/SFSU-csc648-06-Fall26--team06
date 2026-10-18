@@ -8,9 +8,10 @@
 
 "use client";
 
-import { Box, ChevronLeft, ChevronRight, MapPin, Users } from "lucide-react";
+import { ChevronLeft, ChevronRight, MapPin, Users } from "lucide-react";
 import { getCampusFeature } from "@/components/map/Map";
 import MapEventDetail, { coverFor } from "@/components/map/MapEventDetail";
+import RoomScansCard from "@/components/rooms/RoomScansCard";
 import { formatWhen, groupEventsByVenue } from "@/lib/map/events";
 
 const plural = (n, word) => `${n} ${word}${n === 1 ? "" : "s"}`;
@@ -18,7 +19,7 @@ const plural = (n, word) => `${n} ${word}${n === 1 ? "" : "s"}`;
 // One event in a building's list. Clicking it opens the event detail view.
 // (Only <span>s inside the button, because headings and <div>s aren't allowed in buttons.)
 function EventRow({ event, onOpen }) {
-  const { Icon, bg } = coverFor(event);
+  const { Icon, style } = coverFor(event);
   return (
     <li>
       <button
@@ -26,7 +27,7 @@ function EventRow({ event, onOpen }) {
         onClick={() => onOpen(event.id)}
         className="flex w-full items-start gap-3 rounded-[13px] border border-[#ebe7f0] bg-white p-3 text-left transition hover:border-[#d9cfe8] hover:bg-[#fbfafd] focus-visible:outline-2 focus-visible:outline-[#604398]"
       >
-        <span className={`grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-linear-to-br ${bg}`}>
+        <span className="grid h-12 w-12 shrink-0 place-items-center rounded-xl" style={style}>
           <Icon size={22} className="text-white" aria-hidden="true" />
         </span>
         <span className="block min-w-0 flex-1">
@@ -35,6 +36,9 @@ function EventRow({ event, onOpen }) {
             {formatWhen(event)}
             {event.roomNumber ? ` · Room ${event.roomNumber}` : ""}
           </span>
+          <span className="rounded-md bg-[#fff4d1] px-2 py-0.5 text-[11px] font-medium text-[#78672e]">
+              {event.admissionType === "paid" ? "Paid" : "Free"}
+            </span>
           <span className="mt-1.5 flex flex-wrap items-center gap-2">
             {(event.tags ?? []).slice(0, 2).map((tag) => (
               <span key={tag} className="rounded-md bg-[#f6f0fc] px-2 py-0.5 text-[11px] font-medium text-[#604398]">
@@ -171,24 +175,10 @@ export default function MapSidePanel({
             ))}
           </div>
 
-          {/* Only buildings with a scanned room (locations.has_3d_view in Supabase) show this card. */}
+          {/* Only buildings with a scanned room (Supabase "rooms" table) show this card. */}
           {selection.scannedRooms.length > 0 && (
-            <div className="mt-2 rounded-[13px] bg-[#f3eefa] p-4">
-              <p className="flex items-center gap-2 text-[14px] font-semibold text-[#262332]">
-                <Box size={18} className="text-[#604398]" aria-hidden="true" />
-                3D room scan available
-              </p>
-              <p className="mt-1 text-[13px] text-[#777180]">{selection.scannedRooms.join(" · ")}</p>
-              <button
-                type="button"
-                aria-disabled="true"
-                title="3D room scans are coming soon"
-                className="mt-3 inline-flex cursor-not-allowed items-center gap-1.5 rounded-full bg-[#604398] px-4 py-2 text-[12px] font-[550] text-white opacity-80"
-              >
-                <Box size={14} aria-hidden="true" />
-                Explore in 3D
-              </button>
-              <span className="ml-2 text-[11px] text-[#777180]">Coming soon</span>
+            <div className="mt-2">
+              <RoomScansCard rooms={selection.scannedRooms} />
             </div>
           )}
         </>

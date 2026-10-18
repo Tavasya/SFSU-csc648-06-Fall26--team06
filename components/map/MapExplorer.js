@@ -21,7 +21,9 @@
  *                    roomNumber, mapId, venueId, ...detail fields }]
  *                  (built by toMapEvent in lib/map/events.js)
  *  - unmatched:   events whose location isn't on the map (same shape)
- *  - scans:       { [mapId]: ["room name", ...] } buildings with a 3D room scan
+ *  - scans:       { [mapId]: [{ id, name, scanDate, venueId }] } buildings with a 3D room scan
+ *  - initialPlaceId / initialEventId: open the map on a place (and event),
+ *                  used by links like /map?place=ccsc&event=<id> from the event page
  *  - isSample:    true when showing lib/map/sample-events.js
  *  - loadError:   true when Supabase couldn't be reached
  */
@@ -54,14 +56,16 @@ export default function MapExplorer({
   scans = {},
   isSample = false,
   loadError = false,
+  initialPlaceId = null,
+  initialEventId = null,
 }) {
   const mapRef = useRef(null);
   const [today] = useState(() => new Date());
   const [range, setRange] = useState("all");
   const [category, setCategory] = useState("all");
-  const [selectedId, setSelectedId] = useState(null);
+  const [selectedId, setSelectedId] = useState(initialPlaceId);
   // The event open in the side panel's detail view (null = show the list).
-  const [openEventId, setOpenEventId] = useState(null);
+  const [openEventId, setOpenEventId] = useState(initialEventId);
 
   const allTags = useMemo(
     () => [...new Set(events.flatMap((e) => e.tags ?? []))].sort(),
@@ -213,7 +217,7 @@ export default function MapExplorer({
 
       <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
         <section className="min-w-0 flex-1" aria-label="Campus map">
-          <MapView ref={mapRef} selectedId={selectedId} onSelect={selectFromMap} pins={buildingsWithEvents} />
+          <MapView ref={mapRef} initialFocusId={initialPlaceId} selectedId={selectedId} onSelect={selectFromMap} pins={buildingsWithEvents} />
         </section>
 
         <MapSidePanel

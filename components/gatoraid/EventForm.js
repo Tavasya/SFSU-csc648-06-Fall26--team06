@@ -16,6 +16,11 @@ import {
 import { createClient } from "@/lib/supabase/client";
 import { validateEvent } from "@/lib/events/validation";
 import { localTime, pacificISO } from "@/lib/events/time";
+import {
+  bannerFor,
+  bannerStyle,
+  orderedCategoryNames,
+} from "@/lib/events/banner";
 export default function EventForm({
   event,
   categories,
@@ -182,6 +187,9 @@ export default function EventForm({
     </label>
   );
   const location = locations.find((l) => l.id === values.location_id);
+  // Categories in the order the host picked them; the first one picks the banner.
+  const categoryNames = orderedCategoryNames(values.category_ids, categories);
+  const banner = bannerFor(categoryNames[0]);
   const checks = [
     [
       "Title & description",
@@ -559,7 +567,10 @@ export default function EventForm({
         <aside className="ga-form-aside">
           <p className="ga-muted ga-small">Live preview</p>
           <div className="ga-mini-event ga-card">
-            <div className="ga-cover">
+            <div
+              className="ga-cover"
+              style={image ? undefined : bannerStyle(banner)}
+            >
               {image ? (
                 <Image
                   unoptimized
@@ -569,18 +580,16 @@ export default function EventForm({
                   alt=""
                 />
               ) : (
-                <CalendarDays size={48} />
+                <banner.Icon size={48} />
               )}
             </div>
             <div className="ga-mini-body">
               <div className="ga-chip-group">
-                {categories
-                  .filter((c) => values.category_ids.includes(c.id))
-                  .map((c) => (
-                    <span className="ga-badge" key={c.id}>
-                      {c.name}
-                    </span>
-                  ))}
+                {categoryNames.map((name) => (
+                  <span className="ga-badge" key={name}>
+                    {name}
+                  </span>
+                ))}
               </div>
               <h2>{values.title || "Your next great event"}</h2>
               <p className="ga-muted">
