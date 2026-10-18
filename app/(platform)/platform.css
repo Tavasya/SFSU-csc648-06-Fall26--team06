@@ -357,6 +357,10 @@
   background: #f2edf8;
   color: #75638b;
 }
+.price-badge{
+   background: #FFF1C7;
+   color: #8F6B00;
+}
 .ga-actions {
   display: flex;
   align-items: center;
@@ -742,6 +746,18 @@
 .ga-public-card {
   padding: 0 0 20px;
   overflow: hidden;
+}
+.ga-public-card-chips{
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 6px;
+}
+.ga-public-card-chips .ga-badge{
+  margin-right: 0;
+  margin-left: 20;
+  margin-top: 5;
 }
 .ga-public-card .ga-cover {
   margin-bottom: 16px;

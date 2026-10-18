@@ -107,8 +107,12 @@ export default function MapView({
   selectedId,
   onSelect,
   pins = [], // [{ id, label, count, has3D }] — buildings that get a pill pin
+  initialFocusId = null, // start zoomed in on this building / place / room
+  compact = false, // smaller card without the legend (event page preview)
 }) {
   const wrapRef = useRef(null);
+  // Only the first view uses initialFocusId; later changes come from selecting.
+  const initialFocusRef = useRef(initialFocusId);
   const svgRef = useRef(null);
   const [aspect, setAspect] = useState(H / W);
   const aspectRef = useRef(H / W);
@@ -135,6 +139,15 @@ export default function MapView({
     resizingRef.current = false;
   }, [view]);
 
+  // The view that frames one building / place / room (rooms frame their building).
+  function focusView(id, a) {
+    const el = svgRef.current?.querySelector(`[data-shape="${mapIdFor(id)}"]`);
+    if (!el) return null;
+    const bb = el.getBBox();
+    const w = Math.max(bb.width * 3.2, (bb.height * 3.2) / a, W / 4);
+    return clampView({ w, x: bb.x + bb.width / 2 - w / 2, y: bb.y + bb.height / 2 - (w * a) / 2 }, a);
+  }
+
   // Track the card size; keep the view's aspect equal to the card's.
   useEffect(() => {
     const el = wrapRef.current;
@@ -148,8 +161,15 @@ export default function MapView({
       setSize({ w: r.width, h: r.height });
       // Keep the user's center point when the card changes shape (e.g. rotating a phone).
       resizingRef.current = true;
+      if (firstMeasure) {
+        // Start on the whole campus, or zoomed in on initialFocusId. Remember its
+        // center so the next size update keeps it instead of re-centering on campus.
+        const first = (initialFocusRef.current && focusView(initialFocusRef.current, a)) || fullView(a);
+        centerRef.current = { x: first.x + first.w / 2, y: first.y + first.h / 2 };
+        setView(first);
+        return;
+      }
       setView((v) => {
-        if (firstMeasure) return fullView(a);
         const { x: cx, y: cy } = centerRef.current;
         return clampView({ w: v.w, x: cx - v.w / 2, y: cy - (v.w * a) / 2 }, a);
       });
@@ -218,16 +238,10 @@ export default function MapView({
   // This allows other UI elements, such as a location dropdown, to call flyTo(id) or reset().
   const flyTo = useCallback(
     (id) => {
-      const el = svgRef.current?.querySelector(`[data-shape="${mapIdFor(id)}"]`);
-      if (!el) return;
-      const bb = el.getBBox();
-      const a = aspectRef.current;
-      const w = Math.max(bb.width * 3.2, (bb.height * 3.2) / a, W / 4);
-      animateTo(
-        clamp({ w, x: bb.x + bb.width / 2 - w / 2, y: bb.y + bb.height / 2 - (w * a) / 2 }),
-      );
+      const target = focusView(id, aspectRef.current);
+      if (target) animateTo(target);
     },
-    [animateTo, clamp],
+    [animateTo],
   );
 
   useImperativeHandle(ref, () => ({ flyTo, reset }), [flyTo, reset]);
@@ -339,7 +353,9 @@ export default function MapView({
   return (
     <div
       ref={wrapRef}
-      className="relative h-110 w-full overflow-hidden rounded-[13px] border border-[#ebe7f0] bg-[#F0EDF3] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#604398] sm:h-130 lg:h-[min(72vh,660px)]"
+      className={`relative w-full overflow-hidden rounded-[13px] border border-[#ebe7f0] bg-[#F0EDF3] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#604398] ${
+        compact ? "h-64 sm:h-72" : "h-110 sm:h-130 lg:h-[min(72vh,660px)]"
+      }`}
       tabIndex={0}
       role="group"
       aria-label="SFSU campus map. Arrow keys move the map, plus and minus zoom, 0 resets."
@@ -563,6 +579,7 @@ export default function MapView({
       </div>
 
       {/* Legend */}
+      {!compact && (
       <div className="pointer-events-none absolute bottom-3 left-3 flex flex-wrap items-center gap-x-4 gap-y-1 rounded-lg border border-[#ebe7f0] bg-white/95 px-3 py-1.5 text-[11px] text-[#51475f] shadow-sm">
         <span className="flex items-center gap-1.5">
           <MapPin className="h-3.5 w-3.5 text-[#604398]" />
@@ -573,6 +590,7 @@ export default function MapView({
           3D room available
         </span>
       </div>
+      )}
 
       {/* North arrow + zoom controls */}
       <div className="absolute bottom-3 right-3 flex flex-col items-center gap-2">

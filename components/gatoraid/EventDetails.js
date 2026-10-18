@@ -9,6 +9,12 @@ import {
   ArrowLeft,
 } from "lucide-react";
 import Link from "next/link";
+import EventPlacePreview from "@/components/map/EventPlacePreview";
+import {
+  bannerFor,
+  bannerStyle,
+  orderedCategoryNames,
+} from "@/lib/events/banner";
 export default function EventDetails({
   event,
   categories,
@@ -16,7 +22,11 @@ export default function EventDetails({
   coverUrl,
   hostName,
   preview = false,
+  rooms = [],
 }) {
+  // Categories in the host's order; the first one picks the banner.
+  const categoryNames = orderedCategoryNames(event.category_ids, categories);
+  const banner = bannerFor(categoryNames[0]);
   const fmt = (v, opts) =>
     new Intl.DateTimeFormat("en-US", {
       timeZone: "America/Los_Angeles",
@@ -30,7 +40,10 @@ export default function EventDetails({
       </Link>
       <div className="ga-detail-grid">
         <div>
-          <div className="ga-detail-cover ga-cover">
+          <div
+            className="ga-detail-cover ga-cover"
+            style={coverUrl ? undefined : bannerStyle(banner)}
+          >
             {coverUrl ? (
               <Image
                 unoptimized
@@ -40,7 +53,7 @@ export default function EventDetails({
                 alt={"Cover for " + event.title}
               />
             ) : (
-              <CalendarDays size={80} />
+              <banner.Icon size={80} />
             )}
             <span className="ga-date-tile">
               {fmt(event.start_date_time, { month: "short" })}
@@ -48,13 +61,11 @@ export default function EventDetails({
             </span>
           </div>
           <div className="ga-chip-group">
-            {categories
-              .filter((c) => event.category_ids.includes(c.id))
-              .map((c) => (
-                <span className="ga-badge" key={c.id}>
-                  {c.name}
-                </span>
-              ))}
+            {categoryNames.map((name) => (
+              <span className="ga-badge" key={name}>
+                {name}
+              </span>
+            ))}
           </div>
           <h1>{event.title}</h1>
           <p className="ga-muted">Hosted by {hostName || "SFSU organizer"}</p>
@@ -116,6 +127,11 @@ export default function EventDetails({
                 {event.room_number && <p>{event.room_number}</p>}
               </div>
             </div>
+            <EventPlacePreview
+              buildingName={location?.building_name}
+              eventId={preview ? null : event.id}
+              rooms={rooms}
+            />
           </section>
         </div>
         <aside className="ga-card ga-registration">

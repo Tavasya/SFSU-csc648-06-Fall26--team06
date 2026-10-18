@@ -41,5 +41,8 @@ test("sample events point to real map places and rooms", () => {
     if (event.venueId) assert.ok(venueIds.has(event.venueId), `${event.id} has unknown venueId "${event.venueId}"`);
     assert.ok(event.endDate >= event.date, `${event.id} ends before it starts`);
   }
-  for (const id of Object.keys(SAMPLE_SCANS)) assert.ok(mapIds.has(id), `SAMPLE_SCANS has unknown id "${id}"`);
+  for (const [id, rooms] of Object.entries(SAMPLE_SCANS)) {
+    assert.ok(mapIds.has(id), `SAMPLE_SCANS has unknown id "${id}"`);
+    for (const room of rooms) assert.equal(room.id, null, "sample rooms must not point at real scans");
+  }
 });
