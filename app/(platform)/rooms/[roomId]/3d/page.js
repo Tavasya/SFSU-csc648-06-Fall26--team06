@@ -34,56 +34,57 @@ export default function Page() {
 
     // Load Unity WebGL build
     useEffect(() => {
-    let instance = null
-    let cancelled = false
+        let instance = null
+        let cancelled = false
 
-    const script = document.createElement('script')
-    script.src = '/unity/Build/build.loader.js'
-    script.async = true
+        const script = document.createElement('script')
+        script.src = '/unity/Build/build.loader.js'
+        script.async = true
 
-    script.onload = async () => {
-        if (cancelled) return
-        try {
-        const created = await window.createUnityInstance(canvasRef.current, {
-            dataUrl: '/unity/Build/build.data',
-            frameworkUrl: '/unity/Build/build.framework.js',
-            codeUrl: '/unity/Build/build.wasm',
-            streamingAssetsUrl: '/unity/StreamingAssets',
-            companyName: 'Gatoraid',
-            productName: '3D Room Viewer',
-            productVersion: '1.0',
-        })
-        if (cancelled) {
-            await created.Quit() // unmounted while loading
-            return
+        script.onload = async () => {
+            if (cancelled) return
+            try {
+                const created = await window.createUnityInstance(canvasRef.current, {
+                    dataUrl: '/unity/Build/build.data',
+                    frameworkUrl: '/unity/Build/build.framework.js',
+                    codeUrl: '/unity/Build/build.wasm',
+                    streamingAssetsUrl: '/unity/StreamingAssets',
+                    companyName: 'Gatoraid',
+                    productName: '3D Room Viewer',
+                    productVersion: '1.0',
+                })
+                if (cancelled) {
+                    // left the page while loading (reload discards module)
+                    window.location.reload()
+                    return
+                }
+                instance = created
+                unityInstanceRef.current = created
+
+                created.SendMessage("GLTF Importer", "ImportScan", JSON.stringify({
+                    baseAPIUrl: window.location.origin,
+                    scanId: params.roomId,
+                }))
+                
+            } catch (err) {
+                console.error('Unity failed to load:', err)
+            }
         }
-        instance = created
-        unityInstanceRef.current = instance
 
-        const messageBody = {
-            baseAPIUrl: window.location.origin,
-            scanId: params.roomId
+        script.onerror = () => console.error('Failed to load Unity loader script')
+        document.body.appendChild(script)
+
+        return () => {
+            cancelled = true
+            if (document.pointerLockElement) document.exitPointerLock()
+            if (script.parentNode) script.parentNode.removeChild(script)
+
+            if (instance) {
+                instance = null
+                window.location.reload()   // hard-load whatever page we navigated to
+            }
         }
-        created?.SendMessage("GLTF Importer", "ImportScan", JSON.stringify(messageBody));
-
-        } catch (err) {
-        console.error('Unity failed to load:', err)
-        }
-    }
-
-    script.onerror = () => console.error('Failed to load Unity loader script')
-
-    document.body.appendChild(script)
-
-    return () => {
-        cancelled = true
-        document.body.removeChild(script)
-        if (instance) {
-        instance.Quit().catch(console.error)
-        instance = null
-        }
-    }
-    }, [])
+    }, [params.roomId])
 
     // UnityPlayer component
     const UnityPlayer = () => (
