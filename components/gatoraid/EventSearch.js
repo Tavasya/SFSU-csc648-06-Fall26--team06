@@ -234,6 +234,12 @@ export default function EventSearch({ events, categories }) {
                 </div>
 
                 <h2>{event.title}</h2>
+                {event.recommendation_reasons?.length > 0 && (
+                  <p className="ga-muted student-match">
+                    Matches your interests: {event.recommendation_reasons.join(", ")}
+                  </p>
+                )}
+                {event.status !== "active" && <span className="ga-badge">{event.status}</span>}
 
                 <p className="ga-muted">
                   {new Date(
@@ -251,7 +257,7 @@ export default function EventSearch({ events, categories }) {
                 </p>
 
                 <span className="ga-badge price-badge">
-                  {event.eventCategories === "free"
+                  {event.admission_type === "free"
                     ? "Free"
                     : "Paid"}
                 </span>

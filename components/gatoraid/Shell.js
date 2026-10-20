@@ -37,11 +37,20 @@ export default function Shell({ children }) {
         <div className="ga-nav-label">Campus life, connected</div>
         <nav>
           <Link
-            className={!host && path.startsWith("/events") ? "active" : ""}
+            className={!host && path.startsWith("/events") && path !== "/events/for-you" ? "active" : ""}
             href="/events"
           >
             <Home size={18} />
             Explore events
+          </Link>
+          <Link className={path === "/events/for-you" ? "active" : ""} href="/events/for-you">
+            <GraduationCap size={18} /> For you
+          </Link>
+          <Link className={path === "/interests" ? "active" : ""} href="/interests">
+            <Plus size={18} /> Your interests
+          </Link>
+          <Link className={path === "/saved" ? "active" : ""} href="/saved">
+            <CalendarDays size={18} /> Saved events
           </Link>
           <Link
             className={path.startsWith("/map") ? "active" : ""}

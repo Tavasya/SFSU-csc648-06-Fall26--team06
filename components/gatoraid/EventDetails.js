@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import EventPlacePreview from "@/components/map/EventPlacePreview";
+import EventActions from "@/components/student/EventActions";
 import {
   bannerFor,
   bannerStyle,
@@ -149,8 +150,9 @@ export default function EventDetails({
           <p className="ga-muted ga-small">
             {preview
               ? "This is how your event will appear to students."
-              : "RSVP is not available yet. Contact the organizer for registration details."}
+              : "Manage your saved event and RSVP below."}
           </p>
+          {!preview && <EventActions event={event} />}
           {event.contact_email && (
             <a
               className="ga-button secondary"
