@@ -4,7 +4,8 @@
 * PURPOSE:
 * Implements MapView, the interactive 2D SFSU campus map. It draws the
 * campus using SVG geographic data from lib/map/geometry.js and uses
-* lib/map/buildings.js to identify buildings, outdoor spaces, and venues.
+* the Supabase "locations" table (passed in as the `campus` prop) to identify
+* buildings, outdoor spaces, and venues.
 * 
 */ 
 
@@ -13,7 +14,7 @@
 import { useCallback, useEffect, useImperativeHandle, useRef, useState } from "react";
 import { Box, MapPin, Maximize2, Minus, Navigation2, Plus } from "lucide-react";
 import geometry from "@/lib/map/geometry";
-import { BUILDINGS, PLACES, VENUES } from "@/lib/map/buildings";
+import { createCampus, NO_PLACES } from "@/lib/map/places";
 
 const W = geometry.width;
 const H = geometry.height;
@@ -39,50 +40,15 @@ const C = {
   gold: "#E3B44B",
 };
 
-// Builds a lookup table that connects app location IDs to their metadata, SVG shapes, and venue definitions.
-// These let the component find a location directly instead of searching the full arrays each time.
-
-// Building/place information, such as names and categories. 
-const META = new Map([...BUILDINGS, ...PLACES].map((b) => [b.id, b]));
 // The generated SVG shape and geographic coordinates for each ID.
 const SHAPES = new Map(
   [...geometry.buildings, ...geometry.places].map((s) => [s.id, s]),
 );
-// Venue information, including the parent building it belongs to.
-const VENUE_MAP = new Map(VENUES.map((v) => [v.id, v]));
-const byName = (a, b) => a.name.localeCompare(b.name);
 
-// Group all selectable locations for the "Fine a place" dropdown menu.
-// Venues include their parent building in the label so users can tell the building in which a room or facility is located.
-export const OPTION_GROUPS = [
-  { label: "Buildings", items: [...BUILDINGS].sort(byName).map((b) => ({ id: b.id, label: b.name })) },
-  { label: "Outdoor spaces", items: [...PLACES].sort(byName).map((p) => ({ id: p.id, label: p.name })) },
-  {
-    label: "Rooms & venues",
-    items: [...VENUES].sort(byName).map((v) => ({
-      id: v.id,
-      label: `${v.name} (${v.relation} ${META.get(v.parentId)?.name ?? "campus"})`,
-    })),
-  },
-];
-
-// The map shape to highlight for any id: a venue highlights its building.
-export function mapIdFor(id) {
-  return VENUE_MAP.get(id)?.parentId ?? id;
-}
-
-// Map metadata + coordinates for one building, place or venue, for the page.
-// Venues come back with `isVenue: true` and their `parent` building.
-export function getCampusFeature(id) {
-  const venue = VENUE_MAP.get(id);
-  if (venue) {
-    return { ...venue, isVenue: true, parent: getCampusFeature(venue.parentId) };
-  }
-  const meta = META.get(id);
-  const shape = SHAPES.get(id);
-  if (!meta || !shape) return null;
-  return { ...meta, isVenue: false, latitude: shape.latitude, longitude: shape.longitude };
-}
+// The lookups the map components use (see createCampus in lib/map/places.js),
+// for the places loaded from the "locations" table.
+export const campusFrom = (places = NO_PLACES) => createCampus(places, SHAPES);
+const EMPTY_CAMPUS = campusFrom();
 
 // Calculates the viewport needed to show the entire campus.
 function fullView(aspect) {
@@ -109,7 +75,12 @@ export default function MapView({
   pins = [], // [{ id, label, count, has3D }] — buildings that get a pill pin
   initialFocusId = null, // start zoomed in on this building / place / room
   compact = false, // smaller card without the legend (event page preview)
+  campus = EMPTY_CAMPUS, // buildings, outdoor spaces and venues, from campusFrom()
 }) {
+  // Buildings, outdoor spaces and venues from the "locations" table.
+  const { meta: META, mapIdFor } = campus;
+  // A shape whose place couldn't be loaded still draws, just without a name.
+  const placeFor = (id) => META.get(id) ?? { id, name: "Campus building", mapLabel: "" };
   const wrapRef = useRef(null);
   // Only the first view uses initialFocusId; later changes come from selecting.
   const initialFocusRef = useRef(initialFocusId);
@@ -140,13 +111,16 @@ export default function MapView({
   }, [view]);
 
   // The view that frames one building / place / room (rooms frame their building).
-  function focusView(id, a) {
-    const el = svgRef.current?.querySelector(`[data-shape="${mapIdFor(id)}"]`);
-    if (!el) return null;
-    const bb = el.getBBox();
-    const w = Math.max(bb.width * 3.2, (bb.height * 3.2) / a, W / 4);
-    return clampView({ w, x: bb.x + bb.width / 2 - w / 2, y: bb.y + bb.height / 2 - (w * a) / 2 }, a);
-  }
+  const focusView = useCallback(
+    (id, a) => {
+      const el = svgRef.current?.querySelector(`[data-shape="${mapIdFor(id)}"]`);
+      if (!el) return null;
+      const bb = el.getBBox();
+      const w = Math.max(bb.width * 3.2, (bb.height * 3.2) / a, W / 4);
+      return clampView({ w, x: bb.x + bb.width / 2 - w / 2, y: bb.y + bb.height / 2 - (w * a) / 2 }, a);
+    },
+    [mapIdFor],
+  );
 
   // Track the card size; keep the view's aspect equal to the card's.
   useEffect(() => {
@@ -178,7 +152,7 @@ export default function MapView({
     const observer = new ResizeObserver(update);
     observer.observe(el);
     return () => observer.disconnect();
-  }, []);
+  }, [focusView]);
 
   const zoom = fullView(aspect).w / view.w; // 1 = whole campus visible
   const pxPerUnit = size.w / view.w;
@@ -241,7 +215,7 @@ export default function MapView({
       const target = focusView(id, aspectRef.current);
       if (target) animateTo(target);
     },
-    [animateTo],
+    [animateTo, focusView],
   );
 
   useImperativeHandle(ref, () => ({ flyTo, reset }), [flyTo, reset]);
@@ -397,7 +371,7 @@ export default function MapView({
                   key={p.id}
                   role="button"
                   tabIndex={0}
-                  aria-label={META.get(p.id).name}
+                  aria-label={placeFor(p.id).name}
                   aria-pressed={selected}
                   className="group cursor-pointer outline-none"
                   onClick={() => select(p.id)}
@@ -405,7 +379,7 @@ export default function MapView({
                   onPointerEnter={() => setHoverId(p.id)}
                   onPointerLeave={() => setHoverId(null)}
                 >
-                  <title>{META.get(p.id).name}</title>
+                  <title>{placeFor(p.id).name}</title>
                   <path
                     data-shape={p.id}
                     d={p.d}
@@ -449,7 +423,7 @@ export default function MapView({
           {/* Campus buildings */}
           <g>
             {geometry.buildings.map((b) => {
-              const meta = META.get(b.id);
+              const meta = placeFor(b.id);
               const selected = b.id === activeId;
               return (
                 <g
@@ -525,7 +499,7 @@ export default function MapView({
                   paintOrder="stroke"
                   strokeLinejoin="round"
                 >
-                  {META.get(s.id).mapLabel}
+                  {placeFor(s.id).mapLabel}
                 </text>
               ) : null,
             )}
