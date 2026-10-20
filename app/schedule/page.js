@@ -156,7 +156,7 @@ export default function SchedulePage() {
 
     function handleSave() {
         setMessage(
-            "Schedule is ready. Database saving will be connected next."
+            "Schedule is ready. You are now ready to save your schedule."
         );
     }
 
