@@ -1,6 +1,7 @@
 import Link from "next/link";
-import { Plus, CalendarDays, FileText, Users, MapPin } from "lucide-react";
+import { Plus, CalendarDays, FileText, Users, Bookmark } from "lucide-react";
 import { pageContext } from "@/lib/events/page-data";
+import { engagementTotals, withEngagement } from "@/lib/events/engagement";
 import Access from "@/components/gatoraid/Access";
 import EventTable from "@/components/gatoraid/EventTable";
 export default async function Page() {
@@ -13,7 +14,8 @@ export default async function Page() {
       .select("*, locations(building_name)")
       .eq("host_id", user.id)
       .order("start_date_time");
-    events = result.data || [];
+    // Each event gets its saves and RSVP counts (counts only, never who).
+    events = await withEngagement(db, result.data || []);
     error = result.error;
   }
   const upcoming = events.filter(
@@ -21,7 +23,8 @@ export default async function Page() {
         e.publication_status === "published" &&
         new Date(e.end_date_time) > new Date(),
     ).length,
-    drafts = events.filter((e) => e.publication_status === "draft").length;
+    drafts = events.filter((e) => e.publication_status === "draft").length,
+    totals = engagementTotals(events);
   return (
     <>
       <div className="ga-heading">
@@ -46,12 +49,21 @@ export default async function Page() {
             "Published and coming up",
           ],
           [FileText, "Drafts", drafts, "Your ideas in progress"],
-          [Users, "RSVPs", "—", "RSVP tracking coming soon"],
           [
-            MapPin,
-            "Total events",
-            events.length,
-            "All your events in one place",
+            Users,
+            "RSVPs",
+            totals ? totals.attending : "—",
+            totals
+              ? `Attending · ${totals.interested} interested`
+              : "Could not load RSVPs right now",
+          ],
+          [
+            Bookmark,
+            "Saves",
+            totals ? totals.saves : "—",
+            totals
+              ? "Students who saved your events"
+              : "Could not load saves right now",
           ],
         ].map(([Icon, label, value, sub]) => (
           <div className="ga-card" key={label}>

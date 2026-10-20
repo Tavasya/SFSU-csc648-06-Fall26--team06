@@ -10,7 +10,7 @@ Every signed-in user can create events. Creating an event makes that user its ho
 
 ## API contract
 
-- GET/POST `/api/host/events`: list own events / create draft.
+- GET/POST `/api/host/events`: list own events / create draft. Each listed event includes `engagement: { saves, attending, interested }` (or `null` if the counts could not be loaded).
 - GET/PATCH/DELETE `/api/host/events/:eventId`: fetch, update, delete own event.
 - POST `/api/host/events/:eventId/publish`: validate and publish.
 - GET `/api/events` and `/api/events/:eventId`: published events only.
@@ -20,6 +20,10 @@ Event fields: `id`, `host_id`, `title`, `description`, `start_date_time`, `end_d
 All mutations verify the authenticated user and event ownership. RLS separately restricts event ownership; drafts and private images remain private. No service-role key is used. Cover storage is private, JPG/PNG only, at most 5 MB. Images are rendered using short-lived signed URLs.
 
 The unused legacy `public.Users` table was removed; accounts remain in `auth.users`. Locations/categories are initial team-editable reference data. RSVP counts are deliberately unavailable until the RSVP feature exists. Notifications, recurring events, AI, campus maps, 3D, and payment collection are outside this feature.
+
+## Saves and RSVP counts
+
+Hosts see how many people saved or RSVP'd to their own events: on the My Events dashboard (RSVPs and Saves cards, and per event in the table) and in `GET /api/host/events`. Saves and RSVPs stay private to each student (owner-only RLS); the `event_engagement(event_ids)` database function (`20261020130000_host_event_engagement.sql`) returns counts only, never who, and only for events the signed-in user hosts. `lib/events/engagement.js` loads them for both the page and the API.
 
 Validation: `npm run lint`, `npm run build`, `node --test tests/event-validation.test.mjs`. Check owner/non-owner permissions, draft visibility, publishing, editing, deletion and uploads using real test accounts.
 
