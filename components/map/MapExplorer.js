@@ -98,6 +98,18 @@ export default function MapExplorer({
     })
     .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
 
+    // Allow the Box icon to show on a building if there is a scan for that building, 
+    // even if that building has no events
+    const mapPins = [
+  ...buildingsWithEvents,
+  ...Object.keys(scans)
+    .filter((mapId) => !filtered.has(mapId))
+    .map((mapId) => {
+      const feature = getCampusFeature(mapId);
+      return { id: mapId, name: feature?.name ?? mapId, label: feature?.mapLabel ?? mapId, count: 0, has3D: true };
+    }),
+];
+
   // What the side panel shows for the current selection (building, outdoor
   // space or a room inside a building).
   const selection = useMemo(() => {
@@ -175,12 +187,12 @@ export default function MapExplorer({
           ))}
         </div>
 
-        <label className={`${chipClass(category !== "all")} relative cursor-pointer pr-9`}>
+        <label className={`${chipClass(category !== "all")} relative cursor-pointer`}>
           <span className="sr-only">Category</span>
           <select
             value={category}
             onChange={(e) => setCategory(e.target.value)}
-            className="cursor-pointer appearance-none bg-transparent outline-none"
+            className="cursor-pointer appearance-none bg-transparent outline-none pr-9"
           >
             <option value="all">All categories</option>
             {allTags.map((tag) => (
@@ -217,7 +229,7 @@ export default function MapExplorer({
 
       <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
         <section className="min-w-0 flex-1" aria-label="Campus map">
-          <MapView ref={mapRef} initialFocusId={initialPlaceId} selectedId={selectedId} onSelect={selectFromMap} pins={buildingsWithEvents} />
+          <MapView ref={mapRef} initialFocusId={initialPlaceId} selectedId={selectedId} onSelect={selectFromMap} pins={mapPins} />
         </section>
 
         <MapSidePanel

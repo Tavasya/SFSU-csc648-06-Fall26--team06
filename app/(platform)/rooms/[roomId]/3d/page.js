@@ -98,7 +98,8 @@ export default function Page() {
     return (
         <main style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center'}}>
             <h1>{roomInfo?.room_name || "Room"}</h1>
-            <p>3D scan · one featured room per building · scanned {roomInfo?.scan_date || "N/A"}</p>
+            <p>3D scan · One featured room per building · Scanned {roomInfo?.scan_date || "N/A"}</p>
+            <p>Use the W, A, S, and D keys to navigate the room</p>
             <div style={{ width: '80%', height: '60%', backgroundColor: 'black', aspectRatio: '3/2', borderRadius: '20px' }}>
                 {UnityPlayer()}
             </div>

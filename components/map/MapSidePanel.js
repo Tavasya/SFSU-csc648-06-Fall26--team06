@@ -34,7 +34,7 @@ function EventRow({ event, onOpen }) {
           <span className="block text-[14px] font-semibold leading-snug text-[#262332]">{event.title}</span>
           <span className="mt-0.5 block text-[12px] text-[#777180]">
             {formatWhen(event)}
-            {event.roomNumber ? ` · Room ${event.roomNumber}` : ""}
+            {event.roomNumber ? ` · ${event.roomNumber}` : ""}
           </span>
           <span className="rounded-md bg-[#fff4d1] px-2 py-0.5 text-[11px] font-medium text-[#78672e]">
               {event.admissionType === "paid" ? "Paid" : "Free"}

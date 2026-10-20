@@ -570,7 +570,7 @@ export default function MapView({
                   {pin.count}
                 </span>
               )}
-              {pin.has3D && showName && (
+              {pin.has3D && (
                 <Box className={`h-3.5 w-3.5 ${selected ? "text-white/80" : "text-[#777180]"}`} />
               )}
             </button>
