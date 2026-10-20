@@ -73,7 +73,7 @@ export default function MapEventDetail({
     },
     {
       Icon: MapPin,
-      text: `${placeName || "Campus location"}${event.roomNumber ? `, Room ${event.roomNumber}` : ""}`,
+      text: `${placeName || "Campus location"}${event.roomNumber ? `, ${event.roomNumber}` : ""}`,
       detail: event.locationDescription,
     },
     { Icon: Users, text: event.audience },

@@ -9,7 +9,6 @@
 "use client";
 
 import { ChevronLeft, ChevronRight, MapPin, Users } from "lucide-react";
-import { getCampusFeature } from "@/components/map/Map";
 import MapEventDetail, { coverFor } from "@/components/map/MapEventDetail";
 import RoomScansCard from "@/components/rooms/RoomScansCard";
 import { formatWhen, groupEventsByVenue } from "@/lib/map/events";
@@ -34,7 +33,7 @@ function EventRow({ event, onOpen }) {
           <span className="block text-[14px] font-semibold leading-snug text-[#262332]">{event.title}</span>
           <span className="mt-0.5 block text-[12px] text-[#777180]">
             {formatWhen(event)}
-            {event.roomNumber ? ` · Room ${event.roomNumber}` : ""}
+            {event.roomNumber ? ` · ${event.roomNumber}` : ""}
           </span>
           <span className="rounded-md bg-[#fff4d1] px-2 py-0.5 text-[11px] font-medium text-[#78672e]">
               {event.admissionType === "paid" ? "Paid" : "Free"}
@@ -60,6 +59,7 @@ function EventRow({ event, onOpen }) {
 }
 
 export default function MapSidePanel({
+  campus, // from campusFrom() in components/map/Map.js
   selection, // null, or { id, name, venue, parent, events, scannedRooms }
   buildings, // [{ id, name, count, has3D }] buildings with events in range
   rangeText, // "today" | "this week" | "coming up"
@@ -70,6 +70,7 @@ export default function MapSidePanel({
   onOpenEvent,
   onCloseEvent,
 }) {
+  const { getCampusFeature, venueMap } = campus;
   // Where the open event is: its Supabase location name, or the room / building on the map.
   const openEventPlace =
     openEvent &&
@@ -156,7 +157,7 @@ export default function MapSidePanel({
                 No upcoming events here {rangeText}.
               </p>
             )}
-            {groupEventsByVenue(selection.events).map((group, i, groups) => (
+            {groupEventsByVenue(selection.events, venueMap).map((group, i, groups) => (
               <section key={group.venueId || "elsewhere"} className="mb-4">
                 {!selection.venue && (groups.length > 1 || group.venueId) && (
                   <h3 className="mb-2 flex items-center justify-between text-[12px] font-semibold uppercase tracking-wide text-[#604398]">

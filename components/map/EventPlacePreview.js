@@ -17,17 +17,19 @@
 
 import Link from "next/link";
 import { Map as MapIcon } from "lucide-react";
-import MapView from "@/components/map/Map";
+import MapView, { campusFrom } from "@/components/map/Map";
 import RoomScansCard from "@/components/rooms/RoomScansCard";
-import { placeForLocation } from "@/lib/map/events";
+import { buildLocationLookup, placeForLocation } from "@/lib/map/events";
+import { NO_PLACES } from "@/lib/map/places";
 import "@/components/map/map.css";
 
 export default function EventPlacePreview({
   buildingName, // the event's Supabase locations.building_name
   eventId = null,
   rooms = [], // scanned rooms in the event's building: [{ id, name, scanDate }]
+  places = NO_PLACES, // the map's places, from toCampusPlaces (lib/map/places.js)
 }) {
-  const place = placeForLocation(buildingName);
+  const place = placeForLocation(buildingName, buildLocationLookup(places));
   if (!place && rooms.length === 0) return null;
 
   // Rooms (venues) are highlighted through their parent building.
@@ -38,7 +40,13 @@ export default function EventPlacePreview({
     <div className="campus-map mt-4 space-y-4">
       {place && (
         <div>
-          <MapView compact initialFocusId={placeId} selectedId={placeId} onSelect={() => {}} />
+          <MapView
+            compact
+            campus={campusFrom(places)}
+            initialFocusId={placeId}
+            selectedId={placeId}
+            onSelect={() => {}}
+          />
           <Link
             href={mapHref}
             className="mt-2 inline-flex items-center gap-1.5 text-[13px] font-medium text-[#604398] hover:text-[#503581] hover:underline"

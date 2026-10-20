@@ -87,7 +87,7 @@ function UnityCanvas({ roomId }) {
 
   return (
     <div className="relative h-full w-full">
-      <canvas ref={canvasRef} className="block h-full w-full" tabIndex={-1} aria-label="3D room scan" />
+      <canvas ref={canvasRef} className="block h-full w-full" tabIndex={-1} aria-label="3D room scan" id="unity-canvas"/>
       {status !== "ready" && (
         <div className="absolute inset-0 grid place-items-center bg-[#1f1a2b] text-center text-[12px] text-white/85">
           {status === "error" ? (

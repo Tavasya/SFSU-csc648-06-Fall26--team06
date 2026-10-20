@@ -7,13 +7,16 @@
  *
  * This file contains map shapes, roads, paths, labels, and building
  * coordinates used by the interactive campus map.
+ *
+ * Which OSM shapes are buildings and outdoor spaces comes from the Supabase
+ * "locations" table (map_id + osm_ids), read with the public key in .env.local.
  * Map data © OpenStreetMap contributors, licensed under the ODbL.
  */
 
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { BUILDINGS, PLACES, NOT_BUILDINGS } from "../../lib/map/buildings.js";
+import { PLACE_COLUMNS, toCampusPlaces } from "../../lib/map/places.js";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const input = process.argv[2];
@@ -21,6 +24,22 @@ if (!input) {
   console.error("Usage: node scripts/map/build-map.mjs <file.osm>");
   process.exit(1);
 }
+
+// OSM elements tagged as buildings that are really open spaces or canopies.
+const NOT_BUILDINGS = ["w338711146", "r4793455"];
+
+// The map's buildings and outdoor spaces, from the Supabase "locations" table.
+process.loadEnvFile(path.join(ROOT, ".env.local"));
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
+const response = await fetch(`${supabaseUrl}/rest/v1/locations?select=${PLACE_COLUMNS.replace(/\s/g, "")}&map_id=not.is.null`, {
+  headers: { apikey: supabaseKey, Authorization: `Bearer ${supabaseKey}` },
+});
+if (!response.ok) {
+  console.error(`Could not load locations from Supabase (HTTP ${response.status}).`);
+  process.exit(1);
+}
+const { buildings: BUILDINGS, places: PLACES } = toCampusPlaces(await response.json());
 
 // Main campus frame
 const FRAME = { south: 37.7193, north: 37.7297, west: -122.4858, east: -122.4744 };

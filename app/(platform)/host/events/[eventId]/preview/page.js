@@ -3,6 +3,7 @@ import { pageContext, options } from "@/lib/events/page-data";
 import Access from "@/components/gatoraid/Access";
 import EventDetails from "@/components/gatoraid/EventDetails";
 import PublishBar from "@/components/gatoraid/PublishBar";
+import { toCampusPlaces } from "@/lib/map/places";
 export default async function Page({ params }) {
   const { db, user, host } = await pageContext();
   if (!host) return <Access user={user} />;
@@ -31,6 +32,7 @@ export default async function Page({ params }) {
         location={locations.find((l) => l.id === event.location_id)}
         hostName={host.display_name}
         coverUrl={coverUrl}
+        places={toCampusPlaces(locations)}
       />
     </>
   );
