@@ -23,6 +23,7 @@ export default function EventDetails({
   hostName,
   preview = false,
   rooms = [],
+  places, // the Campus Map places, for the Location section's small map
 }) {
   // Categories in the host's order; the first one picks the banner.
   const categoryNames = orderedCategoryNames(event.category_ids, categories);
@@ -131,6 +132,7 @@ export default function EventDetails({
               buildingName={location?.building_name}
               eventId={preview ? null : event.id}
               rooms={rooms}
+              places={places}
             />
           </section>
         </div>

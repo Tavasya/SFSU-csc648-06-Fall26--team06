@@ -17,6 +17,8 @@
  *    whose location isn't on the map yet
  *
  * Props:
+ *  - places:      { buildings, places, venues } from the Supabase "locations" table
+ *                  (loadCampusPlaces in lib/map/page-data.js)
  *  - events:      [{ id, title, date, endDate, startTime, endTime, tags, rsvpCount,
  *                    roomNumber, mapId, venueId, ...detail fields }]
  *                  (built by toMapEvent in lib/map/events.js)
@@ -32,7 +34,7 @@
 
 import { useMemo, useRef, useState } from "react";
 import { Check, ChevronDown, Search } from "lucide-react";
-import MapView, { getCampusFeature, OPTION_GROUPS } from "@/components/map/Map";
+import MapView, { campusFrom } from "@/components/map/Map";
 import MapSidePanel from "@/components/map/MapSidePanel";
 import { inRange } from "@/lib/map/events";
 import "@/components/map/map.css";
@@ -51,6 +53,7 @@ const chipClass = (active) =>
   }`;
 
 export default function MapExplorer({
+  places, // buildings, outdoor spaces and venues from the "locations" table
   events = [],
   unmatched = [],
   scans = {},
@@ -59,6 +62,8 @@ export default function MapExplorer({
   initialPlaceId = null,
   initialEventId = null,
 }) {
+  const campus = useMemo(() => campusFrom(places), [places]);
+  const { getCampusFeature, optionGroups } = campus;
   const mapRef = useRef(null);
   const [today] = useState(() => new Date());
   const [range, setRange] = useState("all");
@@ -128,7 +133,7 @@ export default function MapExplorer({
         ? buildingEvents.filter((e) => e.venueId === selectedId)
         : buildingEvents,
     };
-  }, [selectedId, filtered, scans]);
+  }, [selectedId, filtered, scans, getCampusFeature]);
 
   // The open event, if it's still part of the selection. If a filter hides
   // it, the side panel goes back to the list on its own.
@@ -213,7 +218,7 @@ export default function MapExplorer({
             className="w-full min-w-0 cursor-pointer appearance-none truncate rounded-full border border-[#ebe7f0] bg-white py-2 pl-9 pr-9 text-[13px] text-[#262332] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#604398] sm:max-w-[320px]"
           >
             <option value="">Find a building, outdoor space or room…</option>
-            {OPTION_GROUPS.map((group) => (
+            {optionGroups.map((group) => (
               <optgroup key={group.label} label={group.label}>
                 {group.items.map((item) => (
                   <option key={item.id} value={item.id}>
@@ -229,10 +234,11 @@ export default function MapExplorer({
 
       <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
         <section className="min-w-0 flex-1" aria-label="Campus map">
-          <MapView ref={mapRef} initialFocusId={initialPlaceId} selectedId={selectedId} onSelect={selectFromMap} pins={mapPins} />
+          <MapView ref={mapRef} initialFocusId={initialPlaceId} selectedId={selectedId} onSelect={selectFromMap} pins={mapPins} campus={campus} />
         </section>
 
         <MapSidePanel
+          campus={campus}
           selection={selection}
           buildings={buildingsWithEvents}
           rangeText={rangeText}

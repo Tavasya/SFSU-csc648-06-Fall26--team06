@@ -13,8 +13,11 @@ import {
   placeForLocation,
   toMapEvent,
 } from "../lib/map/events.js";
+import { toCampusPlaces } from "../lib/map/places.js";
+import { LOCATION_ROWS } from "./fixtures/locations.mjs";
 
-const lookup = buildLocationLookup();
+const places = toCampusPlaces(LOCATION_ROWS);
+const lookup = buildLocationLookup(places);
 const categoryNames = new Map([
   ["cat-career", "Career"],
   ["cat-social", "Social"],
@@ -153,11 +156,11 @@ test("placeForLocation finds the map place for a Supabase location name", () => 
 });
 
 test("isMapPlace only accepts ids the map knows (for /map?place= links)", () => {
-  assert.equal(isMapPlace("ccsc"), true);
-  assert.equal(isMapPlace("bookstore"), true);
-  assert.equal(isMapPlace("quad"), true);
-  assert.equal(isMapPlace("not-a-place"), false);
-  assert.equal(isMapPlace(undefined), false);
+  assert.equal(isMapPlace("ccsc", places), true);
+  assert.equal(isMapPlace("bookstore", places), true);
+  assert.equal(isMapPlace("quad", places), true);
+  assert.equal(isMapPlace("not-a-place", places), false);
+  assert.equal(isMapPlace(undefined, places), false);
 });
 
 // Thursday, October 15, 2026 (local time); that week's Sunday is October 18.
@@ -185,12 +188,16 @@ test("inRange 'week' runs through Sunday", () => {
 });
 
 test("groupEventsByVenue puts named rooms first (A-Z) and the rest last", () => {
-  const groups = groupEventsByVenue([
-    { id: "a", venueId: null },
-    { id: "b", venueId: "jack-adams" },
-    { id: "c", venueId: "bookstore" },
-    { id: "d", venueId: "bookstore" },
-  ]);
+  const venueMap = new Map(places.venues.map((v) => [v.id, v]));
+  const groups = groupEventsByVenue(
+    [
+      { id: "a", venueId: null },
+      { id: "b", venueId: "jack-adams" },
+      { id: "c", venueId: "bookstore" },
+      { id: "d", venueId: "bookstore" },
+    ],
+    venueMap,
+  );
   assert.deepEqual(
     groups.map((g) => [g.label, g.events.map((e) => e.id)]),
     [
