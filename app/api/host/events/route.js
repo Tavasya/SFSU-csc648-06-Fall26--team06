@@ -1,4 +1,5 @@
 import { hostContext, payload, respond, ApiError } from "@/lib/events/api";
+import { withEngagement } from "@/lib/events/engagement";
 export const GET = respond(async (request) => {
   const { db, user } = await hostContext(request);
   const { data, error } = await db
@@ -7,7 +8,7 @@ export const GET = respond(async (request) => {
     .eq("host_id", user.id)
     .order("start_date_time");
   if (error) throw new ApiError("Could not load events.", 503);
-  return { events: data };
+  return { events: await withEngagement(db, data) };
 });
 export const POST = respond(async (request) => {
   const { db, user } = await hostContext(request);

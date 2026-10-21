@@ -67,6 +67,7 @@ export default function EventTable({ initialEvents }) {
               <th>Event</th>
               <th>Date & time</th>
               <th>Status</th>
+              <th>RSVPs & saves</th>
               <th>Actions</th>
             </tr>
           </thead>
@@ -112,6 +113,20 @@ export default function EventTable({ initialEvents }) {
                         ? "Published"
                         : "Draft"}
                     </span>
+                  </td>
+                  <td>
+                    {e.engagement ? (
+                      <>
+                        {e.engagement.attending} attending
+                        <small>
+                          {e.engagement.interested} interested ·{" "}
+                          {e.engagement.saves}{" "}
+                          {e.engagement.saves === 1 ? "save" : "saves"}
+                        </small>
+                      </>
+                    ) : (
+                      "—"
+                    )}
                   </td>
                   <td>
                     <div className="ga-actions">
