@@ -29,6 +29,45 @@
 | **Team Website URL (Vercel)** | https://sfsu-csc648-06-fall26-team06-three.vercel.app/events |
 | **Supabase Database**         | Access was provided through an email invitation              |
 
+# M2 Features
+
+For Milestone 2, our team built a vertical prototype of GatorAid in which each feature runs end to end: the user interface, the Next.js API routes or server pages, and the Supabase database. All data comes from Supabase, and row-level security (RLS) protects each user's information.
+
+## Student Features
+
+| Feature | Description |
+| --- | --- |
+| **Explore Events** | Browse all published, upcoming campus events and search them by keyword. Each event card shows its date, time, location and category. |
+| **Event Details** | View an event's full information, including date, time, location, capacity, accessibility, contact information and description, along with a small map of the event's building. |
+| **Save Events** | Save an event to come back to it later. Saved events appear on the Saved page. |
+| **RSVP** | RSVP to an event as Attending, Interested or Not Attending. Saving and RSVPing are separate, so a student can do one without the other. |
+| **Interests** | Choose the event categories you are interested in, such as Technology or Career. Interests are saved to your account. |
+| **For You Recommendations** | See upcoming events that match your interests, with an explanation of why each event was recommended. Results can be filtered by date, location, category and keyword. |
+
+## Host Features
+
+| Feature | Description |
+| --- | --- |
+| **Create Events** | Any signed-in user can host an event. Hosts fill in the title, description, date and time, campus location and room, categories, capacity, accessibility and contact information, and can upload a cover image. |
+| **Campus Locations** | The location field includes 76 SFSU campus buildings, venues and outdoor spaces, with room suggestions for each building. |
+| **Drafts, Preview and Publish** | Events start as private drafts. Hosts can preview an event exactly as students will see it, then publish it. |
+| **Edit and Delete Events** | Hosts can update or remove only the events they created. |
+| **My Events Dashboard** | Hosts see a list of their own events with each event's status, plus the number of students who RSVP'd to and saved each event. Hosts see counts only, never which students. |
+
+## Campus Map and 3D Exploration
+
+| Feature | Description |
+| --- | --- |
+| **Interactive 2D Campus Map** | A to-scale map of the SFSU campus built from OpenStreetMap data. Users can zoom, pan and search for buildings, outdoor spaces and rooms. Every place on the map is stored in Supabase. |
+| **Events on the Map** | Buildings with upcoming events are highlighted. Selecting a building shows its events, which can be filtered by time and category. Event pages link to the event's location on the map. |
+| **3D Room Exploration** | Rooms scanned with Scaniverse can be explored in 3D through Unity, opened directly from the campus map. |
+
+## Backend and Data
+
+- **Database:** Supabase (PostgreSQL), with tables for events, locations, categories, interests, saved events, RSVPs and 3D rooms. All changes are made through version-controlled migrations.
+- **Authentication:** Supabase Auth handles sign-in and accounts. Browsing is open to everyone, and personal features require signing in.
+- **Security:** Row-level security ensures users can only see and change their own data, and that only published events are visible to other users.
+- **APIs:** Next.js API routes handle actions such as creating and publishing events, saving events, RSVPing, updating interests and loading recommendations.
 
 ## Team Familiarity
 
@@ -210,43 +249,3 @@ Our primary communication platform is Discord, with dedicated channels for proje
 | **When2Meet** | Used to coordinate additional meetings based on team availability |
 | **Soft-Fixed Meeting** | Fridays at 7:00 PM |
 | **Meeting Format** | Virtual meetings |
-
-# M2 Features
-
-For Milestone 2, our team built a vertical prototype of GatorAid in which each feature runs end to end: the user interface, the Next.js API routes or server pages, and the Supabase database. All data comes from Supabase, and row-level security (RLS) protects each user's information.
-
-## Student Features
-
-| Feature | Description |
-| --- | --- |
-| **Explore Events** | Browse all published, upcoming campus events and search them by keyword. Each event card shows its date, time, location and category. |
-| **Event Details** | View an event's full information, including date, time, location, capacity, accessibility, contact information and description, along with a small map of the event's building. |
-| **Save Events** | Save an event to come back to it later. Saved events appear on the Saved page. |
-| **RSVP** | RSVP to an event as Attending, Interested or Not Attending. Saving and RSVPing are separate, so a student can do one without the other. |
-| **Interests** | Choose the event categories you are interested in, such as Technology or Career. Interests are saved to your account. |
-| **For You Recommendations** | See upcoming events that match your interests, with an explanation of why each event was recommended. Results can be filtered by date, location, category and keyword. |
-
-## Host Features
-
-| Feature | Description |
-| --- | --- |
-| **Create Events** | Any signed-in user can host an event. Hosts fill in the title, description, date and time, campus location and room, categories, capacity, accessibility and contact information, and can upload a cover image. |
-| **Campus Locations** | The location field includes 76 SFSU campus buildings, venues and outdoor spaces, with room suggestions for each building. |
-| **Drafts, Preview and Publish** | Events start as private drafts. Hosts can preview an event exactly as students will see it, then publish it. |
-| **Edit and Delete Events** | Hosts can update or remove only the events they created. |
-| **My Events Dashboard** | Hosts see a list of their own events with each event's status, plus the number of students who RSVP'd to and saved each event. Hosts see counts only, never which students. |
-
-## Campus Map and 3D Exploration
-
-| Feature | Description |
-| --- | --- |
-| **Interactive 2D Campus Map** | A to-scale map of the SFSU campus built from OpenStreetMap data. Users can zoom, pan and search for buildings, outdoor spaces and rooms. Every place on the map is stored in Supabase. |
-| **Events on the Map** | Buildings with upcoming events are highlighted. Selecting a building shows its events, which can be filtered by time and category. Event pages link to the event's location on the map. |
-| **3D Room Exploration** | Rooms scanned with Scaniverse can be explored in 3D through Unity, opened directly from the campus map. |
-
-## Backend and Data
-
-- **Database:** Supabase (PostgreSQL), with tables for events, locations, categories, interests, saved events, RSVPs and 3D rooms. All changes are made through version-controlled migrations.
-- **Authentication:** Supabase Auth handles sign-in and accounts. Browsing is open to everyone, and personal features require signing in.
-- **Security:** Row-level security ensures users can only see and change their own data, and that only published events are visible to other users.
-- **APIs:** Next.js API routes handle actions such as creating and publishing events, saving events, RSVPing, updating interests and loading recommendations.
