@@ -18,7 +18,7 @@
 | **Front-End Technology** | React |
 | **Styling** | Tailwind CSS |
 | **Application Framework / Back-End Technology** | Next.js, JavaScript |
-| **AI Technology** | OpenAI API |
+| **AI Technology** | Gemini API |
 | **3D Capture Technology** | Scaniverse (Niantic Spatial) |
 | **3D Development / Rendering** | Unity |
 
@@ -26,7 +26,7 @@
 
 | Item                          | Credentials / Access                                        |
 | ----------------------------- | ----------------------------------------------------------- |
-| **Team Website URL (Vercel)** | https://sfsu-csc648-06-fall26-team06-three.vercel.app/about |
+| **Team Website URL (Vercel)** | https://sfsu-csc648-06-fall26-team06-three.vercel.app/events |
 | **Supabase Database**         | Access was provided through an email invitation              |
 
 
@@ -41,7 +41,7 @@
 | React | 3 | 2 | 4 | 4 | 2 | 4 |
 | Tailwind CSS | 1 | 1 | 2 | 4 | 1 | 3 |
 | Next.js | 2 | 2 | 1 | 3 | 1 | 3 |
-| OpenAI API | 2 | 1 | 1 | 4 | 3 | 1 |
+| Gemini API | 2 | 1 | 1 | 4 | 3 | 1 |
 | Scaniverse | 1 | 2 | 2 | 1 | 2 | 2 |
 | Unity | 1 | 4 | 4 | 4 | 2 | 1 |
 
@@ -133,7 +133,7 @@ Our team will conduct focused study sessions throughout the first month of devel
 - Learn about Row Level Security (RLS) and how it protects database records from unauthorized access.
 - Establish database conventions so team members interact with the backend consistently.
 
-## OpenAI API
+## Gemini API
 
 **Leader:** Phong or Tavasya  
 **Participants:** David, Kelsey, Emerson, and Emely  
@@ -141,7 +141,7 @@ Our team will conduct focused study sessions throughout the first month of devel
 
 ### Specific Goals to Accomplish
 
-- Understand how the OpenAI API can be integrated into a Next.js application.
+- Understand how the Gemini API can be integrated into a Next.js application.
 - Learn how to securely send requests to the API without exposing API keys.
 - Understand how user prompts are submitted and how AI-generated responses are returned.
 - Learn about prompt engineering and structured AI responses.
@@ -196,7 +196,7 @@ Our team will conduct focused study sessions throughout the first month of devel
 | Next.js | Week 1 |
 | Vercel | Week 2 |
 | Supabase | Week 2 |
-| OpenAI API | Week 2 |
+| Gemini API | Week 2 |
 | Scaniverse | Week 3 |
 | Unity | Week 4 |
 
@@ -211,16 +211,42 @@ Our primary communication platform is Discord, with dedicated channels for proje
 | **Soft-Fixed Meeting** | Fridays at 7:00 PM |
 | **Meeting Format** | Virtual meetings |
 
-# Why Our About Page Matters
+# M2 Features
 
-Our About page provides visitors with a clear introduction to our team, our individual backgrounds, and how we collaborate throughout the project.
+For Milestone 2, our team built a vertical prototype of GatorAid in which each feature runs end to end: the user interface, the Next.js API routes or server pages, and the Supabase database. All data comes from Supabase, and row-level security (RLS) protects each user's information.
 
-1. **SFSU Visual Identity:** SFSU's purple and gold color palette creates a consistent visual identity and connects the page to our campus community.
+## Student Features
 
-2. **Networking:** Each team member has a profile with a short bio and direct LinkedIn and GitHub links, allowing visitors to learn more about our backgrounds and connect with us professionally.
+| Feature | Description |
+| --- | --- |
+| **Explore Events** | Browse all published, upcoming campus events and search them by keyword. Each event card shows its date, time, location and category. |
+| **Event Details** | View an event's full information, including date, time, location, capacity, accessibility, contact information and description, along with a small map of the event's building. |
+| **Save Events** | Save an event to come back to it later. Saved events appear on the Saved page. |
+| **RSVP** | RSVP to an event as Attending, Interested or Not Attending. Saving and RSVPing are separate, so a student can do one without the other. |
+| **Interests** | Choose the event categories you are interested in, such as Technology or Career. Interests are saved to your account. |
+| **For You Recommendations** | See upcoming events that match your interests, with an explanation of why each event was recommended. Results can be filtered by date, location, category and keyword. |
 
-3. **Showcasing Our Work:** GitHub links allow visitors to explore projects we have worked on beyond this class, highlighting our individual technical skills and experiences.
+## Host Features
 
-4. **Team Transparency:** The page clearly displays each member's role, meeting schedule, and communication methods so visitors can understand how our team is organized and collaborates.
+| Feature | Description |
+| --- | --- |
+| **Create Events** | Any signed-in user can host an event. Hosts fill in the title, description, date and time, campus location and room, categories, capacity, accessibility and contact information, and can upload a cover image. |
+| **Campus Locations** | The location field includes 76 SFSU campus buildings, venues and outdoor spaces, with room suggestions for each building. |
+| **Drafts, Preview and Publish** | Events start as private drafts. Hosts can preview an event exactly as students will see it, then publish it. |
+| **Edit and Delete Events** | Hosts can update or remove only the events they created. |
+| **My Events Dashboard** | Hosts see a list of their own events with each event's status, plus the number of students who RSVP'd to and saved each event. Hosts see counts only, never which students. |
 
-5. **Interactive User Experience:** Clicking on a team member opens a modal containing additional information, keeping the page clean and organized while allowing visitors to view more details when they are interested.
+## Campus Map and 3D Exploration
+
+| Feature | Description |
+| --- | --- |
+| **Interactive 2D Campus Map** | A to-scale map of the SFSU campus built from OpenStreetMap data. Users can zoom, pan and search for buildings, outdoor spaces and rooms. Every place on the map is stored in Supabase. |
+| **Events on the Map** | Buildings with upcoming events are highlighted. Selecting a building shows its events, which can be filtered by time and category. Event pages link to the event's location on the map. |
+| **3D Room Exploration** | Rooms scanned with Scaniverse can be explored in 3D through Unity, opened directly from the campus map. |
+
+## Backend and Data
+
+- **Database:** Supabase (PostgreSQL), with tables for events, locations, categories, interests, saved events, RSVPs and 3D rooms. All changes are made through version-controlled migrations.
+- **Authentication:** Supabase Auth handles sign-in and accounts. Browsing is open to everyone, and personal features require signing in.
+- **Security:** Row-level security ensures users can only see and change their own data, and that only published events are visible to other users.
+- **APIs:** Next.js API routes handle actions such as creating and publishing events, saving events, RSVPing, updating interests and loading recommendations.
