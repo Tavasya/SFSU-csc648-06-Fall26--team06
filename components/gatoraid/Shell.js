@@ -11,6 +11,7 @@ import {
   ArrowLeftRight,
   MapPin,
   Map as MapIcon,
+  Upload,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 export default function Shell({ children }) {
@@ -58,6 +59,13 @@ export default function Shell({ children }) {
           >
             <MapIcon size={18} />
             Campus map
+          </Link>
+          <Link
+            className={path === "/schedule" ? "active" : ""}
+            href="/schedule"
+          >
+            <Upload size={18} />
+            Upload Schedule
           </Link>
           <Link href="/about">
             <GraduationCap size={18} />
