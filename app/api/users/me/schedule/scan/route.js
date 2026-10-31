@@ -5,8 +5,8 @@ import { NextResponse } from "next/server";
 export const runtime = "nodejs";
 
 const MAX_SIZE = 5 * 1024 * 1024;
-const MAX_ATTEMPTS = 2;
-const REQUEST_TIMEOUT = 60000;
+const MAX_ATTEMPTS = 1;
+const REQUEST_TIMEOUT = 45000;
 
 const ALLOWED_TYPES = [
     "image/png",
@@ -150,7 +150,7 @@ export async function POST(request) {
 
         // 6. Configure Gemini request
         const options = {
-            model: "gemini-3.8-flash",
+            model: "gemini-3.6-flash",
 
             contents: [
                 {
@@ -327,7 +327,7 @@ IMPORTANT RULES:
             return NextResponse.json(
                 {
                     error:
-                        "Gemini took too long to respond. Please try again.",
+                        "AI scanning timed out. Your uploaded image is still available. Please retry shortly or enter classes manually.",
                 },
                 { status: 504 }
             );
