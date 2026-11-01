@@ -414,6 +414,7 @@ function getSearchTerms(question) {
     );
 }
 
+
 function getRequestedLocation(question, locations) {
   const normalizedQuestion = normalizeText(question);
 
@@ -422,14 +423,16 @@ function getRequestedLocation(question, locations) {
     .map((location) => ({
       id: location.id,
       name: normalizeText(location.building_name),
+      displayName: location.building_name,
     }))
     .filter((location) =>
-      normalizedQuestion.includes(location.name)
+      containsKeyword(normalizedQuestion, location.name)
     )
     .sort((a, b) => b.name.length - a.name.length);
 
   return matches[0] || null;
 }
+
 
 function getEventScore(event, question) {
   const title = normalizeText(event.title);
@@ -534,6 +537,14 @@ function filterEvents(
   );
 
   const searchTerms = getSearchTerms(topicQuestion);
+  const isLocationOnlySearch =
+    requestedLocation !== null &&
+    searchTerms.length === 0 &&
+    !Object.values(SEARCH_TYPES).some((keywords) =>
+      keywords.some((keyword) =>
+        containsKeyword(topicQuestion, keyword)
+      )
+    );
 
   return events
     .filter((event) => {
@@ -574,7 +585,17 @@ function filterEvents(
           !topic.hasBroadCategory
         );
 
+
       let matches = false;
+
+      if (isLocationOnlySearch) {
+        // The user is searching by building,
+        // so the location filter is sufficient.
+        matches = true;
+      } else if (exactTitle) {
+        matches = true;
+      }
+
 
       if (exactTitle) {
         matches = true;
@@ -1113,11 +1134,72 @@ export async function POST(request) {
       });
     }
 
+
     if (intent === "summary") {
+      const normalizedQuestion = normalizeText(question);
+
+      const namedEvent = matchingEvents.find(
+        (event) =>
+          event.title &&
+          containsKeyword(
+            normalizedQuestion,
+            normalizeText(event.title)
+          )
+      );
+
+      // A location was provided, but no specific event title.
+      if (requestedLocation && !namedEvent) {
+        if (matchingEvents.length === 0) {
+          return NextResponse.json({
+            answer:
+              `I couldn't find any matching published events at ` +
+              `${requestedLocation.displayName}. ` +
+              `Try another date or check Explore Events.`,
+            events: [],
+          });
+        }
+
+        if (matchingEvents.length > 1) {
+          return NextResponse.json({
+            answer:
+              `I found ${matchingEvents.length} matching events at ` +
+              `${requestedLocation.displayName}. ` +
+              `Which event would you like me to summarize?`,
+            events: await attachVenueRooms(
+              supabase,
+              matchingEvents.slice(0, MAX_RESULTS)
+            ),
+          });
+        }
+
+        // Exactly one matching event: summarize it.
+        const onlyEvent = matchingEvents[0];
+
+        try {
+          const summary = await summarizeEventWithGemini(onlyEvent);
+
+          return NextResponse.json({
+            answer: summary,
+            events: await attachVenueRooms(supabase, [onlyEvent]),
+          });
+        } catch (error) {
+          console.error("Gemini summary failed:", error);
+
+          return NextResponse.json({
+            answer:
+              `I found "${onlyEvent.title}", but AI summarization ` +
+              `is temporarily unavailable.\n\n` +
+              (onlyEvent.description || "No description provided."),
+            events: await attachVenueRooms(supabase, [onlyEvent]),
+          });
+        }
+      }
+
       const bestMatch = findBestEvent(
         matchingEvents,
         question
       );
+
 
       if (!bestMatch) {
         return NextResponse.json({
@@ -1170,17 +1252,38 @@ export async function POST(request) {
       matchingEvents.slice(0, MAX_RESULTS)
     );
 
+
     const count = matchingEvents.length;
 
-    return NextResponse.json({
-      answer: count
-        ? `I found ${count} matching campus event(s).` +
+    let answer;
+
+    if (count > 0) {
+      answer =
+        `I found ${count} matching campus event(s).` +
         (count > MAX_RESULTS
           ? ` Showing the first ${MAX_RESULTS}.`
-          : "")
-        : "I couldn't find any matching published campus events for your request. Try another topic, location, or date.",
+          : "");
+    } else if (requestedLocation && !filters.wantsPast) {
+      answer =
+        `I couldn't find any upcoming events at ` +
+        `${requestedLocation.displayName || requestedLocation.name}. ` +
+        `Try asking about past events at this location ` +
+        `or searching another date.`;
+    } else if (requestedLocation && filters.wantsPast) {
+      answer =
+        `I couldn't find any matching past events at ` +
+        `${requestedLocation.displayName || requestedLocation.name}.`;
+    } else {
+      answer =
+        "I couldn't find any matching published campus events " +
+        "for your request. Try another topic, location, or date.";
+    }
+
+    return NextResponse.json({
+      answer,
       events: eventsWithRooms,
     });
+
   } catch (error) {
     console.error("Assistant API error:", error);
 
