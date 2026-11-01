@@ -74,6 +74,7 @@ function UnityCanvas({ roomId }) {
         );
         setStatus("ready");
       })
+      
       .catch((error) => {
         console.error("3D viewer failed to load:", error);
         if (!cancelled) setStatus("error");
