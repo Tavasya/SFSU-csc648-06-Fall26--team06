@@ -4,6 +4,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import {
   CalendarDays,
+  CalendarRange,
   Plus,
   Home,
   GraduationCap,
@@ -51,6 +52,9 @@ export default function Shell({ children }) {
           </Link>
           <Link className={path === "/saved" ? "active" : ""} href="/saved">
             <CalendarDays size={18} /> Saved events
+          </Link>
+          <Link className={path === "/calendar" ? "active" : ""} href="/calendar">
+            <CalendarRange size={18} /> Calendar
           </Link>
           <Link
             className={path.startsWith("/map") ? "active" : ""}
