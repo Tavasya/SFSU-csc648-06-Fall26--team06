@@ -1,6 +1,6 @@
 # Student calendar
 
-Route: `/calendar` (sidebar: Calendar). A week view of the signed-in student's saved and RSVP'd events, based on the Figma frame "11 · My Events Calendar". Class schedule blocks are supported and will appear once the schedule scanner is merged (see [Class schedule](#class-schedule)).
+Route: `/calendar` (sidebar: Calendar). A week view of the signed-in student's saved and RSVP'd events, based on the Figma frame "11 · My Events Calendar". Class schedule blocks come from the student's saved schedule (see [Class schedule](#class-schedule)).
 
 Copy `.env.example` to `.env.local` and supply the Supabase URL and publishable key. Run `npm ci`, then `npm run dev`.
 
@@ -44,15 +44,15 @@ An event that is both saved and RSVP'd shows once, as its RSVP. Not Attending RS
 
 ## Class schedule
 
-Classes come from the schedule scanner (`feature/ai-schedule-scanner-ui`), which saves them and returns them from GET `/api/users/me/schedule` as:
+Classes come from the schedule scanner (`/schedule`), which saves them and returns them from GET `/api/users/me/schedule` as:
 
 ```json
-{ "classes": [{ "name": "CSC 648", "days": "Mon, Wed", "startTime": "14:00", "endTime": "15:15" }] }
+{ "classes": [{ "id": "…", "name": "CSC 648", "days": "Mon, Wed", "startTime": "14:00", "endTime": "15:15" }] }
 ```
 
-`days` uses Mon–Sun separated by commas, and times are 24-hour `HH:mm`. `classBlocks()` in `lib/calendar/week.js` already turns these into blocks and skips entries with missing or invalid times.
+`days` uses Mon–Sun separated by commas, and times are 24-hour `HH:mm`. `classBlocks()` in `lib/calendar/week.js` turns these into blocks and skips entries with missing or invalid times.
 
-Until the scanner is on main, `useClasses()` at the top of `CalendarView.js` returns an empty list. To connect it, load the endpoint there (for example with `useStudentData("/api/users/me/schedule")`) and return `data.classes`. Nothing else needs to change.
+`useClasses()` at the top of `CalendarView.js` loads this endpoint with `useStudentData` and returns `data.classes`. If the schedule can't load, the calendar still shows saved and RSVP'd events.
 
 ## Verification
 
@@ -60,5 +60,6 @@ Until the scanner is on main, `useClasses()` at the top of `CalendarView.js` ret
 2. Open Calendar: each event appears on its day and time with the matching style, and clicking one opens its event page.
 3. Change one RSVP to Not Attending: the event disappears unless it is also saved.
 4. Use the arrows to move between weeks and Today to come back.
-5. Narrow the window below 800px: the day picker appears and the page does not scroll sideways.
-6. Run `npm test`.
+5. Upload and save a schedule at `/schedule`, then open Calendar: each class appears as a gray block on its meeting days and times, and clicking it does nothing.
+6. Narrow the window below 800px: the day picker appears and the page does not scroll sideways.
+7. Run `npm test`.
