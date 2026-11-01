@@ -13,6 +13,7 @@ export const runtime = "nodejs";
 
 const TIME_ZONE = "America/Los_Angeles";
 const MAX_RESULTS = 10;
+const MAX_QUERY_RESULTS = 500;
 
 const MONTHS = [
   "january", "february", "march", "april",
@@ -20,8 +21,15 @@ const MONTHS = [
   "september", "october", "november", "december",
 ];
 
+const MONTH_ALIASES = {
+  jan: 0, feb: 1, mar: 2, apr: 3,
+  jun: 5, jul: 6, aug: 7, sep: 8,
+  sept: 8, oct: 9, nov: 10, dec: 11,
+};
+
 const DATE_WORDS = new Set([
   ...MONTHS,
+  ...Object.keys(MONTH_ALIASES),
   "today", "tomorrow", "yesterday",
   "week", "weekend", "month", "year",
   "monday", "tuesday", "wednesday",
@@ -30,7 +38,7 @@ const DATE_WORDS = new Set([
 
 const STOP_WORDS = new Set([
   "a", "an", "the", "is", "are", "was", "were",
-  "what", "when", "where", "which", "who",
+  "what", "whats", "when", "where", "which", "who",
   "show", "me", "find", "tell", "about",
   "please", "for", "at", "in", "on", "of",
   "this", "that", "next", "last", "all",
@@ -41,10 +49,13 @@ const STOP_WORDS = new Set([
   "compare", "comparison", "and", "vs",
   "versus", "sfsu", "campus", "there",
   "any", "has", "have", "can", "you",
-  "some", "list", "give", "up",
+  "some", "list", "give", "up", "going",
+  "around", "currently", "now", "does",
+  "take", "place", "time", "date", "during",
+  "between", "from", "through", "starting",
 ]);
 
-const searchTypes = {
+const SEARCH_TYPES = {
   exhibition: [
     "exhibition", "exhibitions", "exhibit",
     "exhibits", "gallery", "art show",
@@ -69,7 +80,7 @@ const searchTypes = {
   ],
 };
 
-const broadCategoryWords = {
+const BROAD_CATEGORY_WORDS = {
   exhibition: [
     "exhibition", "exhibitions", "exhibit",
     "exhibits", "gallery", "art show",
@@ -78,12 +89,11 @@ const broadCategoryWords = {
   career: ["career", "careers"],
   technology: ["technology", "tech"],
   workshop: [
-    "workshop", "workshops", "seminar",
-    "training",
+    "workshop", "workshops", "seminar", "training",
   ],
 };
 
-const eventKeywords = [
+const EVENT_KEYWORDS = [
   "event", "events", "campus", "sfsu",
   "activities", "activity", "upcoming",
   "summarize", "summary", "compare",
@@ -91,13 +101,20 @@ const eventKeywords = [
   "past", "completed", "finished",
 ];
 
-function containsKeyword(text, keyword) {
-  const escaped = keyword.replace(
-    /[.*+?^${}()|[\]\\]/g,
-    "\\$&"
-  );
+function normalizeText(value) {
+  return String(value || "")
+    .toLowerCase()
+    .replace(/[’']/g, "")
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim()
+    .replace(/\s+/g, " ");
+}
 
-  return new RegExp(`\\b${escaped}\\b`, "i").test(text);
+function containsKeyword(text, keyword) {
+  const source = ` ${normalizeText(text)} `;
+  const target = ` ${normalizeText(keyword)} `;
+
+  return source.includes(target);
 }
 
 function dateInPacific(value) {
@@ -130,6 +147,7 @@ function formatPacific(value) {
 function addCalendarDays(day, amount) {
   const date = new Date(`${day}T12:00:00Z`);
   date.setUTCDate(date.getUTCDate() + amount);
+
   return date.toISOString().slice(0, 10);
 }
 
@@ -137,9 +155,35 @@ function weekdayForDay(day) {
   return new Date(`${day}T12:00:00Z`).getUTCDay();
 }
 
+function monthIndexForName(name) {
+  const normalized = name.toLowerCase().replace(/\.$/, "");
+  const full = MONTHS.indexOf(normalized);
+
+  if (full >= 0) return full;
+
+  return MONTH_ALIASES[normalized] ?? -1;
+}
+
+function validCalendarDay(year, monthIndex, day) {
+  const date = new Date(
+    Date.UTC(year, monthIndex, day)
+  );
+
+  if (
+    date.getUTCFullYear() !== year ||
+    date.getUTCMonth() !== monthIndex ||
+    date.getUTCDate() !== day
+  ) {
+    return null;
+  }
+
+  return date.toISOString().slice(0, 10);
+}
+
 function getDateFilters(question, now) {
   const text = question.toLowerCase();
   const today = dateInPacific(now);
+  const currentYear = Number(today.slice(0, 4));
 
   const yearMatch = text.match(/\b(20\d{2})\b/);
   const requestedYear = yearMatch
@@ -150,12 +194,55 @@ function getDateFilters(question, now) {
     /\b(ended|past|previous|completed|finished)\b/i.test(text) ||
     /\balready happened\b/i.test(text);
 
-  const monthIndex = MONTHS.findIndex((month) =>
-    containsKeyword(text, month)
-  );
-
   let startDay = null;
   let endDay = null;
+
+  const weekOfMatch = text.match(
+    /\bweek of\s+([a-z]+)\s+(\d{1,2})(?:st|nd|rd|th)?(?:,?\s+(20\d{2}))?\b/i
+  );
+
+  if (weekOfMatch) {
+    const monthIndex = monthIndexForName(weekOfMatch[1]);
+    const day = Number(weekOfMatch[2]);
+    const year = weekOfMatch[3]
+      ? Number(weekOfMatch[3])
+      : requestedYear || currentYear;
+
+    const requestedDay =
+      monthIndex >= 0
+        ? validCalendarDay(year, monthIndex, day)
+        : null;
+
+    if (!requestedDay) {
+      return {
+        wantsPast,
+        requestedYear,
+        startDay: null,
+        endDay: null,
+        invalidDate: true,
+        explicitRange: true,
+      };
+    }
+
+    const weekday = weekdayForDay(requestedDay);
+    const daysSinceMonday = (weekday + 6) % 7;
+
+    startDay = addCalendarDays(
+      requestedDay,
+      -daysSinceMonday
+    );
+
+    endDay = addCalendarDays(startDay, 6);
+
+    return {
+      wantsPast,
+      requestedYear,
+      startDay,
+      endDay,
+      invalidDate: false,
+      explicitRange: true,
+    };
+  }
 
   if (containsKeyword(text, "today")) {
     startDay = today;
@@ -169,6 +256,16 @@ function getDateFilters(question, now) {
 
     startDay = addCalendarDays(today, daysUntilMonday);
     endDay = addCalendarDays(startDay, 6);
+  } else if (/\bnext weekend\b/i.test(text)) {
+    const weekday = weekdayForDay(today);
+    const daysUntilSaturday = (6 - weekday + 7) % 7;
+
+    startDay = addCalendarDays(
+      today,
+      daysUntilSaturday + 7
+    );
+
+    endDay = addCalendarDays(startDay, 1);
   } else if (/\b(this )?weekend\b/i.test(text)) {
     const weekday = weekdayForDay(today);
     const daysUntilSaturday = (6 - weekday + 7) % 7;
@@ -179,22 +276,28 @@ function getDateFilters(question, now) {
     const weekday = weekdayForDay(today);
     const daysSinceMonday = (weekday + 6) % 7;
 
-    startDay = addCalendarDays(today, -daysSinceMonday);
-    endDay = addCalendarDays(startDay, 6);
-  } else if (monthIndex >= 0) {
-    const year =
-      requestedYear || Number(today.slice(0, 4));
-
-    const month = String(monthIndex + 1).padStart(2, "0");
-
-    startDay = `${year}-${month}-01`;
-
-    const nextMonth = new Date(
-      Date.UTC(year, monthIndex + 1, 1)
+    startDay = addCalendarDays(
+      today,
+      -daysSinceMonday
     );
 
+    endDay = addCalendarDays(startDay, 6);
+  } else if (/\bnext month\b/i.test(text)) {
+    const year = Number(today.slice(0, 4));
+    const month = Number(today.slice(5, 7));
+
+    const nextMonth = new Date(
+      Date.UTC(year, month, 1)
+    );
+
+    const followingMonth = new Date(
+      Date.UTC(year, month + 1, 1)
+    );
+
+    startDay = nextMonth.toISOString().slice(0, 10);
+
     endDay = addCalendarDays(
-      nextMonth.toISOString().slice(0, 10),
+      followingMonth.toISOString().slice(0, 10),
       -1
     );
   } else if (/\bthis month\b/i.test(text)) {
@@ -212,23 +315,37 @@ function getDateFilters(question, now) {
       nextMonth.toISOString().slice(0, 10),
       -1
     );
-  } else if (/\bnext month\b/i.test(text)) {
-    const year = Number(today.slice(0, 4));
-    const month = Number(today.slice(5, 7));
-
-    const nextMonth = new Date(
-      Date.UTC(year, month, 1)
+  } else {
+    const monthIndex = MONTHS.findIndex((month) =>
+      containsKeyword(text, month)
     );
 
-    const followingMonth = new Date(
-      Date.UTC(year, month + 1, 1)
-    );
+    const abbreviatedMonth = Object.keys(
+      MONTH_ALIASES
+    ).find((month) => containsKeyword(text, month));
 
-    startDay = nextMonth.toISOString().slice(0, 10);
-    endDay = addCalendarDays(
-      followingMonth.toISOString().slice(0, 10),
-      -1
-    );
+    const selectedMonth =
+      monthIndex >= 0
+        ? monthIndex
+        : abbreviatedMonth
+          ? MONTH_ALIASES[abbreviatedMonth]
+          : -1;
+
+    if (selectedMonth >= 0) {
+      const year = requestedYear || currentYear;
+
+      startDay =
+        `${year}-${String(selectedMonth + 1).padStart(2, "0")}-01`;
+
+      const nextMonth = new Date(
+        Date.UTC(year, selectedMonth + 1, 1)
+      );
+
+      endDay = addCalendarDays(
+        nextMonth.toISOString().slice(0, 10),
+        -1
+      );
+    }
   }
 
   return {
@@ -236,6 +353,8 @@ function getDateFilters(question, now) {
     requestedYear,
     startDay,
     endDay,
+    invalidDate: false,
+    explicitRange: Boolean(startDay && endDay),
   };
 }
 
@@ -250,12 +369,14 @@ function matchesDateFilters(event, filters, now) {
     return false;
   }
 
+  if (filters.invalidDate) return false;
+
   const startDay = dateInPacific(start);
   const endDay = dateInPacific(end);
 
   if (filters.wantsPast) {
     if (end >= now) return false;
-  } else if (end <= now) {
+  } else if (!filters.explicitRange && end <= now) {
     return false;
   }
 
@@ -281,10 +402,9 @@ function matchesDateFilters(event, filters, now) {
 }
 
 function getSearchTerms(question) {
-  return question
-    .toLowerCase()
-    .replace(/\b20\d{2}\b/g, " ")
-    .replace(/[^a-z0-9\s]/g, " ")
+  return normalizeText(
+    question.replace(/\b20\d{2}\b/g, " ")
+  )
     .split(/\s+/)
     .filter(
       (word) =>
@@ -294,20 +414,33 @@ function getSearchTerms(question) {
     );
 }
 
-function getEventScore(event, question) {
-  const title = (event.title || "").toLowerCase();
-  const description =
-    (event.description || "").toLowerCase();
+function getRequestedLocation(question, locations) {
+  const normalizedQuestion = normalizeText(question);
 
-  const normalized = question.toLowerCase();
+  const matches = (locations || [])
+    .filter((location) => location.building_name)
+    .map((location) => ({
+      id: location.id,
+      name: normalizeText(location.building_name),
+    }))
+    .filter((location) =>
+      normalizedQuestion.includes(location.name)
+    )
+    .sort((a, b) => b.name.length - a.name.length);
+
+  return matches[0] || null;
+}
+
+function getEventScore(event, question) {
+  const title = normalizeText(event.title);
+  const description = normalizeText(event.description);
+  const normalized = normalizeText(question);
 
   if (title && normalized.includes(title)) {
     return 100;
   }
 
   const terms = getSearchTerms(question);
-
-  if (!terms.length) return 0;
 
   let score = 0;
 
@@ -322,11 +455,14 @@ function getEventScore(event, question) {
   return score;
 }
 
-function filterEvents(events, question, now) {
-  const normalized = question.toLowerCase();
-  const filters = getDateFilters(question, now);
+function getTopicMatches(event, question) {
+  const normalized = normalizeText(question);
 
-  const matchedTypes = Object.entries(searchTypes)
+  const title = normalizeText(event.title);
+  const description = normalizeText(event.description);
+  const searchableText = `${title} ${description}`;
+
+  const matchedTypes = Object.entries(SEARCH_TYPES)
     .filter(([, keywords]) =>
       keywords.some((keyword) =>
         containsKeyword(normalized, keyword)
@@ -335,68 +471,126 @@ function filterEvents(events, question, now) {
     .map(([type]) => type);
 
   const specificTerms = matchedTypes.flatMap((type) =>
-    searchTypes[type].filter(
+    SEARCH_TYPES[type].filter(
       (keyword) =>
         containsKeyword(normalized, keyword) &&
-        !broadCategoryWords[type].includes(keyword)
+        !BROAD_CATEGORY_WORDS[type].includes(keyword)
     )
   );
 
   const hasBroadCategory = matchedTypes.some((type) =>
-    broadCategoryWords[type].some((keyword) =>
+    BROAD_CATEGORY_WORDS[type].some((keyword) =>
       containsKeyword(normalized, keyword)
     )
   );
 
-  const searchTerms = getSearchTerms(question);
+  const specificMatch = specificTerms.some((term) =>
+    containsKeyword(searchableText, term)
+  );
 
-  const hasSpecificSearch =
-    specificTerms.length > 0 ||
-    (searchTerms.length > 0 && !hasBroadCategory);
+  const broadMatch = matchedTypes.some((type) =>
+    SEARCH_TYPES[type].some((keyword) =>
+      containsKeyword(searchableText, keyword)
+    )
+  );
+
+  return {
+    matchedTypes,
+    specificTerms,
+    hasBroadCategory,
+    specificMatch,
+    broadMatch,
+  };
+}
+
+function filterEvents(
+  events,
+  question,
+  now,
+  requestedLocation = null
+) {
+  const normalized = normalizeText(question);
+  const filters = getDateFilters(question, now);
+
+  const locationName =
+    requestedLocation?.name || null;
+
+  // Remove recognized building names before extracting
+  // topic keywords, so location words do not become topics.
+  let topicQuestion = normalized;
+
+  if (locationName) {
+    topicQuestion = topicQuestion
+      .replace(locationName, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+  }
+
+  // Remove "week of November 16" so "16" does not
+  // accidentally become a topic search term.
+  topicQuestion = topicQuestion.replace(
+    /\bweek of\s+[a-z]+\s+\d{1,2}(?:st|nd|rd|th)?(?:\s+20\d{2})?\b/g,
+    " "
+  );
+
+  const searchTerms = getSearchTerms(topicQuestion);
 
   return events
-    .filter((event) =>
-      matchesDateFilters(event, filters, now)
-    )
+    .filter((event) => {
+      if (!matchesDateFilters(event, filters, now)) {
+        return false;
+      }
+
+      if (requestedLocation) {
+        if (
+          event.location_id !== requestedLocation.id
+        ) {
+          return false;
+        }
+      }
+
+      return true;
+    })
     .map((event) => {
-      const title =
-        (event.title || "").toLowerCase();
-
-      const description =
-        (event.description || "").toLowerCase();
-
-      const searchableText =
-        `${title} ${description}`;
+      const title = normalizeText(event.title);
 
       const exactTitle =
         title && normalized.includes(title);
 
-      const specificMatch = specificTerms.some((term) =>
-        containsKeyword(searchableText, term)
+      const topic = getTopicMatches(
+        event,
+        topicQuestion
       );
 
-      const broadMatch = matchedTypes.some((type) =>
-        searchTypes[type].some((keyword) =>
-          containsKeyword(searchableText, keyword)
-        )
+      const score = getEventScore(
+        event,
+        topicQuestion
       );
 
-      const score = getEventScore(event, question);
+      const hasSpecificSearch =
+        topic.specificTerms.length > 0 ||
+        (
+          searchTerms.length > 0 &&
+          !topic.hasBroadCategory
+        );
 
       let matches = false;
 
       if (exactTitle) {
         matches = true;
       } else if (hasSpecificSearch) {
+        // Specific topic queries must match the
+        // requested topic, not an unrelated category.
         matches =
-          specificMatch ||
-          (searchTerms.length > 0 && score > 0);
-      } else if (hasBroadCategory) {
-        matches = broadMatch;
+          topic.specificTerms.length > 0
+            ? topic.specificMatch
+            : score > 0;
+      } else if (topic.hasBroadCategory) {
+        matches = topic.broadMatch;
       } else if (searchTerms.length > 0) {
         matches = score > 0;
       } else {
-        // General event request with no specific topic.
+        // General event search filtered by date/location.
         matches = true;
       }
 
@@ -411,28 +605,22 @@ function filterEvents(events, question, now) {
       (a, b) =>
         b.score - a.score ||
         new Date(a.event.start_date_time) -
-          new Date(b.event.start_date_time)
+        new Date(b.event.start_date_time)
     )
     .map((item) => item.event);
 }
 
-function detectIntent(question, events) {
-  const normalized = question.toLowerCase().trim();
-
-  const cleaned = normalized
-    .replace(/[!?.,]/g, "")
-    .replace(/\s+/g, " ")
-    .trim();
+function detectIntent(question, events, requestedLocation) {
+  const normalized = normalizeText(question);
 
   const greetings = [
     "hello", "hi", "hey",
     "good morning", "good afternoon",
     "good evening", "how are you",
-    "how are you doing", "what's up",
-    "whats up",
+    "how are you doing", "whats up",
   ];
 
-  if (greetings.includes(cleaned)) {
+  if (greetings.includes(normalized)) {
     return "greeting";
   }
 
@@ -447,17 +635,18 @@ function detectIntent(question, events) {
   const matchesTitle = events.some(
     (event) =>
       event.title &&
-      normalized.includes(event.title.toLowerCase())
+      normalized.includes(normalizeText(event.title))
   );
 
-  const matchesCategory = Object.values(searchTypes).some(
-    (keywords) =>
-      keywords.some((keyword) =>
-        containsKeyword(normalized, keyword)
-      )
+  const matchesCategory = Object.values(
+    SEARCH_TYPES
+  ).some((keywords) =>
+    keywords.some((keyword) =>
+      containsKeyword(normalized, keyword)
+    )
   );
 
-  const matchesEventKeyword = eventKeywords.some(
+  const matchesEventKeyword = EVENT_KEYWORDS.some(
     (keyword) =>
       containsKeyword(normalized, keyword)
   );
@@ -472,13 +661,14 @@ function detectIntent(question, events) {
     !matchesTitle &&
     !matchesCategory &&
     !matchesEventKeyword &&
-    !wantsPast
+    !wantsPast &&
+    !requestedLocation
   ) {
     return "unsupported";
   }
 
   if (
-    /\b(compare|comparison|versus|vs\.?)\b/i.test(
+    /\b(compare|comparison|versus|vs)\b/i.test(
       normalized
     )
   ) {
@@ -493,16 +683,24 @@ function detectIntent(question, events) {
     return "summary";
   }
 
+  if (
+    /\b(when is|when does|what time|what date)\b/i.test(
+      normalized
+    )
+  ) {
+    return "event_time";
+  }
+
   return "search";
 }
 
 function findBestEvent(events, question) {
-  const normalized = question.toLowerCase();
+  const normalized = normalizeText(question);
 
   const exact = events.find(
     (event) =>
       event.title &&
-      normalized.includes(event.title.toLowerCase())
+      normalized.includes(normalizeText(event.title))
   );
 
   if (exact) return exact;
@@ -519,12 +717,12 @@ function findBestEvent(events, question) {
 }
 
 function findEventsToCompare(events, question) {
-  const normalized = question.toLowerCase();
+  const normalized = normalizeText(question);
 
   const exactMatches = events.filter(
     (event) =>
       event.title &&
-      normalized.includes(event.title.toLowerCase())
+      normalized.includes(normalizeText(event.title))
   );
 
   if (exactMatches.length >= 2) {
@@ -536,11 +734,10 @@ function findEventsToCompare(events, question) {
       /^(please\s+)?(compare|comparison of)\s+/i,
       ""
     )
-    .replace(/[?.!]/g, "")
     .trim();
 
   const names = cleaned
-    .split(/\s+(?:and|vs\.?|versus)\s+/i)
+    .split(/\s+(?:and|vs|versus)\s+/i)
     .map((name) => name.trim())
     .filter(Boolean);
 
@@ -549,13 +746,13 @@ function findEventsToCompare(events, question) {
   const matched = names.map((name) => {
     const exact = events.find(
       (event) =>
-        event.title.toLowerCase() === name
+        normalizeText(event.title) === name
     );
 
     if (exact) return exact;
 
     const partial = events.filter((event) =>
-      event.title.toLowerCase().includes(name)
+      normalizeText(event.title).includes(name)
     );
 
     return partial.length === 1
@@ -729,10 +926,60 @@ export async function POST(request) {
     const now = new Date();
     const filters = getDateFilters(question, now);
 
+    if (filters.invalidDate) {
+      return NextResponse.json({
+        answer:
+          "I couldn't understand that calendar date. " +
+          "Please try a valid date, such as November 16, 2026.",
+        events: [],
+      });
+    }
+
+    // Load real campus locations to identify building names.
+    const {
+      data: locations,
+      error: locationsError,
+    } = await supabase
+      .from("locations")
+      .select("id, building_name");
+
+    if (locationsError) {
+      console.error(
+        "Assistant location query:",
+        locationsError.message
+      );
+
+      return NextResponse.json(
+        {
+          error: "Unable to retrieve campus locations.",
+        },
+        { status: 503 }
+      );
+    }
+
+    const requestedLocation = getRequestedLocation(
+      question,
+      locations || []
+    );
+
+    const explicitPastRange =
+      filters.explicitRange &&
+      filters.endDay < dateInPacific(now);
+
+    const shouldSearchPast =
+      filters.wantsPast || explicitPastRange;
+
     let eventsQuery = supabase
       .from("events")
       .select("*, locations(building_name)")
       .eq("publication_status", "published");
+
+    if (requestedLocation) {
+      eventsQuery = eventsQuery.eq(
+        "location_id",
+        requestedLocation.id
+      );
+    }
 
     if (filters.wantsPast) {
       eventsQuery = eventsQuery
@@ -740,6 +987,11 @@ export async function POST(request) {
         .order("end_date_time", {
           ascending: false,
         });
+    } else if (shouldSearchPast) {
+      eventsQuery = eventsQuery.order(
+        "start_date_time",
+        { ascending: false }
+      );
     } else {
       eventsQuery = eventsQuery
         .eq("status", "active")
@@ -748,7 +1000,7 @@ export async function POST(request) {
     }
 
     const { data: events, error } =
-      await eventsQuery.limit(100);
+      await eventsQuery.limit(MAX_QUERY_RESULTS);
 
     if (error) {
       console.error(
@@ -766,9 +1018,11 @@ export async function POST(request) {
     }
 
     const availableEvents = events || [];
+
     const intent = detectIntent(
       question,
-      availableEvents
+      availableEvents,
+      requestedLocation
     );
 
     if (intent === "greeting") {
@@ -792,8 +1046,13 @@ export async function POST(request) {
     }
 
     if (intent === "comparison") {
+      const eligibleEvents = availableEvents.filter(
+        (event) =>
+          matchesDateFilters(event, filters, now)
+      );
+
       const selected = findEventsToCompare(
-        availableEvents,
+        eligibleEvents,
         question
       );
 
@@ -819,8 +1078,40 @@ export async function POST(request) {
     const matchingEvents = filterEvents(
       availableEvents,
       question,
-      now
+      now,
+      requestedLocation
     );
+
+    if (intent === "event_time") {
+      const bestMatch = findBestEvent(
+        matchingEvents,
+        question
+      );
+
+      if (!bestMatch) {
+        return NextResponse.json({
+          answer:
+            "I couldn't find a matching published event. " +
+            "Try using the exact event title or another date.",
+          events: [],
+        });
+      }
+
+      const location =
+        bestMatch.locations?.building_name ||
+        "an unspecified campus location";
+
+      return NextResponse.json({
+        answer:
+          `${bestMatch.title} is scheduled for ` +
+          `${formatPacific(bestMatch.start_date_time)} ` +
+          `at ${location}.`,
+        events: await attachVenueRooms(
+          supabase,
+          [bestMatch]
+        ),
+      });
+    }
 
     if (intent === "summary") {
       const bestMatch = findBestEvent(
@@ -862,9 +1153,8 @@ export async function POST(request) {
           answer:
             `I found "${bestMatch.title}", but AI summarization ` +
             `is temporarily unavailable.\n\n` +
-            `Event description: ${
-              bestMatch.description ||
-              "No description provided."
+            `Event description: ${bestMatch.description ||
+            "No description provided."
             }\n\n` +
             "You can open the event details for more information.",
           events: await attachVenueRooms(
@@ -884,15 +1174,15 @@ export async function POST(request) {
 
     return NextResponse.json({
       answer: count
-        ? `I found ${count} matching campus event(s).`
-        : "I couldn't find any matching published campus events for your request. Try another topic or date.",
+        ? `I found ${count} matching campus event(s).` +
+        (count > MAX_RESULTS
+          ? ` Showing the first ${MAX_RESULTS}.`
+          : "")
+        : "I couldn't find any matching published campus events for your request. Try another topic, location, or date.",
       events: eventsWithRooms,
     });
   } catch (error) {
-    console.error(
-      "Assistant API error:",
-      error
-    );
+    console.error("Assistant API error:", error);
 
     return NextResponse.json(
       {
