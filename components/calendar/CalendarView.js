@@ -43,7 +43,8 @@ const HOURS = Array.from({ length: 24 }, (_, i) => i);
 
 // The student's class schedule ({ name, days, startTime, endTime }[]).
 function useClasses() {
-  return [];
+  const { data } = useStudentData("/api/users/me/schedule");
+  return data?.classes ?? [];
 }
 
 const KIND = {
