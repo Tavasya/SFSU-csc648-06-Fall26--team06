@@ -48,12 +48,24 @@ export default function EventActions({ event }) {
     <fieldset disabled={busy}>
       <legend>Your RSVP</legend>
       <p className="ga-small ga-muted">Current status: {data.rsvp ? labels[data.rsvp.status] : "No RSVP yet"}</p>
-      <div className="student-rsvp-options">
-        {RSVP_STATUSES.map((status) => <button type="button" key={status}
-          className={`ga-button ${data.rsvp?.status === status ? "" : "secondary"}`}
-          aria-pressed={data.rsvp?.status === status}
-          disabled={busy || (status === "attending" && !available)}
-          onClick={() => change(`${base}/rsvps/me`, "PUT", { status })}>{labels[status]}</button>)}
+      <div className="mt-2 flex flex-wrap gap-2">
+        {RSVP_STATUSES.map((status) => (
+          <button
+            type="button"
+            key={status}
+            className={`rounded-full border px-3 py-2 text-xs font-semibold transition ${data.rsvp?.status === status
+                ? "border-[#65449B] bg-[#65449B] text-white"
+                : "border-[#D8CDE9] bg-white text-[#65449B] hover:bg-[#F3EEFA]"
+              }`}
+            aria-pressed={data.rsvp?.status === status}
+            disabled={busy || (status === "attending" && !available)}
+            onClick={() =>
+              change(`${base}/rsvps/me`, "PUT", { status })
+            }
+          >
+            {labels[status]}
+          </button>
+        ))}
       </div>
     </fieldset>
     {!available && <p>This event is cancelled or completed. New attending RSVPs are closed.</p>}

@@ -1,5 +1,6 @@
 "use client";
 
+import { getScheduleAvailability } from "@/lib/schedule/conflicts";
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import {
@@ -29,11 +30,17 @@ function dateInPacificTime(value) {
   return `${part("year")}-${part("month")}-${part("day")}`;
 }
 
-export default function EventSearch({ events, categories }) {
+export default function EventSearch({
+  events,
+  categories,
+  schedule = [],
+  scheduleStatus = "unused",
+}) {
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("");
   const [date, setDate] = useState("");
   const [location, setLocation] = useState("");
+  const [scheduleFilter, setScheduleFilter] = useState("all");
 
   const locations = useMemo(
     () =>
@@ -81,24 +88,47 @@ export default function EventSearch({ events, categories }) {
         !location ||
         event.locations?.building_name === location;
 
+
+      const availability =
+        scheduleStatus === "ready"
+          ? getScheduleAvailability(event, schedule)
+          : { status: "unknown", conflicts: [] };
+
+      const matchesSchedule =
+        scheduleFilter === "all" ||
+        availability.status === "available";
+
+
       return (
         matchesQuery &&
         matchesCategory &&
         matchesDate &&
-        matchesLocation
+        matchesLocation &&
+        matchesSchedule
       );
     });
-  }, [events, categories, query, category, date, location]);
+  }, [
+    events,
+    categories,
+    query,
+    category,
+    date,
+    location,
+    schedule,
+    scheduleStatus,
+    scheduleFilter,
+  ]);
 
   function clearFilters() {
     setQuery("");
     setCategory("");
     setDate("");
     setLocation("");
+    setScheduleFilter("all");
   }
 
   const hasFilters = Boolean(
-    query || category || date || location
+    query || category || date || location || scheduleFilter !== "all"
   );
 
   return (
@@ -195,6 +225,58 @@ export default function EventSearch({ events, categories }) {
         </button>
       </div>
 
+
+      {scheduleStatus !== "unused" && (
+        <div className="flex flex-wrap items-center gap-3">
+          <span className="text-sm font-medium text-[#292437]">
+            Schedule availability:
+          </span>
+
+          <div className="inline-flex rounded-full border border-[#D8CDE9] bg-white p-1">
+            <button
+              type="button"
+              onClick={() => setScheduleFilter("all")}
+              aria-pressed={scheduleFilter === "all"}
+              className={`rounded-full px-4 py-2 text-sm font-medium transition ${scheduleFilter === "all"
+                ? "bg-[#65449B] text-white"
+                : "text-[#65449B] hover:bg-[#F5F1FA]"
+                }`}
+            >
+              All events
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setScheduleFilter("available")}
+              disabled={scheduleStatus !== "ready" || schedule.length === 0}
+              aria-pressed={scheduleFilter === "available"}
+              className={`rounded-full px-4 py-2 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-40 ${scheduleFilter === "available"
+                ? "bg-[#65449B] text-white"
+                : "text-[#65449B] hover:bg-[#F5F1FA]"
+                }`}
+            >
+              Fits my schedule
+            </button>
+          </div>
+
+          {scheduleStatus === "loading" && (
+            <span className="text-xs text-gray-500">
+              Checking your schedule...
+            </span>
+          )}
+
+          {scheduleStatus === "ready" && schedule.length === 0 && (
+            <Link
+              href="/schedule"
+              className="text-sm font-medium text-[#65449B] hover:underline"
+            >
+              Add your class schedule
+            </Link>
+          )}
+        </div>
+      )}
+
+
       {/* Results count */}
       <p className="text-sm ga-muted" aria-live="polite">
         {filteredEvents.length}{" "}
@@ -211,6 +293,10 @@ export default function EventSearch({ events, categories }) {
             );
 
             const banner = bannerFor(categoryNames[0]);
+            const availability =
+              scheduleStatus === "ready"
+                ? getScheduleAvailability(event, schedule)
+                : { status: "unknown", conflicts: [] };
 
             return (
               <Link
@@ -234,6 +320,38 @@ export default function EventSearch({ events, categories }) {
                 </div>
 
                 <h2>{event.title}</h2>
+
+                {scheduleStatus !== "unused" && (
+                  <div className="mt-2">
+                    {availability.status === "available" && (
+                      <span className="inline-flex rounded-full bg-green-50 px-3 py-1 text-xs font-semibold text-green-700">
+                        ✓ Fits your schedule
+                      </span>
+                    )}
+
+                    {availability.status === "conflict" && (
+                      <div className="space-y-1">
+                        <span className="inline-flex rounded-full bg-red-50 px-3 py-1 text-xs font-semibold text-red-700">
+                          Class conflict
+                        </span>
+
+                        <p className="text-xs text-red-700">
+                          Overlaps with{" "}
+                          {availability.conflicts
+                            .map((course) => course.name || course.class_name)
+                            .join(", ")}
+                        </p>
+                      </div>
+                    )}
+
+                    {availability.status === "unknown" && (
+                      <span className="inline-flex rounded-full bg-gray-100 px-3 py-1 text-xs text-gray-600">
+                        Schedule availability unknown
+                      </span>
+                    )}
+                  </div>
+                )}
+
                 {event.recommendation_reasons?.length > 0 && (
                   <p className="ga-muted student-match">
                     Matches your interests: {event.recommendation_reasons.join(", ")}
@@ -270,11 +388,19 @@ export default function EventSearch({ events, categories }) {
         <div className="ga-empty ga-card">
           <CalendarDays size={40} />
 
-          <h2>No matching events found</h2>
+
+          <h2>
+            {scheduleFilter === "available"
+              ? "No events fit your schedule"
+              : "No matching events found"}
+          </h2>
 
           <p className="ga-muted">
-            Try another keyword or adjust your filters.
+            {scheduleFilter === "available"
+              ? "No events match your current filters without a detected class conflict. Try All events to see more options."
+              : "Try another keyword or adjust your filters."}
           </p>
+
 
           <button
             type="button"

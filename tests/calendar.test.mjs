@@ -145,6 +145,27 @@ test("classBlocks skips entries the scanner could not read", () => {
   assert.deepEqual(blocks, []);
 });
 
+test("classBlocks reads the classes returned by GET /api/users/me/schedule", () => {
+  // Copied from the route's response shape: an id, and days joined with ", ".
+  const response = {
+    classes: [
+      { id: "c1", name: "CSC 648", days: "Mon, Wed", startTime: "09:30", endTime: "10:45" },
+      { id: "c2", name: "MKTG 431", days: "Tue, Thu", startTime: "14:00", endTime: "15:15" },
+    ],
+  };
+  const blocks = classBlocks(response.classes, weekDays("2026-10-26"));
+  assert.deepEqual(
+    blocks.map((b) => [b.day, b.title, b.timeLabel]),
+    [
+      ["2026-10-26", "CSC 648", "9:30 AM – 10:45 AM"],
+      ["2026-10-28", "CSC 648", "9:30 AM – 10:45 AM"],
+      ["2026-10-27", "MKTG 431", "2 PM – 3:15 PM"],
+      ["2026-10-29", "MKTG 431", "2 PM – 3:15 PM"],
+    ],
+  );
+  assert.equal(new Set(blocks.map((b) => b.id)).size, blocks.length);
+});
+
 test("layoutDay puts overlapping blocks side by side", () => {
   const placed = layoutDay([
     { id: "a", start: 600, end: 720 }, // 10 – 12

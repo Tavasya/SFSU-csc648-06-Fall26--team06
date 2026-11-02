@@ -12,6 +12,8 @@ import {
   ArrowLeftRight,
   MapPin,
   Map as MapIcon,
+  Upload,
+  Sparkles,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 export default function Shell({ children }) {
@@ -47,6 +49,15 @@ export default function Shell({ children }) {
           <Link className={path === "/events/for-you" ? "active" : ""} href="/events/for-you">
             <GraduationCap size={18} /> For you
           </Link>
+
+          <Link
+            className={path.startsWith("/assistant") ? "active" : ""}
+            href="/assistant"
+          >
+            <Sparkles size={18} />
+            AI Assistant
+          </Link>
+
           <Link className={path === "/interests" ? "active" : ""} href="/interests">
             <Plus size={18} /> Your interests
           </Link>
@@ -62,6 +73,13 @@ export default function Shell({ children }) {
           >
             <MapIcon size={18} />
             Campus map
+          </Link>
+          <Link
+            className={path === "/schedule" ? "active" : ""}
+            href="/schedule"
+          >
+            <Upload size={18} />
+            Upload Schedule
           </Link>
           <Link href="/about">
             <GraduationCap size={18} />
