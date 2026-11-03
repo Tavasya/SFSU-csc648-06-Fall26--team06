@@ -117,6 +117,7 @@ const roomRow = (id, name, buildingName) => ({
   id,
   room_name: name,
   scan_date: "2026-10-04",
+  model_view_path: `${id}.glb`,
   location: buildingName ? { building_name: buildingName } : null,
 });
 
@@ -131,10 +132,10 @@ test("buildScanIndex lists scanned rooms under their map building", () => {
   );
   assert.deepEqual(scans, {
     ccsc: [
-      { id: 1, name: "Rigoberta Menchu Hall Floor 1", scanDate: "2026-10-04", venueId: null },
-      { id: 2, name: "Jack Adams Hall stage", scanDate: "2026-10-04", venueId: "jack-adams" },
+      { id: 1, name: "Rigoberta Menchu Hall Floor 1", scanDate: "2026-10-04", venueId: null, modelPath: "1.glb" },
+      { id: 2, name: "Jack Adams Hall stage", scanDate: "2026-10-04", venueId: "jack-adams", modelPath: "2.glb" },
     ],
-    quad: [{ id: 3, name: "Quad lawn", scanDate: "2026-10-04", venueId: null }],
+    quad: [{ id: 3, name: "Quad lawn", scanDate: "2026-10-04", venueId: null, modelPath: "3.glb" }],
   });
 });
 
