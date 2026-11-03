@@ -31,7 +31,7 @@ const DATE = new Intl.DateTimeFormat("en-US", {
   timeZone: "America/Los_Angeles",
 });
 
-function EventActions({ event, status, onStatus }) {
+function EventActions({ event, status, onStatus, signedIn }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const base = `/api/events/${event.id}`;
@@ -62,6 +62,17 @@ function EventActions({ event, status, onStatus }) {
     }),
     (result) => ({ rsvp: result.rsvp?.status === "not_attending" ? null : result.rsvp?.status ?? null }),
   );
+
+  // Saving and RSVPing need an account; chatting doesn't.
+  if (!signedIn) {
+    return (
+      <div className="ga-assistant-card-rsvp">
+        <Link className="ga-assistant-card-signin" href="/login?next=/assistant">
+          <Bookmark size={14} /> Sign in to save or RSVP
+        </Link>
+      </div>
+    );
+  }
 
   return (
     <div className="ga-assistant-card-rsvp">
@@ -120,6 +131,7 @@ export function VenuePreview({ event, onClose }) {
 export default function AssistantEventCard({
   event, // an event from POST /api/assistant (includes `rooms`: 3D scans of its building)
   categories, // [{ id, name }]
+  signedIn, // false for visitors: Save / RSVP become a sign-in link
   status, // { saved, rsvp } for the signed-in student, or undefined while loading
   onStatus, // (eventId, changes) => void
   previewOpen, // is this card's 3D preview the one showing?
@@ -148,7 +160,7 @@ export default function AssistantEventCard({
         </div>
       </Link>
 
-      <EventActions event={event} status={status} onStatus={onStatus} />
+      <EventActions event={event} status={status} onStatus={onStatus} signedIn={signedIn} />
 
       <div className="ga-assistant-card-actions">
         {event.rooms?.length > 0 && (

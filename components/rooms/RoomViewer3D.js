@@ -125,6 +125,7 @@ export default function RoomViewer3D({
   room, // { id, name, scanDate, modelPath } — id null means no real scan (sample data)
   className = "h-48",
   autoStart = false, // skip the "Load 3D preview" button (the AI Assistant's previews)
+  fullViewTarget, // "_top" inside the embed page, so "Full 3D view" opens in the whole tab
 }) {
   const [started, setStarted] = useState(autoStart);
   const splat = isSplatModel(room.modelPath);
@@ -174,6 +175,7 @@ export default function RoomViewer3D({
         {room.id != null && (
           <Link
             href={roomViewHref(room)}
+            target={fullViewTarget}
             className="inline-flex items-center gap-1 font-medium text-[#604398] hover:text-[#503581] hover:underline"
           >
             <Expand size={13} aria-hidden="true" />

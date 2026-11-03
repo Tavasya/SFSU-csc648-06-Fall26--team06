@@ -7,9 +7,11 @@
  * Explore events (two per row), with Save / Interested / Going and a 3D venue
  * preview that opens in the cell next to its card (one preview open at a time).
  *
- * The conversation is kept in this browser (localStorage, one per signed-in
- * student) until the student clicks "Clear chat", so it is still there after
- * opening an event, reloading, or coming back later.
+ * No account is needed to chat. The conversation is kept in this browser
+ * (localStorage, one per signed-in student, or one "guest" chat when signed
+ * out) until "Clear chat", so it is still there after opening an event,
+ * reloading, or coming back later. Saving and RSVPing need an account, so
+ * signed-out visitors see a sign-in link on each card instead.
  *
  * Save and RSVP state for every card is loaded once from
  * GET /api/users/me/saved-events and GET /api/users/me/rsvps (instead of two
@@ -82,17 +84,18 @@ export default function AssistantChat() {
   const [loading, setLoading] = useState(false);
   const [statuses, setStatuses] = useState(null); // null until loaded
   const [preview, setPreview] = useState(null); // "<message index>:<event id>"
+  const [signedIn, setSignedIn] = useState(false);
   const bottom = useRef(null);
 
   // Restore this student's conversation (localStorage only exists in the browser).
   useEffect(() => {
     createClient().auth.getUser().then(({ data }) => {
-      if (!data.user) return;
-      const key = STORAGE_PREFIX + data.user.id;
+      const key = STORAGE_PREFIX + (data.user?.id ?? "guest");
+      setSignedIn(Boolean(data.user));
       setStorageKey(key);
       setChat(readChat(key));
+      if (data.user) loadStatuses().then(setStatuses, () => setStatuses({}));
     });
-    loadStatuses().then(setStatuses, () => setStatuses({}));
   }, []);
 
   // Save the conversation and scroll to the newest message.
@@ -165,7 +168,8 @@ export default function AssistantChat() {
             <h2>Hi, I&apos;m {NAME}!</h2>
             <p className="ga-muted">
               Ask in plain language: by day, time of day, category, cost or building. I can also
-              summarize what&apos;s coming up and compare two events.
+              summarize what&apos;s coming up and compare two events. No account needed;
+              sign in to save events and RSVP.
             </p>
             <div className="ga-assistant-suggestions">
               {SUGGESTIONS.map(({ icon: Icon, text, hint }) => (
@@ -206,6 +210,7 @@ export default function AssistantChat() {
                         key={event.id}
                         event={event}
                         categories={m.categories}
+                        signedIn={signedIn}
                         status={statuses ? statuses[event.id] ?? { saved: false, rsvp: null } : undefined}
                         onStatus={updateStatus}
                         previewOpen={preview === key}

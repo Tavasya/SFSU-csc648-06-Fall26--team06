@@ -36,6 +36,7 @@ export default function RoomEmbedPage() {
         <RoomViewer3D
           room={room}
           autoStart={autoStart}
+          fullViewTarget="_top"
           className="h-[calc(100vh-55px)]"
         />
       )}
