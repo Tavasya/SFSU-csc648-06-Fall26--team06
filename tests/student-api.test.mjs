@@ -24,6 +24,7 @@ const saved = await import("../app/api/events/[eventId]/saved/route.js");
 const rsvp = await import("../app/api/events/[eventId]/rsvps/me/route.js");
 const interests = await import("../app/api/users/me/interests/route.js");
 const recommended = await import("../app/api/events/for-you/route.js");
+const schedule = await import("../app/api/users/me/schedule/route.js");
 const id = "123e4567-e89b-42d3-a456-426614174001";
 const category = "123e4567-e89b-42d3-a456-426614174002";
 const context = { params: Promise.resolve({ eventId: id }) };
@@ -43,6 +44,7 @@ function database() {
       const query = {
         select() { return this; },
         eq(key, target) { filters.push((row) => row[key] === target); return this; },
+        neq(key, target) { filters.push((row) => row[key] !== target); return this; },
         gt(key, target) { filters.push((row) => row[key] > target); return this; },
         in(key, targets) { filters.push((row) => targets.includes(row[key])); return this; },
         overlaps(key, targets) { filters.push((row) => row[key].some((item) => targets.includes(item))); return this; },
@@ -113,7 +115,7 @@ test("cancelled events reject attending but allow withdrawing; drafts are inacce
   db.tables.events[0].publication_status = "draft";
   assert.equal((await saved.PUT(request("PUT"), context)).status, 404);
 });
-test("preferences replace atomically and recommendations exclude unmatched, ended and cancelled events", async () => {
+test("preferences replace atomically and recommendations exclude ended and cancelled events", async () => {
   const db = database();
   assert.equal((await interests.PUT(request("PUT", { category_ids: ["invalid"] }))).status, 422);
   assert.equal((await interests.PUT(request("PUT", { category_ids: [category, category] }))).status, 200);
@@ -126,8 +128,34 @@ test("preferences replace atomically and recommendations exclude unmatched, ende
     { ...original, id: "draft", publication_status: "draft" },
   );
   const result = await (await recommended.GET(request())).json();
-  assert.deepEqual(result.events.map((event) => event.id), [id]);
+  assert.deepEqual(result.events.map((event) => event.id), [id, "unmatched"]);
   assert.deepEqual(result.events[0].recommendation_reasons, ["Technology"]);
   await interests.PUT(request("PUT", { category_ids: [] }));
-  assert.deepEqual((await (await recommended.GET(request())).json()).events, []);
+  assert.deepEqual(
+    (await (await recommended.GET(request())).json()).events.map((event) => event.id),
+    [id, "unmatched"],
+  );
+});
+test("users cannot save or RSVP to events they host", async () => {
+  const db = database();
+  db.tables.events[0].host_id = db.user.id;
+  assert.equal((await saved.GET(request(), context)).status, 403);
+  assert.equal((await saved.PUT(request("PUT"), context)).status, 403);
+  assert.equal((await rsvp.GET(request(), context)).status, 403);
+  assert.equal((await rsvp.PUT(request("PUT", { status: "attending" }), context)).status, 403);
+});
+test("class schedules validate, persist per user, and can be cleared", async () => {
+  const db = database();
+  assert.deepEqual((await (await schedule.GET(request())).json()).classes, []);
+  assert.equal((await schedule.PUT(request("PUT", { classes: [{
+    name: "CSC 648", days: "Tue, Thu", startTime: "14:00", endTime: "15:15",
+  }] }))).status, 200);
+  assert.deepEqual((await (await schedule.GET(request())).json()).classes, [{
+    name: "CSC 648", days: "Tue, Thu", startTime: "14:00", endTime: "15:15",
+  }]);
+  assert.equal((await schedule.PUT(request("PUT", { classes: [{
+    name: "CSC 648", days: "Tuesday", startTime: "14:00", endTime: "14:00",
+  }] }))).status, 422);
+  assert.equal((await schedule.PUT(request("PUT", { classes: [] }))).status, 200);
+  assert.deepEqual((await (await schedule.GET(request())).json()).classes, []);
 });

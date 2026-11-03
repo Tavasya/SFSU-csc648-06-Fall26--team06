@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { studentRequest } from "./useStudentData";
 import { canAttend, RSVP_STATUSES } from "@/lib/student/validation";
+import { eventConflictsWithSchedule } from "@/lib/student/schedule";
 
 const labels = { attending: "Attending", interested: "Interested", not_attending: "Not Attending" };
 export default function EventActions({ event }) {
@@ -17,7 +18,11 @@ export default function EventActions({ event }) {
     Promise.all([
       studentRequest(`${base}/saved`, { signal: controller.signal }),
       studentRequest(`${base}/rsvps/me`, { signal: controller.signal }),
-    ]).then(([saved, rsvp]) => { setData({ ...saved, ...rsvp }); setError(null); })
+      studentRequest("/api/users/me/schedule", { signal: controller.signal }),
+    ]).then(([saved, rsvp, schedule]) => {
+      setData({ ...saved, ...rsvp, classes: schedule.classes });
+      setError(null);
+    })
       .catch((error) => { if (!controller.signal.aborted) setError(error); });
     return () => controller.abort();
   }, [base, attempt]);
@@ -33,6 +38,16 @@ export default function EventActions({ event }) {
         result.saved ? "Event saved." : "Event removed from saved events.");
     } catch (error) { setError(error); }
     finally { setBusy(false); }
+  }
+  function updateRsvp(status) {
+    // Give students a heads-up, but let them choose whether to RSVP anyway.
+    if (status === "attending" && eventConflictsWithSchedule(event, data.classes)) {
+      const shouldContinue = window.confirm(
+        "This event overlaps with a class on your schedule. You can still RSVP to the event. Continue?",
+      );
+      if (!shouldContinue) return;
+    }
+    change(`${base}/rsvps/me`, "PUT", { status });
   }
   if (error?.status === 401) return <div className="student-event-actions">
     <p>Sign in to save this event or RSVP.</p><Link href="/login" className="ga-button">Sign in</Link></div>;
@@ -53,7 +68,7 @@ export default function EventActions({ event }) {
           className={`ga-button ${data.rsvp?.status === status ? "" : "secondary"}`}
           aria-pressed={data.rsvp?.status === status}
           disabled={busy || (status === "attending" && !available)}
-          onClick={() => change(`${base}/rsvps/me`, "PUT", { status })}>{labels[status]}</button>)}
+          onClick={() => updateRsvp(status)}>{labels[status]}</button>)}
       </div>
     </fieldset>
     {!available && <p>This event is cancelled or completed. New attending RSVPs are closed.</p>}

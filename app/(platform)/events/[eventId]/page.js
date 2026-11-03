@@ -14,6 +14,7 @@ export default async function Page({ params }) {
     .eq("publication_status", "published")
     .maybeSingle();
   if (error || !event) notFound();
+  const { data: { user } } = await db.auth.getUser();
   const { categories, locations } = await options(db);
   const location = locations.find((l) => l.id === event.location_id);
   // The Campus Map places (every row of "locations" with a map_id), and the
@@ -33,6 +34,7 @@ export default async function Page({ params }) {
   return (
     <EventDetails
       event={event}
+      isOwner={user?.id === event.host_id}
       categories={categories}
       location={location}
       coverUrl={coverUrl}

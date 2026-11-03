@@ -41,11 +41,6 @@ import "./calendar.css";
 const HOUR_HEIGHT = 52; // px per hour row
 const HOURS = Array.from({ length: 24 }, (_, i) => i);
 
-// The student's class schedule ({ name, days, startTime, endTime }[]).
-function useClasses() {
-  return [];
-}
-
 const KIND = {
   class: { label: "Class", Icon: BookOpen },
   saved: { label: "Saved", Icon: Bookmark },
@@ -56,17 +51,19 @@ const KIND = {
 export default function CalendarView() {
   const saved = useStudentData("/api/users/me/saved-events");
   const rsvps = useStudentData("/api/users/me/rsvps");
-  const classes = useClasses();
+  // Use the same saved schedule as For You and the RSVP conflict reminder.
+  const schedule = useStudentData("/api/users/me/schedule");
 
   const [today] = useState(() => toPacific(Date.now()));
   const [start, setStart] = useState(() => weekStart(today.day));
   const [selectedDay, setSelectedDay] = useState(today.day);
 
-  const loading = saved.loading || rsvps.loading;
-  const error = saved.error || rsvps.error;
+  const loading = saved.loading || rsvps.loading || schedule.loading;
+  const error = saved.error || rsvps.error || schedule.error;
   const retry = () => {
     saved.retry();
     rsvps.retry();
+    schedule.retry();
   };
 
   const allEvents = useMemo(
@@ -80,8 +77,8 @@ export default function CalendarView() {
   const days = useMemo(() => weekDays(start), [start]);
   const weekBlocks = useMemo(() => {
     const inWeek = allEvents.filter((b) => b.day >= start && b.day <= days[6].key);
-    return [...inWeek, ...classBlocks(classes, days)];
-  }, [allEvents, classes, days, start]);
+    return     [...inWeek, ...classBlocks(schedule.data?.classes || [], days)];
+  }, [allEvents, schedule.data, days, start]);
 
   // Open the grid near the current time (this week) or the first block.
   const gridRef = useRef(null);
@@ -243,7 +240,7 @@ export default function CalendarView() {
                 Class entries are read-only schedule blocks. Overlaps are shown side by side, never blocked.
               </p>
             </div>
-            <Link href="/schedule">
+            <Link href="/profile">
               Manage schedule <ArrowRight size={14} />
             </Link>
           </aside>

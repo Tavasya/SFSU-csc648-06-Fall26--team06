@@ -16,6 +16,7 @@ import { createClient } from "@/lib/supabase/server";
 import { upcomingEvents } from "@/lib/map/page-data";
 export async function GET(request, { params }) {
   const db = await createClient();
+  const { data: { user } } = await db.auth.getUser();
   const { locationId } = await params;
   const [{ data: location, error }, { data: venues, error: ve }] =
     await Promise.all([
@@ -31,6 +32,7 @@ export async function GET(request, { params }) {
     db,
     "*, locations(building_name)",
     [locationId, ...venues.map((v) => v.id)],
+    user?.id,
   );
   return Response.json(
     ee ? { error: "Could not load events." } : { events: data },

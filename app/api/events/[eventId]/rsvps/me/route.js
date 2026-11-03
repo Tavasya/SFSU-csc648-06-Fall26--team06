@@ -1,9 +1,10 @@
 import { respond, ApiError } from "@/lib/events/api";
-import { studentContext, publishedEvent, checked, body } from "@/lib/student/api";
+import { studentContext, publishedEvent, checked, body, assertNotOwner } from "@/lib/student/api";
 import { RSVP_STATUSES, canAttend } from "@/lib/student/validation";
 export const GET = respond(async (request, context) => {
   const { db, user } = await studentContext(request);
   const event = await publishedEvent(db, context);
+  assertNotOwner(event, user);
   const rsvp = checked(await db.from("event_rsvps").select("status, updated_at")
     .eq("user_id", user.id).eq("event_id", event.id).maybeSingle());
   return { rsvp };
@@ -11,6 +12,7 @@ export const GET = respond(async (request, context) => {
 export const PUT = respond(async (request, context) => {
   const { db, user } = await studentContext(request);
   const event = await publishedEvent(db, context);
+  assertNotOwner(event, user);
   const { status } = await body(request);
   if (!RSVP_STATUSES.includes(status)) throw new ApiError("Choose a valid RSVP status.", 422);
   if (status === "attending" && !canAttend(event))

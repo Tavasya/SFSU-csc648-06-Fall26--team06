@@ -1,6 +1,7 @@
 
 import { GoogleGenAI } from "@google/genai";
 import { NextResponse } from "next/server";
+import { studentContext } from "@/lib/student/api";
 
 export const runtime = "nodejs";
 
@@ -29,6 +30,14 @@ const scheduleSchema = {
 };
 
 export async function POST(request) {
+    try {
+        await studentContext(request);
+    } catch (error) {
+        if (error?.status) {
+            return NextResponse.json({ error: error.message }, { status: error.status });
+        }
+        throw error;
+    }
     try {
         if (!process.env.GEMINI_API_KEY) {
             return NextResponse.json(

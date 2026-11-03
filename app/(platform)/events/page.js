@@ -9,17 +9,21 @@ import {
 } from "@/lib/events/banner";
 export default async function Page() {
   const db = await createClient();
+  const { data: { user } } = await db.auth.getUser();
 
   // Category names are needed to pick each event's banner (its first category).
   const [{ data: events, error }, { data: categories }] =
     await Promise.all([
-      db
-        .from("events")
-        .select("*, locations(building_name)")
-        .eq("publication_status", "published")
-        .eq("status", "active")
-        .gte("end_date_time", new Date().toISOString())
-        .order("start_date_time"),
+      (() => {
+        let query = db
+          .from("events")
+          .select("*, locations(building_name)")
+          .eq("publication_status", "published")
+          .eq("status", "active")
+          .gte("end_date_time", new Date().toISOString());
+        if (user) query = query.neq("host_id", user.id);
+        return query.order("start_date_time");
+      })(),
       db.from("categories").select("id, name"),
     ]);
 

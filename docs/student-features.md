@@ -1,48 +1,49 @@
-# Student interests, recommendations, saved events and RSVP
+# Student profile, recommendations, saved events and RSVP
 
-David Gomez's M2 feature uses the existing Supabase accounts, event categories and published events.
+Personal preferences and class schedules are managed from `/profile`. A user's schedule is private to their own account and is used by For You, the event RSVP warning, and the calendar.
 
 ## Database setup
 
-Apply [the student migration](../supabase/migrations/20261020120000_student_interests_saved_rsvps.sql) after the existing migrations using your Supabase migration workflow or SQL editor. No service-role key is needed by the application. Until this migration is applied, the UI reports a data error rather than pretending preferences or RSVPs were saved.
-
-The migration adds `student_preferences`, `saved_events` and `event_rsvps`. Composite primary keys prevent duplicate bookmarks and RSVPs; every table has owner-only row-level security. Saving never writes to RSVPs and changing an RSVP never writes to bookmarks. Deleted events cascade to both tables. Cancelled/completed events remain in saved lists but reject new attending RSVPs, including direct authenticated database writes.
+Apply the migrations in order, including [the schedule and ownership migration](../supabase/migrations/20261102000000_schedule_recommendations_and_self_rsvp_guards.sql), after the existing student migration. The schedule column is stored on `student_preferences`; the same owner-only row-level security protects interests and schedule data. The migration also prevents authenticated users from saving or RSVPing to events they host, including direct database writes.
 
 ## Pages
 
-- `/interests`: choose, clear and update categories from the shared category catalog.
-- `/events/for-you`: active, current/upcoming published events matching at least one saved interest, with matching-category explanations. Date, location, category and keyword filters operate only within this matched set.
-- `/events/[eventId]`: independently save/unsave and choose Attending, Interested or Not Attending. Reloading retrieves the persisted values.
+- `/profile`: manage categories of interest and add, scan, edit, or remove weekly classes. The schedule scanner requires `GEMINI_API_KEY`; manual schedule entry works without it.
+- `/events/for-you`: choose **Interests + schedule**, **Interests only**, or **Schedule only**. The default matches at least one selected interest and excludes events that overlap a saved class. Missing schedules do not block events. Search, date, location and category filters narrow the resulting list.
+- `/events`: browse published upcoming events. Your own events are omitted from discovery.
+- `/events/[eventId]`: independently save/unsave and choose Attending, Interested or Not Attending. Hosts cannot save or RSVP to their own events. An Attending RSVP that overlaps a saved class displays a confirmation; the student may continue.
 - `/saved`: bookmarks, including cancelled or completed published events; open an event to remove it.
+- `/calendar`: a week view of saved/RSVP'd events and the saved class schedule.
 
-Anonymous visitors can still explore events. Personalized screens prompt for sign-in. Loading, retryable errors, no-interest and no-match states are provided.
+The old `/interests` and `/schedule` URLs redirect to `/profile`. Anonymous visitors can still explore events; personalized pages prompt for sign-in.
 
 ## API
 
-All endpoints authenticate with the session cookie; the server derives the user ID. Mutations enforce the existing same-origin check.
+All personalized endpoints authenticate with the session cookie and derive the user ID on the server. Mutations enforce the same-origin check.
 
 | Endpoint | Contract |
 | --- | --- |
-| GET `/api/users/me/interests` | `{ categories, category_ids }` |
-| PUT `/api/users/me/interests` | Accepts `{ category_ids: UUID[] }`; replaces preferences, including an empty selection |
-| GET `/api/events/for-you` | `{ categories, category_ids, events }`; events include `recommendation_reasons` |
-| GET/PUT `/api/events/:eventId/rsvps/me` | `{ rsvp }`; PUT accepts `{ status: "attending" \| "interested" \| "not_attending" }` |
+| GET `/api/users/me/interests` | `{ categories, category_ids, classes }` |
+| PUT `/api/users/me/interests` | Accepts `{ category_ids: UUID[] }`; replaces interests |
+| GET `/api/users/me/schedule` | `{ classes: [{ name, days, startTime, endTime }] }` |
+| PUT `/api/users/me/schedule` | Accepts `{ classes }`; validates and replaces the weekly schedule |
+| POST `/api/users/me/schedule/scan` | Multipart `image`; requires a signed-in user and `GEMINI_API_KEY` |
+| GET `/api/events/for-you` | `{ categories, category_ids, classes, events }`; events include `recommendation_reasons` |
+| GET/PUT `/api/events/:eventId/rsvps/me` | `{ rsvp }`; PUT accepts an RSVP status |
 | GET/PUT/DELETE `/api/events/:eventId/saved` | `{ saved: boolean }`; PUT/DELETE are idempotent |
 | GET `/api/users/me/saved-events` | `{ events, categories }` |
-| GET `/api/users/me/rsvps` | `{ rsvps }`, each with status, timestamp and joined event; available for calendar integration |
+| GET `/api/users/me/rsvps` | `{ rsvps }`, each with status, timestamp and joined event |
+
+Schedule days use Mon–Sun separated by commas; times use 24-hour `HH:mm`. Entries with missing or invalid days or times are rejected when saved.
 
 ## Demo and verification
 
-1. Apply the migration, then sign in with a test student.
-2. Select Technology and Career under Your interests; save and reload.
-3. Publish an active future event with a matching category using the existing organizer flow.
-4. Open For you, verify the explanation, and filter by its date/location.
-5. Open the event, save it and select Attending; reload and verify both values.
-6. Unsave it; confirm Attending remains. Change RSVP; confirm saving is unaffected.
-7. Sign in with a different account and verify preferences/bookmarks/RSVPs are separate.
-8. Cancel the event through the organizer flow. It disappears from recommendations, stays identifiable if bookmarked, and rejects Attending.
-9. Verify signed-out requests receive 401, invalid input receives 400/422, and repeated writes do not create duplicate rows.
+1. Apply the migrations and sign in with a test account.
+2. Visit Your profile, choose interests, add or scan classes, and save both.
+3. Open For You and switch between the three recommendation modes.
+4. Create and publish an event from My Events. Confirm it is not shown in your Explore or For You results.
+5. From a different account, RSVP to an event that overlaps a saved class and confirm the warning still allows the RSVP.
+6. Save events and RSVP to others, then verify the saved items, RSVPs, and class schedule appear in Calendar.
+7. Verify a host cannot save or RSVP to their own event through the UI or API.
 
-Run `npm test`, `npm run lint`, and `npm run build`. Unit tests cover interest validation and recommendation/RSVP eligibility. API tests exercise the actual handlers against an in-memory Supabase boundary, checking authentication, origin validation, per-user queries, duplicate writes and independent saved/RSVP state. Live persistence and RLS verification require the migration and authenticated test accounts.
-
-Schedule scanning and calendar UI belong to the other assigned sections. The scanner currently does not persist a confirmed schedule, so recommendations do not claim to check class availability.
+Run `npm test`, `npm run lint`, and `npm run build`. Live persistence and RLS verification require the migrations and authenticated Supabase accounts.

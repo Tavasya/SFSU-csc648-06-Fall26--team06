@@ -1,2 +1,2 @@
-import Interests from "@/components/student/Interests";
-export default function Page() { return <Interests />; }
+import { redirect } from "next/navigation";
+export default function Page() { redirect("/profile"); }

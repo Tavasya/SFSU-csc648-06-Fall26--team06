@@ -959,3 +959,25 @@
 .student-event-actions { display: grid; gap: 18px; margin: 20px 0; }
 .student-rsvp-options { display: grid; gap: 8px; }
 .student-match { font-size: 13px; margin: 8px 0; }
+.student-profile-grid { display: grid; gap: 20px; align-items: start; }
+.student-preferences { max-width: none; }
+.student-recommendation-modes { padding: 18px 22px; margin-bottom: 22px; }
+.student-recommendation-modes legend { font-weight: 700; margin-bottom: 12px; }
+.student-recommendation-modes [role="group"] { display: flex; flex-wrap: wrap; gap: 10px; }
+.student-schedule { display: grid; gap: 20px; }
+.student-schedule-upload { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 14px; padding: 16px; border: 1px dashed #d8d2e3; border-radius: 12px; }
+.student-schedule-preview { grid-column: 1 / -1; max-width: min(100%, 560px); max-height: 340px; border: 1px solid var(--line); border-radius: 9px; object-fit: contain; }
+.student-schedule-list { display: grid; gap: 12px; }
+.student-schedule-list-heading { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.student-schedule-list-heading h3 { margin: 0; }
+.student-schedule-row { display: grid; grid-template-columns: 1.2fr 1.2fr 0.8fr 0.8fr auto; align-items: end; gap: 10px; padding: 14px; border: 1px solid var(--line); border-radius: 10px; }
+.student-schedule-row label { display: grid; gap: 5px; min-width: 0; color: var(--muted); font-size: 12px; }
+.student-schedule-row input { width: 100%; min-width: 0; border: 1px solid var(--line); border-radius: 7px; padding: 9px; color: var(--ink); background: #fff; }
+@media (max-width: 760px) {
+  .student-schedule-row { grid-template-columns: 1fr 1fr; }
+  .student-schedule-row > button { grid-column: 1 / -1; justify-self: start; }
+}
+@media (max-width: 520px) {
+  .student-schedule-upload { grid-template-columns: 1fr; }
+  .student-schedule-row { grid-template-columns: 1fr; }
+}

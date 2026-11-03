@@ -1,17 +1,18 @@
 # Student calendar
 
-Route: `/calendar` (sidebar: Calendar). A week view of the signed-in student's saved and RSVP'd events, based on the Figma frame "11 · My Events Calendar". Class schedule blocks are supported and will appear once the schedule scanner is merged (see [Class schedule](#class-schedule)).
+Route: `/calendar` (sidebar: Calendar). A week view of the signed-in student's saved and RSVP'd events and saved class schedule.
 
 Copy `.env.example` to `.env.local` and supply the Supabase URL and publishable key. Run `npm ci`, then `npm run dev`.
 
 ## Where the data comes from
 
-The calendar reads two existing student endpoints (see [student-features.md](student-features.md)). No new tables, migrations or API routes.
+The calendar reads three student endpoints (see [student-features.md](student-features.md)). The schedule is persisted on `student_preferences` by the profile API.
 
 | Endpoint | Used for |
 | --- | --- |
 | GET `/api/users/me/saved-events` | Saved events (`{ events }`) |
 | GET `/api/users/me/rsvps` | RSVPs with their joined event (`{ rsvps: [{ status, events }] }`) |
+| GET `/api/users/me/schedule` | Weekly classes (`{ classes }`) |
 
 Both load in the browser with `useStudentData`, so signed-out visitors, loading and errors use the same `DataState` messages as the Saved page.
 
@@ -44,7 +45,7 @@ An event that is both saved and RSVP'd shows once, as its RSVP. Not Attending RS
 
 ## Class schedule
 
-Classes come from the schedule scanner (`feature/ai-schedule-scanner-ui`), which saves them and returns them from GET `/api/users/me/schedule` as:
+Classes are managed on `/profile`, which supports manual entry and schedule-image scanning. Saving returns them from GET `/api/users/me/schedule` as:
 
 ```json
 { "classes": [{ "name": "CSC 648", "days": "Mon, Wed", "startTime": "14:00", "endTime": "15:15" }] }
@@ -52,7 +53,7 @@ Classes come from the schedule scanner (`feature/ai-schedule-scanner-ui`), which
 
 `days` uses Mon–Sun separated by commas, and times are 24-hour `HH:mm`. `classBlocks()` in `lib/calendar/week.js` already turns these into blocks and skips entries with missing or invalid times.
 
-Until the scanner is on main, `useClasses()` at the top of `CalendarView.js` returns an empty list. To connect it, load the endpoint there (for example with `useStudentData("/api/users/me/schedule")`) and return `data.classes`. Nothing else needs to change.
+The scanner uses `GEMINI_API_KEY`; students can add classes manually when scanning is unavailable. Invalid or incomplete class entries must be corrected before saving.
 
 ## Verification
 

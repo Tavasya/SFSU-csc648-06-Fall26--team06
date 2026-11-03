@@ -45,11 +45,11 @@ function InterestForm({ data }) {
     </div>
   </form>;
 }
-export default function Interests() {
+export default function Interests({ embedded = false }) {
   const state = useStudentData("/api/users/me/interests");
   return <>
-    <div className="ga-heading"><div><h1>Your interests</h1>
-      <p className="ga-muted">Find events that feel like you.</p></div></div>
+    {!embedded && <div className="ga-heading"><div><h1>Your interests</h1>
+      <p className="ga-muted">Find events that feel like you.</p></div></div>}
     {state.loading || state.error ? <DataState {...state} /> : <InterestForm data={state.data} />}
   </>;
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import "./about.css";
 
 const TEAM_MEMBERS = [
@@ -8,7 +9,6 @@ const TEAM_MEMBERS = [
     image: "/images/member1.jpg",
     name: "Emely Sarceno Bravo",
     role: "Team Lead",
-    modalRole: "Team Lead",
     bio: "I am a senior at San Francisco State University pursuing a major in Computer Science with a minor in Marketing. In my free time, I enjoy baking delicious pastries and taking pictures on my digital camera!",
     github: "https://github.com/emelysarcenobravo",
     linkedin: "https://www.linkedin.com/in/emely-sarceno-bravo",
@@ -16,9 +16,8 @@ const TEAM_MEMBERS = [
   {
     image: "/images/member2.jpg",
     name: "Tavasya Ganpati",
-    role: "Github Master",
-    modalRole: "Github Master",
-    bio: "Hi! I'm a senior at SFSU. I love combat sports like Muy Thai, Brazilian jiu jitsu, and MMA.\n I also try and travel as much as I can! I just came back from Puerto Rico🇵🇷",
+    role: "GitHub Master",
+    bio: "Hi! I'm a senior at SFSU. I love combat sports like Muay Thai, Brazilian jiu jitsu, and MMA. I also try and travel as much as I can!",
     github: "https://github.com/tavasya",
     linkedin: "https://www.linkedin.com/in/tavasyaganpati/",
   },
@@ -26,7 +25,6 @@ const TEAM_MEMBERS = [
     image: "/images/member3.jpg",
     name: "Emerson Berido",
     role: "Scrum Master",
-    modalRole: "Scrum Master",
     bio: "I am a 4th year Computer Science student at SFSU. I enjoy developing video games and learning new skills that help me as a developer. I am also an officer of the Game Development Club at SFSU.",
     github: "https://github.com/EmersonBerido",
     linkedin: "https://www.linkedin.com/in/emerson-berido/",
@@ -35,7 +33,6 @@ const TEAM_MEMBERS = [
     image: "/images/member4.jpg",
     name: "Kelsey Codilla",
     role: "Backend Developer",
-    modalRole: "Backend Developer",
     bio: "I am a 4th year student at SFSU studying computer science. I enjoy playing basketball, game development, and watching movies.",
     github: "https://github.com/Malv-Kelpo",
     linkedin: "https://www.linkedin.com/in/kelsey-codilla/",
@@ -44,8 +41,7 @@ const TEAM_MEMBERS = [
     image: "/images/member5.jpg",
     name: "Phong Nguyen",
     role: "AI Engineer",
-    modalRole: "AI Engineer",
-    bio: "I am a current 4th year at SFSU studying computer science. I enjoy working on cars and is from San Francisco.",
+    bio: "I am a current 4th year at SFSU studying computer science. I enjoy working on cars and am from San Francisco.",
     github: "https://github.com/gitphongn",
     linkedin: "https://www.linkedin.com/in/phong-nguyen-132868284/",
   },
@@ -53,8 +49,7 @@ const TEAM_MEMBERS = [
     image: "/images/member6.jpg",
     name: "David Gomez",
     role: "Front-End Developer",
-    modalRole: "Front-End Developer",
-    bio: "I am a 4th year Computer Science student at SFSU. I enjoy playing video games, going to the gym, and learning new skills that help me as a developer. Plan to enter Cybersecurity field.",
+    bio: "I am a 4th year Computer Science student at SFSU. I enjoy playing video games, going to the gym, and learning new skills as I prepare to enter the cybersecurity field.",
     github: "https://github.com/Inkdg8",
     linkedin: "https://www.linkedin.com/in/inkdg8",
   },
@@ -63,178 +58,126 @@ const TEAM_MEMBERS = [
 export default function AboutPage() {
   const [activeMember, setActiveMember] = useState(null);
 
-  const closeModal = () => setActiveMember(null);
-
   useEffect(() => {
-    document.body.classList.toggle("modal-open", activeMember !== null);
-  }, [activeMember]);
-
-  useEffect(() => {
+    if (!activeMember) return;
+    document.body.style.overflow = "hidden";
     function handleKeyDown(event) {
-      if (event.key === "Escape") {
-        closeModal();
-      }
+      if (event.key === "Escape") setActiveMember(null);
     }
-
     document.addEventListener("keydown", handleKeyDown);
-    return () => document.removeEventListener("keydown", handleKeyDown);
-  }, []);
+    return () => {
+      document.body.style.overflow = "";
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [activeMember]);
 
   return (
     <div className="about-page">
-      <header className="header">
-        <div className="brand">
-          <h1>SFSU</h1>
-          <div className="brand-text">
-            <b><span>CSC 648</span></b>
-            <b><small>Build • Collaborate • Create</small></b>
-          </div>
+      <div className="ga-heading">
+        <div>
+          <p className="about-eyebrow">About GatorAid</p>
+          <h1>Meet the team</h1>
+          <p className="ga-muted">
+            Get to know the team building a better way to discover campus life at SFSU.
+          </p>
         </div>
-      </header>
+      </div>
 
-      <section className="hero">
-        <div className="hero-content">
-          <h1>
-            ALL ABOUT <span>US</span>
-          </h1>
-          <div className="title-line"></div>
-          <h2>Meet the Team</h2>
-          <p>
-            Get to know the team behind the GatorAid campus events app and the work we
-            are building together!
+      <section className="about-intro ga-card">
+        <span className="about-mark" aria-hidden="true">G</span>
+        <div>
+          <h2>Campus life, connected.</h2>
+          <p className="ga-muted">
+            GatorAid helps students find campus events, discover new opportunities,
+            and make the most of their time at San Francisco State University.
           </p>
         </div>
       </section>
 
-      <main className="team-section">
-        <div className="team-grid">
+      <section className="about-team" aria-labelledby="team-heading">
+        <div className="about-section-heading">
+          <div>
+            <h2 id="team-heading">The people behind the project</h2>
+            <p className="ga-muted">A collaborative team of SFSU computer science students.</p>
+          </div>
+        </div>
+        <div className="about-team-grid">
           {TEAM_MEMBERS.map((member) => (
-            <article className="profile-card" key={member.name}>
-              <div className="profile-image-wrapper">
-                <img
-                  src={member.image}
-                  alt={member.name}
-                  className="profile-image"
-                />
-              </div>
-
+            <article className="about-member ga-card" key={member.name}>
+              <Image src={member.image} alt="" width={480} height={360} className="about-member-image" />
               <h3>{member.name}</h3>
-
-              <p className="role">{member.role}</p>
-
+              <p className="ga-muted">{member.role}</p>
               <button
-                className="profile-button"
+                type="button"
+                className="ga-button secondary"
                 onClick={() => setActiveMember(member)}
               >
-                View Profile
-                <span>→</span>
+                View profile
               </button>
             </article>
           ))}
         </div>
+      </section>
 
-        <section className="team-info">
-          <div className="info-box">
-            <div className="info-icon">◆</div>
-            <h3>Our Goals</h3>
-            <p>
-              Our goal is to help SFSU students discover campus events, find
-              opportunities that match their interests, and connect with
-              their campus community.
-            </p>
-          </div>
+      <section className="about-values" aria-label="How we work">
+        <article className="ga-card">
+          <h3>Our goal</h3>
+          <p className="ga-muted">
+            Help SFSU students discover events that match their interests and connect
+            with their campus community.
+          </p>
+        </article>
+        <article className="ga-card">
+          <h3>How we collaborate</h3>
+          <p className="ga-muted">
+            We coordinate weekly, share progress, and work together to make campus
+            events easier to find and attend.
+          </p>
+        </article>
+        <article className="ga-card">
+          <h3>Built at SFSU</h3>
+          <p className="ga-muted">
+            GatorAid is a student-built project created for the SFSU community.
+          </p>
+        </article>
+      </section>
 
-          <div className="info-box">
-            <div className="info-icon">◇</div>
-            <h3>Meeting Schedule</h3>
-            <p>
-              We meet weekly on Fridays at 7PM via Discord voice channels to
-              discuss project progress, coordinate responsibilities, address
-              challenges, and plan upcoming tasks.
-            </p>
-          </div>
-
-          <div className="info-box">
-            <div className="info-icon">○</div>
-            <h3>Communication</h3>
-            <p>
-              Our primary communication platform is Discord, with dedicated
-              channels for project updates, technical support, study
-              resources, and assignment-related information.
-            </p>
-          </div>
-        </section>
-      </main>
-
-      <footer className="footer">
-        <div className="footer-brand">
-          <h2>SFSU</h2>
-          <div>
-            <p>San Francisco State University</p>
-            <b><small>Build • Collaborate • Create</small></b>
-          </div>
-        </div>
-
-        <p className="footer-message">
-          Empowering students to build their path forward.
-        </p>
-      </footer>
-
-      <div className={`profile-modal${activeMember ? " active" : ""}`}>
-        <div className="modal-overlay" onClick={closeModal}></div>
-
-        <div className="modal-content">
-          <button
-            className="modal-close"
-            aria-label="Close profile"
-            onClick={closeModal}
+      {activeMember && (
+        <div
+          className="about-modal-backdrop"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) setActiveMember(null);
+          }}
+        >
+          <section
+            className="about-modal ga-card"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="about-modal-title"
           >
-            ×
-          </button>
-
-          <div className="modal-header">
-            <div className="modal-icon">SFSU</div>
-            <div>
-              <p className="modal-label">TEAM PROFILE</p>
-              <h2>{activeMember?.name ?? "Team Member"}</h2>
-            </div>
-          </div>
-
-          <div className="modal-divider"></div>
-
-          <div className="modal-info">
-            <div className="modal-section">
-              <h3>Role:</h3>
-              <p>{activeMember?.modalRole ?? "Team Role"}</p>
-            </div>
-
-            <div className="modal-section">
-              <h3>Bio:</h3>
-              <p>{activeMember?.bio ?? "Bio description will go here."}</p>
-            </div>
-
-            <div className="modal-links">
-              <a
-                className="profile-link"
-                href={activeMember?.github ?? "#"}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
+            <button
+              type="button"
+              className="about-modal-close"
+              aria-label="Close profile"
+              onClick={() => setActiveMember(null)}
+            >
+              ×
+            </button>
+            <p className="about-eyebrow">GatorAid team</p>
+            <h2 id="about-modal-title">{activeMember.name}</h2>
+            <p className="ga-badge">{activeMember.role}</p>
+            <p className="about-modal-bio">{activeMember.bio}</p>
+            <div className="about-modal-links">
+              <a className="ga-button secondary" href={activeMember.github} target="_blank" rel="noopener noreferrer">
                 GitHub
               </a>
-
-              <a
-                className="profile-link"
-                href={activeMember?.linkedin ?? "#"}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
+              <a className="ga-button secondary" href={activeMember.linkedin} target="_blank" rel="noopener noreferrer">
                 LinkedIn
               </a>
             </div>
-          </div>
+          </section>
         </div>
-      </div>
+      )}
     </div>
   );
 }

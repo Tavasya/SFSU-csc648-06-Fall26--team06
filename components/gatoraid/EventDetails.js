@@ -22,6 +22,7 @@ export default function EventDetails({
   location,
   coverUrl,
   hostName,
+  isOwner = false,
   preview = false,
   rooms = [],
   places, // the Campus Map places, for the Location section's small map
@@ -152,7 +153,12 @@ export default function EventDetails({
               ? "This is how your event will appear to students."
               : "Manage your saved event and RSVP below."}
           </p>
-          {!preview && <EventActions event={event} />}
+          {!preview && !isOwner && <EventActions event={event} />}
+          {!preview && isOwner && (
+            <p className="ga-notice">
+              This is your event. Manage it from My Events; you can&apos;t save or RSVP to your own event.
+            </p>
+          )}
           {event.contact_email && (
             <a
               className="ga-button secondary"

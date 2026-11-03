@@ -1,1266 +1,157 @@
-/* =========================================
-   BASIC PAGE SETUP
-========================================= */
-
-.about-page * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
-
 .about-page {
-    scroll-behavior: smooth;
+  display: grid;
+  gap: 28px;
 }
 
-
-.about-page {
-    font-family: Arial, Helvetica, sans-serif;
-
-    background:
-        radial-gradient(
-            circle at top,
-            #28104f 0%,
-            #120b2d 35%,
-            #080715 75%
-        );
-
-    color: white;
-
-    min-height: 100vh;
+.about-eyebrow {
+  color: var(--purple);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
-
-
-/* =========================================
-   COLORS
-========================================= */
-
-.about-page {
-    --purple: #8a2eff;
-    --bright-purple: #bb35ff;
-    --dark-purple: #100724;
-    --gold: #ffcf40;
-    --yellow: #ffd84d;
-    --light-purple: #cab8ed;
-    --card-background: rgba(18, 14, 43, 0.88);
+.about-intro {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  padding: 28px;
+  background: linear-gradient(110deg, #fff 20%, #f0e9f9 100%);
 }
 
-
-
-/* =========================================
-   HEADER
-========================================= */
-
-.header {
-    height: 90px;
-
-    display: flex;
-
-    align-items: center;
-
-    padding: 0 5%;
-
-    background:
-        linear-gradient(
-            90deg,
-            rgba(20, 8, 52, 0.98),
-            rgba(9, 7, 28, 0.98)
-        );
-
-    border-top: 2px solid var(--purple);
-
-    border-bottom:
-        1px solid rgba(255, 216, 77, 0.55);
-
-    box-shadow:
-        0 0 20px rgba(138, 46, 255, 0.25);
+.about-intro h2 {
+  font-size: 24px;
 }
 
-
-.brand {
-    display: flex;
-
-    align-items: center;
-
-    gap: 20px;
+.about-mark {
+  display: grid;
+  flex: 0 0 60px;
+  width: 60px;
+  height: 60px;
+  place-items: center;
+  border-radius: 16px;
+  background: var(--purple);
+  color: #f8da71;
+  font-size: 30px;
+  font-weight: 700;
 }
 
-
-.brand h1 {
-    font-family: Georgia, "Times New Roman", serif;
-
-    font-size: 3rem;
-
-    color: var(--gold);
-
-    letter-spacing: 1px;
-
-    text-shadow:
-        0 0 10px rgba(255, 207, 64, 0.25);
+.about-section-heading {
+  margin-bottom: 16px;
 }
 
-
-.brand-text {
-    display: flex;
-
-    flex-direction: column;
-
-    border-left:
-        1px solid rgba(255, 255, 255, 0.18);
-
-    padding-left: 20px;
+.about-section-heading h2 {
+  margin-bottom: 5px;
 }
 
-
-.brand-text span {
-    color: #c992ff;
-
-    font-size: 1.4rem;
-
-    letter-spacing: 2px;
+.about-team-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 16px;
 }
 
-
-.brand-text small {
-    margin-top: 5px;
-
-    color: #c3b5dc;
-
-    letter-spacing: 1.5px;
+.about-member {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 18px;
 }
 
-
-
-/* =========================================
-   HERO / BANNER
-========================================= */
-
-.hero {
-    min-height: 390px;
-
-    display: flex;
-
-    justify-content: center;
-
-    align-items: center;
-
-    position: relative;
-
-    overflow: hidden;
-
-    text-align: center;
-
-    padding: 80px 20px 60px;
-
-    background:
-
-        linear-gradient(
-            180deg,
-            rgba(12, 5, 30, 0.35) 0%,
-            rgba(19, 5, 46, 0.50) 45%,
-            rgba(8, 7, 21, 0.98) 100%
-        ),
-
-        linear-gradient(
-            90deg,
-            rgba(28, 5, 70, 0.90) 0%,
-            rgba(104, 28, 170, 0.38) 50%,
-            rgba(26, 5, 67, 0.90) 100%
-        ),
-
-        url("/images/sf-banner.jpg");
-
-    background-size: cover;
-
-    background-position: center;
-
-    background-repeat: no-repeat;
+.about-member-image {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  margin-bottom: 14px;
+  border-radius: 10px;
+  object-fit: cover;
+  background: #f0e9f9;
 }
 
-
-.hero::before {
-    content: "";
-
-    position: absolute;
-
-    width: 650px;
-
-    height: 250px;
-
-    background:
-        radial-gradient(
-            ellipse,
-            rgba(135, 49, 255, 0.35),
-            transparent 70%
-        );
-
-    filter: blur(35px);
-
-    pointer-events: none;
+.about-member h3 {
+  margin-bottom: 2px;
 }
 
-
-.hero::after {
-    content: "";
-
-    position: absolute;
-
-    left: 0;
-
-    bottom: 0;
-
-    width: 100%;
-
-    height: 100px;
-
-    background:
-        linear-gradient(
-            transparent,
-            #0b081b
-        );
-
-    pointer-events: none;
+.about-member .ga-button {
+  margin-top: 12px;
 }
 
-
-.hero-content {
-    position: relative;
-
-    z-index: 2;
+.about-values {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
 }
 
-
-.hero h1 {
-    font-size:
-        clamp(3rem, 8vw, 5.5rem);
-
-    font-weight: 900;
-
-    letter-spacing: 3px;
-
-    color: white;
-
-    text-shadow:
-        0 0 8px rgba(255, 255, 255, 0.7),
-        0 0 15px rgba(141, 64, 255, 0.9),
-        0 0 35px rgba(132, 39, 255, 0.7);
+.about-values .ga-card {
+  padding: 20px;
 }
 
-
-.hero h1 span {
-    color: var(--gold);
-
-    text-shadow:
-        0 0 10px rgba(255, 207, 64, 0.7),
-        0 0 25px rgba(255, 197, 35, 0.45);
+.about-values h3 {
+  color: var(--purple);
 }
 
-
-.title-line {
-    width: 250px;
-
-    height: 2px;
-
-    margin: 15px auto 20px;
-
-    background:
-        linear-gradient(
-            90deg,
-            transparent,
-            var(--gold),
-            transparent
-        );
-
-    box-shadow:
-        0 0 8px rgba(255, 207, 64, 0.6);
+.about-modal-backdrop {
+  position: fixed;
+  z-index: 50;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgb(25 20 35 / 55%);
 }
 
-
-.hero h2 {
-    color: var(--gold);
-
-    font-size: 2.1rem;
-
-    font-weight: 400;
-
-    letter-spacing: 8px;
+.about-modal {
+  position: relative;
+  width: min(100%, 520px);
+  max-height: min(80vh, 680px);
+  overflow: auto;
+  padding: 30px;
+  box-shadow: 0 20px 70px rgb(20 14 31 / 25%);
 }
 
-
-.hero p {
-    color: #d2c7e5;
-
-    margin-top: 15px;
-
-    font-size: 1.1rem;
-
-    letter-spacing: 0.5px;
-
-    text-shadow:
-        0 2px 6px rgba(0, 0, 0, 0.8);
+.about-modal h2 {
+  margin: 4px 42px 10px 0;
+  font-size: 24px;
 }
 
-
-
-/* =========================================
-   TEAM SECTION
-========================================= */
-
-.team-section {
-    width: min(1200px, 92%);
-
-    margin: 0 auto;
-
-    padding: 30px 0 80px;
+.about-modal-bio {
+  white-space: pre-line;
+  margin: 20px 0;
 }
 
-
-.team-grid {
-    display: grid;
-
-    grid-template-columns:
-        repeat(3, 1fr);
-
-    gap: 30px;
+.about-modal-close {
+  position: absolute;
+  top: 14px;
+  right: 16px;
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: #fff;
+  color: var(--ink);
+  font-size: 24px;
 }
 
-
-
-/* =========================================
-   PROFILE CARDS
-========================================= */
-
-.profile-card {
-    min-height: 430px;
-
-    padding:
-        38px 25px 30px;
-
-    border-radius: 17px;
-
-    background:
-        linear-gradient(
-            150deg,
-            rgba(30, 18, 63, 0.88),
-            rgba(8, 9, 28, 0.92)
-        );
-
-    border:
-        2px solid var(--purple);
-
-    display: flex;
-
-    flex-direction: column;
-
-    align-items: center;
-
-    position: relative;
-
-    overflow: hidden;
-
-    transition:
-        transform 0.3s ease,
-        border-color 0.3s ease,
-        box-shadow 0.3s ease;
+.about-modal-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
 }
 
-
-.profile-card::before {
-    content: "";
-
-    position: absolute;
-
-    width: 250px;
-
-    height: 160px;
-
-    left: -90px;
-
-    top: -90px;
-
-    background:
-        rgba(174, 43, 255, 0.10);
-
-    filter: blur(35px);
+@media (max-width: 760px) {
+  .about-values {
+    grid-template-columns: 1fr;
+  }
 }
 
-
-.profile-card:hover {
-    transform:
-        translateY(-8px);
-
-    border-color:
-        var(--gold);
-
-    box-shadow:
-        0 0 15px rgba(166, 43, 255, 0.65),
-        0 0 35px rgba(92, 24, 255, 0.22);
-}
-
-
-
-/* =========================================
-   PROFILE PICTURES
-========================================= */
-
-.profile-image-wrapper {
-    width: 155px;
-
-    height: 155px;
-
-    padding: 4px;
-
-    border-radius: 50%;
-
-    margin-bottom: 25px;
-
-    background:
-        linear-gradient(
-            135deg,
-            #811fff,
-            #cc31ff,
-            #ffd84d,
-            #8930ff
-        );
-
-    box-shadow:
-        0 0 12px rgba(156, 43, 255, 0.8),
-        0 0 25px rgba(255, 207, 64, 0.25);
-}
-
-
-.profile-image {
-    width: 100%;
-
-    height: 100%;
-
-    object-fit: cover;
-
-    border-radius: 50%;
-
-    background-color: #292541;
-
-    border:
-        4px solid #110b24;
-}
-
-
-
-/* =========================================
-   PROFILE INFORMATION
-========================================= */
-
-.profile-card h3 {
-    font-size: 1.55rem;
-
-    margin-bottom: 10px;
-
-    text-align: center;
-}
-
-
-.role {
-    color: var(--gold);
-
-    font-size: 1.15rem;
-
-    margin-bottom: 35px;
-
-    text-align: center;
-}
-
-
-
-/* =========================================
-   VIEW PROFILE BUTTON
-========================================= */
-
-.profile-button {
-    width: 90%;
-
-    margin-top: auto;
-
-    padding:
-        13px 20px;
-
-    border-radius: 30px;
-
-    background:
-        linear-gradient(
-            90deg,
-            rgba(17, 10, 39, 0.9),
-            rgba(31, 13, 65, 0.9)
-        );
-
-    border:
-        2px solid var(--bright-purple);
-
-    color: white;
-
-    font-size: 1rem;
-
-    font-weight: bold;
-
-    cursor: pointer;
-
-    transition:
-        background 0.25s ease,
-        border-color 0.25s ease,
-        box-shadow 0.25s ease,
-        transform 0.25s ease;
-}
-
-
-.profile-button span {
-    font-size: 1.3rem;
-
-    margin-left: 8px;
-}
-
-
-.profile-button:hover {
-    border-color:
-        var(--gold);
-
-    background:
-        linear-gradient(
-            90deg,
-            rgba(67, 22, 108, 0.8),
-            rgba(89, 34, 125, 0.8)
-        );
-
-    box-shadow:
-        0 0 15px rgba(255, 207, 64, 0.25);
-
-    transform:
-        scale(1.02);
-}
-
-
-
-/* =========================================
-   TEAM INFORMATION
-========================================= */
-
-.team-info {
-    margin-top: 60px;
-
-    padding: 30px;
-
-    display: grid;
-
-    grid-template-columns:
-        repeat(3, 1fr);
-
-    background:
-        linear-gradient(
-            120deg,
-            rgba(28, 20, 53, 0.92),
-            rgba(10, 10, 29, 0.92)
-        );
-
-    border:
-        1px solid rgba(181, 112, 255, 0.55);
-
-    border-radius: 18px;
-
-    box-shadow:
-        0 0 25px rgba(109, 37, 193, 0.14);
-}
-
-
-.info-box {
-    padding:
-        15px 30px;
-
-    min-height: 150px;
-}
-
-
-.info-box:not(:last-child) {
-    border-right:
-        1px solid rgba(190, 168, 222, 0.18);
-}
-
-
-.info-icon {
-    color: var(--gold);
-
-    font-size: 1.9rem;
-
-    margin-bottom: 14px;
-}
-
-
-.info-box h3 {
-    font-size: 1.1rem;
-
-    margin-bottom: 10px;
-}
-
-
-.info-box p {
-    color: #bdb1d2;
-
-    line-height: 1.8;
-
-    font-size: 0.95rem;
-}
-
-
-
-/* =========================================
-   FOOTER
-========================================= */
-
-.footer {
-    padding:
-        25px 5%;
-
-    display: flex;
-
-    justify-content:
-        space-between;
-
-    align-items: center;
-
-    border-top:
-        1px solid var(--purple);
-
-    border-bottom:
-        1px solid var(--gold);
-
-    background:
-        linear-gradient(
-            90deg,
-            #13092c,
-            #080817
-        );
-}
-
-
-.footer-brand {
-    display: flex;
-
-    align-items: center;
-
-    gap: 20px;
-}
-
-
-.footer-brand h2 {
-    font-family:
-        Georgia,
-        "Times New Roman",
-        serif;
-
-    color:
-        var(--gold);
-
-    font-size: 2.8rem;
-}
-
-
-.footer-brand p {
-    color:
-        #c7afea;
-
-    font-size: 1rem;
-}
-
-
-.footer-brand small {
-    display: block;
-
-    color:
-        #786e90;
-
-    margin-top: 5px;
-}
-
-
-.footer-message {
-    color:
-        #a99abc;
-
-    font-family:
-        Georgia,
-        "Times New Roman",
-        serif;
-
-    font-style: italic;
-}
-
-
-
-/* =========================================
-   PROFILE MODAL
-========================================= */
-
-.profile-modal {
-    position: fixed;
-
-    inset: 0;
-
-    display: flex;
-
-    justify-content: center;
-
-    align-items: center;
-
-    z-index: 1000;
-
+@media (max-width: 520px) {
+  .about-intro {
+    align-items: flex-start;
     padding: 20px;
-
-    opacity: 0;
-
-    visibility: hidden;
-
-    transition:
-        opacity 0.25s ease,
-        visibility 0.25s ease;
-}
-
-
-.profile-modal.active {
-    opacity: 1;
-
-    visibility: visible;
-}
-
-
-
-/* =========================================
-   MODAL OVERLAY
-========================================= */
-
-.modal-overlay {
-    position: absolute;
-
-    inset: 0;
-
-    background:
-        rgba(4, 2, 12, 0.82);
-
-    backdrop-filter:
-        blur(6px);
-}
-
-
-
-/* =========================================
-   MODAL WINDOW
-========================================= */
-
-.modal-content {
-    position: relative;
-
-    z-index: 2;
-
-    width:
-        min(550px, 95%);
-
-    padding:
-        35px;
-
-    border-radius:
-        20px;
-
-    background:
-
-        radial-gradient(
-            circle at top left,
-            rgba(104, 35, 180, 0.28),
-            transparent 45%
-        ),
-
-        linear-gradient(
-            145deg,
-            #19102f,
-            #090817
-        );
-
-    border:
-        2px solid var(--purple);
-
-    box-shadow:
-        0 0 20px rgba(145, 46, 255, 0.65),
-        0 0 55px rgba(106, 31, 207, 0.32);
-
-    transform:
-        translateY(25px)
-        scale(0.96);
-
-    transition:
-        transform 0.25s ease;
-}
-
-
-.profile-modal.active .modal-content {
-    transform:
-        translateY(0)
-        scale(1);
-}
-
-
-
-/* =========================================
-   MODAL CLOSE BUTTON
-========================================= */
-
-.modal-close {
-    position: absolute;
-
-    top: 15px;
-
-    right: 18px;
-
-    width: 38px;
-
-    height: 38px;
-
-    border-radius: 50%;
-
-    border:
-        1px solid rgba(187, 53, 255, 0.7);
-
-    background:
-        rgba(20, 10, 42, 0.85);
-
-    color: white;
-
-    font-size: 1.6rem;
-
-    line-height: 1;
-
-    cursor: pointer;
-
-    transition:
-        border-color 0.2s ease,
-        color 0.2s ease,
-        box-shadow 0.2s ease,
-        transform 0.2s ease;
-}
-
-
-.modal-close:hover {
-    color:
-        var(--gold);
-
-    border-color:
-        var(--gold);
-
-    box-shadow:
-        0 0 12px rgba(255, 207, 64, 0.35);
-
-    transform:
-        rotate(90deg);
-}
-
-
-
-/* =========================================
-   MODAL HEADER
-========================================= */
-
-.modal-header {
-    display: flex;
-
-    align-items: center;
-
-    gap: 20px;
-
-    padding-right: 45px;
-}
-
-
-.modal-icon {
-    width: 75px;
-
-    height: 75px;
-
-    min-width: 75px;
-
-    display: flex;
-
-    justify-content: center;
-
-    align-items: center;
-
-    border-radius: 50%;
-
-    background:
-        linear-gradient(
-            135deg,
-            #5a15b6,
-            #231043
-        );
-
-    border:
-        2px solid var(--gold);
-
-    color:
-        var(--gold);
-
-    font-family:
-        Georgia,
-        "Times New Roman",
-        serif;
-
-    font-weight:
-        bold;
-
-    box-shadow:
-        0 0 10px rgba(133, 44, 255, 0.8),
-        0 0 20px rgba(255, 207, 64, 0.18);
-}
-
-
-.modal-label {
-    color:
-        var(--gold);
-
-    font-size:
-        0.75rem;
-
-    letter-spacing:
-        3px;
-
-    margin-bottom:
-        6px;
-}
-
-
-.modal-header h2 {
-    font-size:
-        1.8rem;
-
-    color:
-        white;
-}
-
-
-
-/* =========================================
-   MODAL DIVIDER
-========================================= */
-
-.modal-divider {
-    height: 1px;
-
-    margin:
-        25px 0;
-
-    background:
-        linear-gradient(
-            90deg,
-            var(--purple),
-            var(--gold),
-            transparent
-        );
-
-    box-shadow:
-        0 0 8px rgba(147, 44, 255, 0.4);
-}
-
-
-
-/* =========================================
-   MODAL INFORMATION
-========================================= */
-
-.modal-info {
-    display:
-        flex;
-
-    flex-direction:
-        column;
-
-    gap:
-        25px;
-}
-
-
-.modal-section h3 {
-    color:
-        var(--gold);
-
-    font-size:
-        1.05rem;
-
-    margin-bottom:
-        8px;
-}
-
-
-.modal-section p {
-    color:
-        #c8bdd8;
-
-    line-height:
-        1.7;
-
-    font-size:
-        1rem;
-}
-
-
-
-/* =========================================
-   GITHUB + LINKEDIN LINKS
-========================================= */
-
-.modal-links {
-    display: flex;
-
-    gap: 15px;
-
-    margin-top: 10px;
-}
-
-
-.profile-link {
-    flex: 1;
-
-    text-align: center;
-
-    padding:
-        12px 18px;
-
-    border-radius:
-        30px;
-
-    text-decoration:
-        none;
-
-    color:
-        white;
-
-    font-weight:
-        bold;
-
-    border:
-        2px solid var(--bright-purple);
-
-    background:
-        linear-gradient(
-            90deg,
-            rgba(20, 10, 45, 0.95),
-            rgba(40, 15, 75, 0.95)
-        );
-
-    transition:
-        transform 0.2s ease,
-        border-color 0.2s ease,
-        box-shadow 0.2s ease,
-        color 0.2s ease;
-}
-
-
-.profile-link:hover {
-    transform:
-        translateY(-2px);
-
-    border-color:
-        var(--gold);
-
-    color:
-        var(--gold);
-
-    box-shadow:
-        0 0 14px rgba(255, 207, 64, 0.28);
-}
-
-
-
-/* =========================================
-   STOP PAGE SCROLL WHILE MODAL IS OPEN
-========================================= */
-
-body:has(.about-page .profile-modal.active) {
-    overflow: hidden;
-}
-
-
-
-/* =========================================
-   TABLET
-========================================= */
-
-@media (max-width: 900px) {
-
-    .team-grid {
-        grid-template-columns:
-            repeat(2, 1fr);
-    }
-
-
-    .team-info {
-        grid-template-columns:
-            1fr;
-    }
-
-
-    .info-box:not(:last-child) {
-        border-right:
-            none;
-
-        border-bottom:
-            1px solid rgba(190, 168, 222, 0.18);
-    }
-
-
-    .footer {
-        flex-direction:
-            column;
-
-        gap:
-            20px;
-
-        text-align:
-            center;
-    }
-
-}
-
-
-
-/* =========================================
-   MOBILE
-========================================= */
-
-@media (max-width: 600px) {
-
-    .header {
-        justify-content:
-            center;
-
-        height:
-            auto;
-
-        padding:
-            20px;
-    }
-
-
-    .brand h1 {
-        font-size:
-            2.4rem;
-    }
-
-
-    .brand-text span {
-        font-size:
-            1rem;
-    }
-
-
-    .brand-text small {
-        font-size:
-            0.7rem;
-    }
-
-
-    .hero {
-        min-height:
-            350px;
-
-        padding:
-            60px 20px 50px;
-    }
-
-
-    .hero h2 {
-        font-size:
-            1.4rem;
-
-        letter-spacing:
-            4px;
-    }
-
-
-    .team-grid {
-        grid-template-columns:
-            1fr;
-    }
-
-
-    .profile-card {
-        max-width:
-            420px;
-
-        width:
-            100%;
-
-        margin:
-            auto;
-    }
-
-
-    .team-info {
-        padding:
-            18px;
-    }
-
-
-    .info-box {
-        padding:
-            25px 15px;
-    }
-
-
-    .footer-brand {
-        flex-direction:
-            column;
-
-        gap:
-            5px;
-    }
-
-
-    .modal-content {
-        padding:
-            30px 22px;
-    }
-
-
-    .modal-header {
-        align-items:
-            flex-start;
-    }
-
-
-    .modal-icon {
-        width:
-            60px;
-
-        height:
-            60px;
-
-        min-width:
-            60px;
-
-        font-size:
-            0.85rem;
-    }
-
-
-    .modal-header h2 {
-        font-size:
-            1.4rem;
-    }
-
-
-    .modal-label {
-        letter-spacing:
-            2px;
-    }
-
-
-    .modal-links {
-        flex-direction:
-            column;
-    }
-
+  }
+
+  .about-mark {
+    flex-basis: 48px;
+    width: 48px;
+    height: 48px;
+  }
 }
