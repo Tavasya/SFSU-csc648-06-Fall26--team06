@@ -3,7 +3,8 @@
  *
  * POST /api/assistant  { question }  ->  { reply, events, categories, total }
  *
- * Allison, the GatorAid AI Event Assistant. The question is read with plain
+ * Allison, the GatorAid AI Event Assistant. Anyone can ask, no account
+ * needed (only saving and RSVPing need one). The question is read with plain
  * rules (lib/assistant/query.js): dates, time of day, categories, cost, place
  * and topic words. Only published events from Supabase are ever returned, so
  * Allison can't recommend an event that doesn't exist. Gemini only writes the
@@ -199,10 +200,6 @@ export async function POST(request) {
     }
 
     const db = await createClient();
-    const { data: { user } } = await db.auth.getUser();
-    if (!user) {
-      return NextResponse.json({ error: "Please sign in to chat with Allison." }, { status: 401 });
-    }
 
     const now = new Date();
     const [locationsResult, categoriesResult] = await Promise.all([
