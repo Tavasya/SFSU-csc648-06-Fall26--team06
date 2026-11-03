@@ -24,7 +24,10 @@ export default function Login() {
     setBusy(false);
     if (error) return setMessage(error.message);
     if (data.session) {
-      router.push("/host/events");
+      // ?next=/schedule sends students back to the page that asked them to
+      // sign in. Only paths on this site are allowed ("/x", not "//other.site").
+      const next = new URLSearchParams(window.location.search).get("next");
+      router.push(next?.startsWith("/") && !next.startsWith("//") ? next : "/host/events");
       router.refresh();
     } else
       setMessage(
