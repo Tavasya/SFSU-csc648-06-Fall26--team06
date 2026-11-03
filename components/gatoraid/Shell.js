@@ -65,7 +65,7 @@ export default function Shell({ children }) {
             <CalendarDays size={18} /> Saved events
           </Link>
           <Link className={path === "/calendar" ? "active" : ""} href="/calendar">
-            <CalendarRange size={18} /> Calendar
+            <CalendarRange size={18} /> My calendar
           </Link>
           <Link
             className={path.startsWith("/map") ? "active" : ""}
