@@ -46,7 +46,8 @@
 
 .about-team-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  /* Three across keeps all six team profiles together in two rows. */
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 16px;
 }
 
@@ -138,12 +139,18 @@
 }
 
 @media (max-width: 760px) {
+  .about-team-grid,
   .about-values {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
 @media (max-width: 520px) {
+  .about-team-grid,
+  .about-values {
+    grid-template-columns: 1fr;
+  }
+
   .about-intro {
     align-items: flex-start;
     padding: 20px;
