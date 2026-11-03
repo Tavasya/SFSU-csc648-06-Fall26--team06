@@ -1,6 +1,7 @@
 
 import { GoogleGenAI } from "@google/genai";
 import { NextResponse } from "next/server";
+import { createClient } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
 
@@ -92,6 +93,18 @@ async function generateWithRetry(ai, options) {
 // API endpoint for schedule scanning
 export async function POST(request) {
     try {
+        // 0. Only signed-in students can scan (schedules belong to an account)
+        const db = await createClient();
+        const { data: { user } } = await db.auth.getUser();
+        if (!user) {
+            return NextResponse.json(
+                {
+                    error: "Sign in to scan your class schedule.",
+                },
+                { status: 401 }
+            );
+        }
+
         // 1. Check Gemini API key
         if (!process.env.GEMINI_API_KEY) {
             return NextResponse.json(
