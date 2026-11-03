@@ -1,0 +1,431 @@
+/* AI Event Assistant, Allison (/assistant). Everything is scoped under .ga-assistant. */
+.ga-assistant {
+  --gold: #f5c242;
+  --gold-soft: #fdf3d4;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 300px;
+  gap: 28px;
+  align-items: start;
+}
+.ga-assistant-main {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  min-width: 0;
+}
+
+/* Header: avatar, title, Beta badge */
+.ga-assistant-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.ga-assistant-header h1 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+}
+.ga-assistant-header p {
+  margin: 2px 0 0;
+}
+.ga-assistant-beta {
+  background: var(--gold-soft);
+  color: #8a6400;
+  border-radius: 10px;
+  padding: 2px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0;
+  white-space: nowrap;
+}
+.ga-assistant-clear {
+  margin-left: auto;
+}
+/* Allison's gator avatar (public/images/allison.png already includes the gold ring) */
+.ga-assistant-avatar {
+  flex-shrink: 0;
+  border-radius: 50%;
+}
+
+/* Welcome card with suggested questions */
+.ga-assistant-welcome h2 {
+  margin-bottom: 4px;
+}
+.ga-assistant-welcome .ga-chip,
+.ga-assistant-aside .ga-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--ink);
+}
+.ga-assistant-welcome .ga-chip:hover,
+.ga-assistant-aside .ga-chip:hover {
+  border-color: #c6b6e0;
+  background: #f4f0fa;
+}
+
+/* Conversation */
+.ga-assistant-thread {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.ga-assistant-user {
+  align-self: flex-end;
+  max-width: 75%;
+  background: var(--purple);
+  color: #fff;
+  padding: 12px 18px;
+  border-radius: 18px 18px 4px 18px;
+  margin: 0;
+  font-size: 15px;
+}
+.ga-assistant-reply {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.ga-assistant-bubble-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+.ga-assistant-bubble {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 4px 18px 18px 18px;
+  padding: 12px 18px;
+  max-width: 80%;
+}
+.ga-assistant-bubble small {
+  color: #8a6400;
+  font-weight: 600;
+}
+.ga-assistant-bubble p {
+  margin: 2px 0 0;
+  font-size: 15px;
+  line-height: 1.55;
+  white-space: pre-line; /* summaries and comparisons use line breaks */
+}
+.ga-assistant-thinking span {
+  animation: ga-assistant-blink 1.2s infinite;
+}
+.ga-assistant-thinking span:nth-child(2) { animation-delay: 0.2s; }
+.ga-assistant-thinking span:nth-child(3) { animation-delay: 0.4s; }
+@keyframes ga-assistant-blink {
+  0%, 80%, 100% { opacity: 0.2; }
+  40% { opacity: 1; }
+}
+
+/* Event cards: same look as Explore events, with an actions row */
+.ga-assistant-grid {
+  margin-left: 44px;
+  grid-template-columns: repeat(2, minmax(0, 1fr)); /* 2 x 2 grid */
+  align-items: start;
+}
+.ga-assistant-reply > .ga-small {
+  margin: -4px 0 0 44px;
+}
+.ga-assistant-card {
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 16px;
+}
+.ga-assistant-card-link {
+  display: block;
+  flex: 1;
+}
+/* Each badge already has a 20px left margin (same as Explore events) */
+.ga-assistant-card-link .ga-public-card-chips {
+  margin: 0 0 10px;
+}
+.ga-assistant-card-link h2,
+.ga-assistant-card-link p,
+.ga-assistant-card-link > .ga-badge {
+  margin-left: 20px;
+  margin-right: 20px;
+}
+.ga-assistant-card-link p {
+  display: flex;
+  gap: 6px;
+  font-size: 12px;
+}
+.ga-assistant-card:hover {
+  border-color: #c6b6e0;
+  box-shadow: 0 8px 24px #60439814;
+}
+/* Full-width buttons, stacked, so every card's actions line up */
+.ga-assistant-card-actions {
+  display: grid;
+  gap: 8px;
+  margin: 16px 20px 0;
+}
+.ga-assistant-card-actions .ga-button {
+  width: 100%;
+  padding: 10px 14px;
+}
+
+/* Tags under the place: Free/Paid and RSVP required/Drop-in */
+.ga-assistant-card-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 8px 20px 0;
+}
+.ga-assistant-card-tags .ga-badge {
+  margin: 0;
+}
+
+/* Save / Interested / Going, right on the card */
+.ga-assistant-card-rsvp {
+  margin: 14px 20px 0;
+}
+.ga-assistant-card-rsvp [role="group"] {
+  display: flex;
+  flex-wrap: wrap; /* wraps on narrow screens instead of squishing */
+  gap: 6px;
+}
+.ga-assistant-card-rsvp button {
+  display: inline-flex;
+  flex: 1 0 auto;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 8px 12px;
+  border: 1px solid #d8cde9;
+  border-radius: 999px;
+  background: #fff;
+  color: var(--purple);
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.ga-assistant-card-rsvp button:hover:not(:disabled) {
+  background: #f3eefa;
+}
+.ga-assistant-card-rsvp button[aria-pressed="true"] {
+  border-color: var(--purple);
+  background: var(--purple);
+  color: #fff;
+}
+.ga .ga-assistant-card-rsvp button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+.ga-assistant-card-error {
+  margin: 6px 0 0;
+  color: #b42318;
+  font-size: 12px;
+}
+
+/* 3D venue preview: the grid cell next to its card, as tall as the card */
+.ga-assistant-preview {
+  display: flex;
+  flex-direction: column;
+  align-self: stretch;
+  min-height: 360px;
+  padding: 14px;
+}
+.ga-assistant-preview header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.ga-assistant-preview h3 {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  font-size: 14px;
+}
+.ga-assistant-preview header p {
+  margin: 2px 0 0;
+  font-size: 11px;
+}
+.ga-assistant-preview .ga-chip-group {
+  margin-bottom: 8px;
+}
+.ga-assistant-preview .ga-chip[aria-pressed="true"] {
+  border-color: var(--purple);
+  background: var(--purple);
+  color: #fff;
+}
+.ga-assistant-preview iframe {
+  display: block;
+  flex: 1;
+  width: 100%;
+  min-height: 280px;
+  border: 0;
+  border-radius: 12px;
+  background: #211b2d;
+}
+.ga-assistant-icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  flex-shrink: 0;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: #fff;
+  color: var(--ink);
+}
+
+/* Suggested questions: general starting points, two per row */
+.ga-assistant-suggestions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 14px;
+}
+.ga-assistant-suggestions button {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: #fff;
+  color: var(--ink);
+  text-align: left;
+}
+.ga-assistant-suggestions button:hover {
+  border-color: #c6b6e0;
+  background: #faf8fd;
+}
+.ga-assistant-suggestions button > span:nth-child(2) {
+  flex: 1;
+  min-width: 0;
+}
+.ga-assistant-suggestions strong {
+  display: block;
+  font-size: 14px;
+}
+.ga-assistant-suggestions small {
+  color: var(--muted);
+  font-size: 12px;
+}
+.ga-assistant-suggestions svg:last-child {
+  flex-shrink: 0;
+  color: #9a93a6;
+}
+.ga-assistant-suggestion-icon {
+  display: inline-flex;
+  padding: 9px;
+  border-radius: 11px;
+  background: var(--gold-soft);
+  color: var(--purple);
+}
+
+/* "Try asking about" list */
+.ga-assistant-tips {
+  margin: 0;
+  padding-left: 18px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.6;
+}
+.ga-assistant-tips strong {
+  color: var(--ink);
+}
+
+/* Message box */
+.ga-assistant-input {
+  position: sticky;
+  bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: 10px 10px 10px 20px;
+  box-shadow: 0 10px 30px #26233214;
+}
+.ga-assistant-input:focus-within {
+  border-color: #c6b6e0;
+}
+/* .ga .ga-assistant-input beats the app-wide .ga input:not([type="checkbox"]) box style */
+.ga .ga-assistant-input input,
+.ga .ga-assistant-input input:focus {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  box-shadow: none;
+  outline: none;
+  background: transparent;
+  font-size: 15px;
+  padding: 10px 0;
+  color: var(--ink);
+}
+.ga-assistant-send {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: 0;
+  background: var(--gold);
+  color: var(--ink);
+}
+.ga-assistant-send:hover:not(:disabled) {
+  background: #e9b42d;
+}
+.ga .ga-assistant-send:disabled {
+  cursor: not-allowed;
+}
+
+/* Side panels */
+.ga-assistant-aside {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  position: sticky;
+  top: 20px;
+}
+.ga-assistant-aside h2 {
+  margin-bottom: 6px;
+}
+.ga-assistant-aside .ga-chip-group {
+  margin-bottom: 0;
+}
+
+@media (max-width: 1100px) {
+  .ga-assistant {
+    grid-template-columns: 1fr;
+  }
+  .ga-assistant-aside {
+    position: static;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+}
+@media (max-width: 800px) {
+  .ga-assistant-grid,
+  .ga-assistant-reply > .ga-small {
+    margin-left: 0;
+  }
+  .ga-assistant-grid {
+    grid-template-columns: 1fr; /* one card per row on phones */
+  }
+  .ga-assistant-suggestions {
+    grid-template-columns: 1fr;
+  }
+  .ga-assistant-user,
+  .ga-assistant-bubble {
+    max-width: 90%;
+  }
+  .ga-assistant-aside {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 560px) {
+  .ga-assistant-header {
+    flex-wrap: wrap;
+  }
+}

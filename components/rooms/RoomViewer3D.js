@@ -124,8 +124,9 @@ function UnityCanvas({ roomId }) {
 export default function RoomViewer3D({
   room, // { id, name, scanDate, modelPath } — id null means no real scan (sample data)
   className = "h-48",
+  autoStart = false, // skip the "Load 3D preview" button (the AI Assistant's previews)
 }) {
-  const [started, setStarted] = useState(false);
+  const [started, setStarted] = useState(autoStart);
   const splat = isSplatModel(room.modelPath);
   const scanned = room.scanDate
     ? new Date(`${room.scanDate}T12:00:00`).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })

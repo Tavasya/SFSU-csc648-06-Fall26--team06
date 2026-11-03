@@ -9,12 +9,18 @@ export default function RoomEmbedPage() {
 
   // The scan file decides the viewer (.glb: Unity, .spz: Spark),
   // so wait for it before showing the preview.
+  // ?autostart=1 (the AI Assistant's cards) opens the viewer without a second click.
   const [modelPath, setModelPath] = useState(undefined);
+  const [autoStart, setAutoStart] = useState(false);
   useEffect(() => {
+    const autoStartParam = new URLSearchParams(window.location.search).get("autostart") === "1";
     fetch(`/api/rooms/${roomId}/info`)
       .then((response) => (response.ok ? response.json() : {}))
-      .then((info) => setModelPath(info.model_view_path ?? null))
-      .catch(() => setModelPath(null));
+      .then((info) => info.model_view_path ?? null, () => null)
+      .then((path) => {
+        setAutoStart(autoStartParam);
+        setModelPath(path);
+      });
   }, [roomId]);
 
   const room = {
@@ -29,6 +35,7 @@ export default function RoomEmbedPage() {
       {modelPath !== undefined && (
         <RoomViewer3D
           room={room}
+          autoStart={autoStart}
           className="h-[calc(100vh-55px)]"
         />
       )}
