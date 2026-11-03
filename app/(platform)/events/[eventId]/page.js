@@ -5,7 +5,9 @@ import EventDetails from "@/components/gatoraid/EventDetails";
 import { loadRoomScans } from "@/lib/map/page-data";
 import { buildLocationLookup, placeForLocation } from "@/lib/map/events";
 import { toCampusPlaces } from "@/lib/map/places";
-export default async function Page({ params }) {
+export default async function Page({ params, searchParams }) {
+  // ?from=assistant: opened from Allison's answers, so "Back" returns to the chat
+  const from = (await searchParams)?.from === "assistant" ? "assistant" : null;
   const db = await createClient();
   const { data: event, error } = await db
     .from("events")
@@ -38,6 +40,7 @@ export default async function Page({ params }) {
       coverUrl={coverUrl}
       rooms={rooms}
       places={places}
+      from={from}
     />
   );
 }
