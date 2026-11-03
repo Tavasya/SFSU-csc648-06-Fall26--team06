@@ -1,6 +1,6 @@
 # Student calendar
 
-Route: `/calendar` (sidebar: Calendar). A week view of the signed-in student's saved and RSVP'd events, based on the Figma frame "11 · My Events Calendar". Class schedule blocks come from the student's saved schedule (see [Class schedule](#class-schedule)).
+Route: `/calendar` (sidebar and page title: My calendar). A week view of the signed-in student's saved and RSVP'd events, based on the Figma frame "11 · My Events Calendar". Class schedule blocks come from the student's saved schedule (see [Class schedule](#class-schedule)).
 
 Copy `.env.example` to `.env.local` and supply the Supabase URL and publishable key. Run `npm ci`, then `npm run dev`.
 
@@ -40,7 +40,7 @@ An event that is both saved and RSVP'd shows once, as its RSVP. Not Attending RS
 - `components/calendar/CalendarView.js`: loads the data and draws the week (Client Component).
 - `components/calendar/calendar.css`: calendar styles, all scoped to `.ga-calendar-*`.
 - `lib/calendar/week.js`: plain functions for week math, Pacific time, turning events and classes into blocks, and the side-by-side layout. They have no React or imports and are tested in `tests/calendar.test.mjs` (`npm test`).
-- `components/gatoraid/Shell.js`: the Calendar sidebar link.
+- `components/gatoraid/Shell.js`: the My calendar sidebar link.
 
 ## Class schedule
 
@@ -57,9 +57,9 @@ Classes come from the schedule scanner (`/schedule`), which saves them and retur
 ## Verification
 
 1. Sign in as a student, open an event, and choose Save event. Open another event and choose Attending, and a third and choose Interested.
-2. Open Calendar: each event appears on its day and time with the matching style, and clicking one opens its event page.
+2. Open My calendar: each event appears on its day and time with the matching style, and clicking one opens its event page.
 3. Change one RSVP to Not Attending: the event disappears unless it is also saved.
 4. Use the arrows to move between weeks and Today to come back.
-5. Upload and save a schedule at `/schedule`, then open Calendar: each class appears as a gray block on its meeting days and times, and clicking it does nothing.
+5. Upload and save a schedule at `/schedule`, then open My calendar: each class appears as a gray block on its meeting days and times, and clicking it does nothing.
 6. Narrow the window below 800px: the day picker appears and the page does not scroll sideways.
 7. Run `npm test`.
