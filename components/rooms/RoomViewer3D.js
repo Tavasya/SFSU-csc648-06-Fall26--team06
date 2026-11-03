@@ -12,6 +12,9 @@
  * browsers require before Unity may lock the mouse pointer.
  *
  * Only one Unity viewer can run on a page at a time.
+ *
+ * Scans saved as Gaussian splats (.spz) open in the three.js + Spark viewer
+ * instead (components/rooms/SplatCanvas.js); .glb scans keep using Unity.
  */
 
 "use client";
@@ -19,6 +22,8 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { Box, Expand, Loader2 } from "lucide-react";
+import SplatCanvas from "@/components/rooms/SplatCanvas";
+import { isSplatModel, roomModelUrl, roomViewHref } from "@/lib/rooms/model";
 
 const LOADER_URL = "/unity/Build/build.loader.js";
 
@@ -117,10 +122,11 @@ function UnityCanvas({ roomId }) {
 }
 
 export default function RoomViewer3D({
-  room, // { id, name, scanDate } — id null means no real scan (sample data)
+  room, // { id, name, scanDate, modelPath } — id null means no real scan (sample data)
   className = "h-48",
 }) {
   const [started, setStarted] = useState(false);
+  const splat = isSplatModel(room.modelPath);
   const scanned = room.scanDate
     ? new Date(`${room.scanDate}T12:00:00`).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
     : null;
@@ -129,7 +135,14 @@ export default function RoomViewer3D({
     <div>
       <div className={`relative overflow-hidden rounded-xl bg-[#1f1a2b] ${className}`}>
         {started ? (
-          <UnityCanvas roomId={room.id} />
+          splat ? (
+            <SplatCanvas
+              url={roomModelUrl(process.env.NEXT_PUBLIC_SUPABASE_URL, room.modelPath)}
+              label={`3D scan of ${room.name}`}
+            />
+          ) : (
+            <UnityCanvas roomId={room.id} />
+          )
         ) : (
           <div className="grid h-full place-items-center p-4 text-center">
             <div>
@@ -145,7 +158,7 @@ export default function RoomViewer3D({
                   >
                     Load 3D preview
                   </button>
-                  <p className="mt-1.5 text-[11px] text-white/60">First load downloads about 80 MB</p>
+                  <p className="mt-1.5 text-[11px] text-white/60">{splat ? "Downloads about 50 MB" : "First load downloads about 80 MB"}</p>
                 </>
               )}
             </div>
@@ -159,7 +172,7 @@ export default function RoomViewer3D({
         </span>
         {room.id != null && (
           <Link
-            href={`/rooms/${room.id}/3d`}
+            href={roomViewHref(room)}
             className="inline-flex items-center gap-1 font-medium text-[#604398] hover:text-[#503581] hover:underline"
           >
             <Expand size={13} aria-hidden="true" />
