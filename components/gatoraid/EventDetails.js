@@ -25,6 +25,7 @@ export default function EventDetails({
   preview = false,
   rooms = [],
   places, // the Campus Map places, for the Location section's small map
+  from = null, // "assistant" when opened from the AI Assistant (Allison)
 }) {
   // Categories in the host's order; the first one picks the banner.
   const categoryNames = orderedCategoryNames(event.category_ids, categories);
@@ -36,9 +37,12 @@ export default function EventDetails({
     }).format(new Date(v));
   return (
     <>
-      <Link className="ga-back" href={preview ? "/host/events" : "/events"}>
+      <Link
+        className="ga-back"
+        href={preview ? "/host/events" : from === "assistant" ? "/assistant" : "/events"}
+      >
         <ArrowLeft size={16} />
-        {preview ? "Back to My Events" : "Back to events"}
+        {preview ? "Back to My Events" : from === "assistant" ? "Back to chat with Allison" : "Back to events"}
       </Link>
       <div className="ga-detail-grid">
         <div>

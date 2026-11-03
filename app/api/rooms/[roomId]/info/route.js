@@ -9,7 +9,7 @@ export async function GET(request, { params }) {
     // query your rooms table
     const { data: room, error: roomError } = await db
       .from("rooms")
-      .select("room_name, scan_date")
+      .select("room_name, scan_date, model_view_path")
       .eq("id", roomId)
       .single();
 
@@ -30,7 +30,9 @@ export async function GET(request, { params }) {
     return new Response(
       JSON.stringify({
         room_name: room.room_name,
-        scan_date: room.scan_date
+        scan_date: room.scan_date,
+        // the scan file: .glb opens in Unity, .spz in the Spark viewer
+        model_view_path: room.model_view_path
       }),
       {
         status: 200,
