@@ -5,6 +5,9 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import {
   CalendarDays,
+  CalendarX2,
+  CircleCheck,
+  CircleHelp,
   MapPin,
   Search,
   X,
@@ -322,31 +325,33 @@ export default function EventSearch({
                 <h2>{event.title}</h2>
 
                 {scheduleStatus !== "unused" && (
-                  <div className="mt-2">
+                  <div className="ga-fit-row">
                     {availability.status === "available" && (
-                      <span className="inline-flex rounded-full bg-green-50 px-3 py-1 text-xs font-semibold text-green-700">
-                        ✓ Fits your schedule
+                      <span className="ga-fit fits">
+                        <CircleCheck size={13} aria-hidden="true" />
+                        Fits your schedule
                       </span>
                     )}
 
                     {availability.status === "conflict" && (
-                      <div className="space-y-1">
-                        <span className="inline-flex rounded-full bg-red-50 px-3 py-1 text-xs font-semibold text-red-700">
+                      <>
+                        <span className="ga-fit conflict">
+                          <CalendarX2 size={13} aria-hidden="true" />
                           Class conflict
                         </span>
-
-                        <p className="text-xs text-red-700">
+                        <div className="ga-fit-detail">
                           Overlaps with{" "}
                           {availability.conflicts
                             .map((course) => course.name || course.class_name)
                             .join(", ")}
-                        </p>
-                      </div>
+                        </div>
+                      </>
                     )}
 
                     {availability.status === "unknown" && (
-                      <span className="inline-flex rounded-full bg-gray-100 px-3 py-1 text-xs text-gray-600">
-                        Schedule availability unknown
+                      <span className="ga-fit unknown">
+                        <CircleHelp size={13} aria-hidden="true" />
+                        Schedule fit unknown
                       </span>
                     )}
                   </div>

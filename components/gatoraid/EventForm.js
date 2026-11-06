@@ -213,7 +213,7 @@ export default function EventForm({
         }}
       >
         <ArrowLeft size={16} />
-        Back to My Events
+        Back to your events
       </Link>
       <div className="ga-heading">
         <div>

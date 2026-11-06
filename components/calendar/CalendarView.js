@@ -107,7 +107,7 @@ export default function CalendarView() {
     <div className="ga-calendar">
       <div className="ga-heading">
         <div>
-          <h1>My calendar</h1>
+          <h1>Your calendar</h1>
           <p className="ga-muted">Your RSVPs, saved events, and class schedule in one week.</p>
         </div>
         <Link className="ga-button secondary" href="/events">

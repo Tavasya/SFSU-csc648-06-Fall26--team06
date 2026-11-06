@@ -42,7 +42,7 @@ export default function EventDetails({
         href={preview ? "/host/events" : from === "assistant" ? "/assistant" : "/events"}
       >
         <ArrowLeft size={16} />
-        {preview ? "Back to My Events" : from === "assistant" ? "Back to chat with Allison" : "Back to events"}
+        {preview ? "Back to your events" : from === "assistant" ? "Back to chat with Allison" : "Back to events"}
       </Link>
       <div className="ga-detail-grid">
         <div>

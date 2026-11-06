@@ -75,6 +75,7 @@ export default function MapView({
   pins = [], // [{ id, label, count, has3D }] — buildings that get a pill pin
   initialFocusId = null, // start zoomed in on this building / place / room
   compact = false, // smaller card without the legend (event page preview)
+  quiet = false, // names only on hover and for the selected building (homepage preview)
   campus = EMPTY_CAMPUS, // buildings, outdoor spaces and venues, from campusFrom()
 }) {
   // Buildings, outdoor spaces and venues from the "locations" table.
@@ -309,7 +310,7 @@ export default function MapView({
   const activeId = selectedId ? mapIdFor(selectedId) : null;
   const pinIds = new Set(pins.map((p) => p.id));
   const showLabel = (id) =>
-    !pinIds.has(id) && (zoom >= LABEL_ZOOM || id === activeId || id === hoverId);
+    !pinIds.has(id) && ((!quiet && zoom >= LABEL_ZOOM) || id === activeId || id === hoverId);
   const selectedShape = activeId ? SHAPES.get(activeId) : null;
   const L = geometry.layers;
 
@@ -515,7 +516,7 @@ export default function MapView({
           const pos = toScreen(shape);
           if (!pos.visible) return null;
           const selected = pin.id === activeId;
-          const showName = selected || zoom >= PIN_NAME_ZOOM || pin.id === hoverId;
+          const showName = selected || (!quiet && zoom >= PIN_NAME_ZOOM) || pin.id === hoverId;
           const name = META.get(pin.id)?.name ?? pin.label;
           return (
             <button

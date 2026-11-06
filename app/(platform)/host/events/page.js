@@ -30,7 +30,7 @@ export default async function Page() {
       <div className="ga-heading">
         <div>
           <p className="ga-muted">{host?.display_name || "SFSU organizers"}</p>
-          <h1>My Events</h1>
+          <h1>Your events</h1>
           <p className="ga-muted">
             Create, manage and track your campus events.
           </p>
