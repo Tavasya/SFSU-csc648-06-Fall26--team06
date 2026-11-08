@@ -128,6 +128,21 @@ test("a full event refuses new attending RSVPs but keeps existing ones", async (
   // Interested is still allowed when the event is full.
   assert.equal((await rsvp.PUT(request("PUT", { status: "interested" }), context)).status, 200);
 });
+test("hosts can't save or RSVP to their own event", async () => {
+  const db = database();
+  db.tables.events[0].host_id = "student-one";
+  for (const response of [
+    await saved.PUT(request("PUT"), context),
+    await rsvp.PUT(request("PUT", { status: "attending" }), context),
+  ]) {
+    assert.equal(response.status, 403);
+    assert.match((await response.json()).error, /your own event/);
+  }
+  assert.equal(db.tables.saved_events.length + db.tables.event_rsvps.length, 0);
+  // Anyone else still can.
+  db.user = { id: "student-two" };
+  assert.equal((await saved.PUT(request("PUT"), context)).status, 200);
+});
 test("cancelled events reject attending but allow withdrawing; drafts are inaccessible", async () => {
   const db = database();
   db.tables.events[0].status = "cancelled";
