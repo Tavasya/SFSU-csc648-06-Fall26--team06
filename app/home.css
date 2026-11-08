@@ -107,16 +107,17 @@ body:has(> .home) {
 .home-eyebrow {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  font-size: 13px;
-  font-weight: 600;
+  gap: 10px;
+  /* Big enough to read on a projector from the back of the room. */
+  font-size: 16px;
+  font-weight: 700;
   color: var(--purple);
   margin-bottom: 14px;
 }
 .home-eyebrow::before {
   content: "";
-  width: 6px;
-  height: 6px;
+  width: 9px;
+  height: 9px;
   border-radius: 50%;
   background: var(--gold);
 }
@@ -245,6 +246,12 @@ body:has(> .home) {
   min-height: calc(100svh - var(--site-header-height));
   display: flex;
   align-items: center;
+  /* Less padding than other sections, so the content fits one screen. The
+     hero above has the same background, so a top border marks where this
+     screen starts, and a little more room below balances the cards. */
+  padding: 40px 0 64px;
+  border-top: 1px solid var(--line);
+  scroll-margin-top: var(--site-header-height);
 }
 .home-full > .site-wrap {
   width: 100%;
@@ -258,23 +265,23 @@ body:has(> .home) {
 }
 .home-intro {
   display: grid;
-  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
-  gap: 56px;
+  grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+  gap: 48px;
   align-items: end;
-  margin-bottom: 40px;
+  margin-bottom: 28px;
 }
 .home-full .home-section-head {
   max-width: none;
   margin-bottom: 0;
 }
 .home-section.home-full h2 {
-  font-size: clamp(32px, 4vw, 46px);
+  font-size: clamp(30px, 3.3vw, 42px);
   line-height: 1.08;
   letter-spacing: -1.4px;
 }
 .home-intro-lead {
-  margin-top: 18px;
-  font-size: 17px;
+  margin-top: 14px;
+  font-size: 16px;
   line-height: 1.6;
   color: var(--muted);
   max-width: 600px;
@@ -320,7 +327,7 @@ body:has(> .home) {
 .home-full .home-problem {
   display: flex;
   flex-direction: column;
-  padding: 26px;
+  padding: 22px 24px;
   background: var(--surface);
 }
 .home-full .home-problem svg {
@@ -329,8 +336,8 @@ body:has(> .home) {
   padding: 9px;
 }
 .home-full .home-problem h3 {
-  font-size: 19px;
-  margin: 18px 0 6px;
+  font-size: 18px;
+  margin: 14px 0 6px;
 }
 .home-full .home-problem p {
   font-size: 15px;
@@ -340,14 +347,14 @@ body:has(> .home) {
   gap: 8px;
   align-items: flex-start;
   margin-top: auto;
-  padding-top: 16px;
+  padding-top: 12px;
   border-top: 1px solid var(--line);
   color: var(--purple);
   font-weight: 600;
   font-size: 14px;
 }
 .home-full .home-problem p:not(.home-problem-answer) {
-  margin-bottom: 18px;
+  margin-bottom: 14px;
 }
 .home-full .home-problem .home-problem-answer svg {
   flex: none;

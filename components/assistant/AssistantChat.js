@@ -78,13 +78,18 @@ async function loadStatuses() {
 }
 
 // compare: two upcoming event titles picked by the page (app/(platform)/assistant/page.js),
-// so the compare prompt always names real events. Without them, the time-of-day prompt stays.
+// so the compare prompt always names real events. With them, the summary prompt
+// moves up to the time-of-day slot and the compare prompt takes the last slot.
+// Without them, the time-of-day prompt stays.
 export default function AssistantChat({ compare = null }) {
+  const summary = SUGGESTIONS.find((s) => s.icon === Sparkles);
   const suggestions = compare
     ? SUGGESTIONS.map((s) =>
         s.icon === Sunset
-          ? { icon: ArrowLeftRight, text: `Compare ${compare[0]} and ${compare[1]}`, hint: "Compare" }
-          : s,
+          ? summary
+          : s === summary
+            ? { icon: ArrowLeftRight, text: `Compare ${compare[0]} and ${compare[1]}`, hint: "Compare" }
+            : s,
       )
     : SUGGESTIONS;
   const [storageKey, setStorageKey] = useState(null);

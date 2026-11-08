@@ -87,6 +87,25 @@ function formatDays(value) {
     )].join(", ");
 }
 
+// Week order: entries that start earlier in the week (Monday) come first,
+// then by start time. Entries without a valid day go last.
+function sortByWeek(classes) {
+    const firstDay = (course) => {
+        const indexes = formatDays(course.days || "")
+            .split(",")
+            .map((day) => DAYS.indexOf(day.trim()))
+            .filter((index) => index >= 0);
+        return indexes.length ? Math.min(...indexes) : DAYS.length;
+    };
+
+    return [...classes].sort(
+        (a, b) =>
+            firstDay(a) - firstDay(b) ||
+            (a.startTime || "").localeCompare(b.startTime || "") ||
+            a.name.localeCompare(b.name)
+    );
+}
+
 function formatTime12Hour(value) {
     if (!value) return "";
 
@@ -237,7 +256,7 @@ export default function ScheduleUploader() {
                         endTime: course.endTime || "",
                     }));
 
-                    setClasses(savedClasses);
+                    setClasses(sortByWeek(savedClasses));
                     setSaved(true);
                     setHasSavedSchedule(true);
                     setStep(3);
@@ -415,7 +434,7 @@ export default function ScheduleUploader() {
                 return;
             }
 
-            setClasses(extracted);
+            setClasses(sortByWeek(extracted));
             setManualMode(false);
             setStep(2);
         } catch (err) {
@@ -561,11 +580,13 @@ export default function ScheduleUploader() {
         }
 
         setClasses((previous) =>
-            previous.map((course) => ({
-                ...course,
-                name: formatName(course.name, course.kind),
-                days: formatDays(course.days),
-            }))
+            sortByWeek(
+                previous.map((course) => ({
+                    ...course,
+                    name: formatName(course.name, course.kind),
+                    days: formatDays(course.days),
+                }))
+            )
         );
 
         setError("");

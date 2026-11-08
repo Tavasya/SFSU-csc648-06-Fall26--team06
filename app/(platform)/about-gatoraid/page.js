@@ -98,7 +98,7 @@ export default function Page() {
         </div>
       </section>
 
-      <section className="ga-about-section full">
+      <section className="ga-about-section">
         <h2>The problem</h2>
         <p className="ga-about-lead">
           <strong>Campus life at SFSU is hard to find.</strong> Events, resources and locations are
