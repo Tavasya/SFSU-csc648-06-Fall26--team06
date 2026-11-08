@@ -3,6 +3,36 @@
 import { useEffect, useRef, useState } from 'react';
 import { useParams } from 'next/navigation';
 
+const testRSVP = {
+  "rsvps": [
+    {
+      "id": "1",
+      "username": "alice",
+      "profilePictureUrl": "https://example.com/alice.png"
+    },
+    {
+      "id": "2",
+      "username": "bob",
+      "profilePictureUrl": "https://example.com/bob.png"
+    },
+    {
+      "id": "3",
+      "username": "charlie",
+      "profilePictureUrl": "https://example.com/charlie.png"
+    },
+    {
+      "id": "4",
+      "username": "diana",
+      "profilePictureUrl": "https://example.com/diana.png"
+    },
+    {
+      "id": "5",
+      "username": "eve",
+      "profilePictureUrl": "https://example.com/eve.png"
+    }
+  ]
+}
+
 export default function Page() {
 
     const canvasRef = useRef(null)
@@ -95,6 +125,26 @@ export default function Page() {
         />
     );
 
+
+    // Exposed function to be called by Unity
+    window.openUserProfile = function(userId) {
+        console.log("Browser received id: ", userId);
+
+        // TODO: Implement navigation to the user's profile page
+    }
+
+
+    // Sends RSVP data to Unity
+    function SendRSVPToUnity(RSVPS) {
+        if (!unityInstanceRef.current) {
+            console.error('Unity instance is not ready yet')
+            return;
+        }
+
+        const rsvpData = JSON.stringify(RSVPS);
+        unityInstanceRef.current.SendMessage("RSVP Spawner", "SpawnRSVPs", rsvpData);
+    }
+
     return (
         <main style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center'}}>
             <h1>{roomInfo?.room_name || "Room"}</h1>
@@ -103,6 +153,9 @@ export default function Page() {
             <div style={{ width: '80%', height: '60%', backgroundColor: 'black', aspectRatio: '3/2', borderRadius: '20px' }}>
                 {UnityPlayer()}
             </div>
+            <button onClick={() => SendRSVPToUnity(testRSVP)} style={{ marginTop: '20px', padding: '10px 20px', fontSize: '16px', borderRadius: '5px', backgroundColor: '#604398', color: 'white', border: 'none', cursor: 'pointer' }}>
+                Send RSVP Data to Unity
+            </button>
         </main>
     );
 }
