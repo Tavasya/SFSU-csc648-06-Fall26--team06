@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
 export const metadata = {
   title: "GatorAid | SFSU campus events",
   description:
-    "Every SF State event in one place, including the ones that fit your class schedule.",
+    "Every SF State event in one place, including the ones that fit your schedule.",
 };
 
 // Sets the theme before the page paints, so dark mode never flashes light:

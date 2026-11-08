@@ -39,7 +39,7 @@ const DATA = [
   ["Your account", "Your email address. Passwords are handled by Supabase and never visible to us.", true, false, false],
   ["Your interests", "The topics you choose for recommendations.", true, false, false],
   ["Saved events and RSVPs", "Organizers see only the totals for their events.", true, "Totals only", false],
-  ["Your class schedule", "The classes, days and times you confirm after scanning.", true, false, false],
+  ["Your schedule", "The classes, work shifts and other commitments you confirm, with their days and times.", true, false, false],
   ["Events you host", "Published events, including the contact email you chose to share. Drafts stay private.", true, "When published", "When published"],
 ];
 

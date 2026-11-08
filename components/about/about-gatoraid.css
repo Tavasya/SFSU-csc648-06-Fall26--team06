@@ -52,6 +52,34 @@
   font-size: 22px;
   margin-bottom: 16px;
 }
+/* The problem statement fills the screen, like the homepage hero. */
+.ga-about-section.full {
+  min-height: calc(100svh - var(--site-header-height, 64px));
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  margin-top: 0;
+  padding: 48px 0;
+}
+.ga .ga-about-section.full h2 {
+  font-size: clamp(30px, 4vw, 44px);
+  letter-spacing: -1.2px;
+  margin-bottom: 20px;
+}
+.ga-about-section.full .ga-about-lead {
+  font-size: 18px;
+  margin-bottom: 36px;
+}
+.ga-about-section.full .ga-about-card {
+  padding: 26px;
+}
+.ga .ga-about-section.full .ga-about-card h3 {
+  font-size: 18px;
+  margin: 4px 0 6px;
+}
+.ga .ga-about-section.full .ga-about-card p {
+  font-size: 15px;
+}
 .ga-about-lead {
   max-width: 820px;
   margin: 0 0 20px;
@@ -606,6 +634,11 @@
   }
   .ga-about-hero {
     padding: 28px 22px;
+  }
+  .ga-about-section.full {
+    min-height: 0;
+    margin-top: 44px;
+    padding: 0;
   }
   .ga .ga-about-hero h1 {
     font-size: 26px;

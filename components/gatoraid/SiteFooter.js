@@ -21,9 +21,9 @@ const COLUMNS = [
     ],
   },
   {
-    title: "Your plans",
+    title: "Your account",
     links: [
-      { href: "/saved", label: "Saved events" },
+      { href: "/saved", label: "Your plans" },
       { href: "/calendar", label: "Your calendar" },
       { href: "/interests", label: "Your interests" },
       { href: "/schedule", label: "Upload schedule" },
@@ -58,7 +58,7 @@ export default function SiteFooter() {
               <Logo />
               GatorAid
             </Link>
-            <p>Every SF State event in one place, including the ones that fit your schedule.</p>
+            <p>Every San Francisco State event in one place, including the ones that fit your schedule.</p>
           </div>
           {COLUMNS.map((column) => (
             <div key={column.title}>
@@ -75,7 +75,7 @@ export default function SiteFooter() {
         </div>
         <div className="site-footer-bottom">
           <span>© {new Date().getFullYear()} GatorAid · CSC 648 Team 06, San Francisco State University</span>
-          <span>A student project, not an official SFSU service.</span>
+          <span>A student project, not an official San Francisco State University service.</span>
         </div>
       </div>
     </footer>

@@ -8,6 +8,7 @@ import {
   CalendarX2,
   CircleCheck,
   CircleHelp,
+  Info,
   MapPin,
   Search,
   X,
@@ -18,6 +19,7 @@ import {
   bannerStyle,
   orderedCategoryNames,
 } from "@/lib/events/banner";
+import { SORT_OPTIONS, sortEvents, sortNote } from "@/lib/events/sort";
 
 function dateInPacificTime(value) {
   const parts = new Intl.DateTimeFormat("en-CA", {
@@ -38,12 +40,19 @@ export default function EventSearch({
   categories,
   schedule = [],
   scheduleStatus = "unused",
+  signedIn = false, // shows the "Show my events" chip (events marked hosted_by_you)
+  interestIds = null, // For you: the student's interests, for the "Best match" sort
 }) {
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("");
   const [date, setDate] = useState("");
   const [location, setLocation] = useState("");
+  const [access, setAccess] = useState(""); // "", "wheelchair", "asl" or "both"
   const [scheduleFilter, setScheduleFilter] = useState("all");
+  // Events the signed-in user hosts are hidden unless they turn this on.
+  const [showMine, setShowMine] = useState(false);
+  const [sort, setSort] = useState(interestIds?.length ? "match" : "soonest");
+  const myEventCount = events.filter((event) => event.hosted_by_you).length;
 
   const locations = useMemo(
     () =>
@@ -61,6 +70,8 @@ export default function EventSearch({
     const normalizedQuery = query.trim().toLowerCase();
 
     return events.filter((event) => {
+      if (event.hosted_by_you && !showMine) return false;
+
       const categoryNames = orderedCategoryNames(
         event.category_ids,
         categories
@@ -91,6 +102,11 @@ export default function EventSearch({
         !location ||
         event.locations?.building_name === location;
 
+      const matchesAccess =
+        !access ||
+        ((access === "asl" || event.wheelchair_accessible) &&
+          (access === "wheelchair" || event.asl_available));
+
 
       const availability =
         scheduleStatus === "ready"
@@ -107,6 +123,7 @@ export default function EventSearch({
         matchesCategory &&
         matchesDate &&
         matchesLocation &&
+        matchesAccess &&
         matchesSchedule
       );
     });
@@ -117,21 +134,45 @@ export default function EventSearch({
     category,
     date,
     location,
+    access,
     schedule,
     scheduleStatus,
     scheduleFilter,
+    showMine,
   ]);
+
+  const hasSchedule = scheduleStatus === "ready" && schedule.length > 0;
+  const sortOptions = SORT_OPTIONS.filter(
+    (option) =>
+      !option.needs ||
+      (option.needs === "interests" && interestIds?.length) ||
+      (option.needs === "schedule" && hasSchedule)
+  );
+  const activeSort = sortOptions.some((option) => option.id === sort) ? sort : "soonest";
+  const { sortedEvents, note } = useMemo(() => {
+    const options = {
+      interestIds: interestIds ?? [],
+      fits: (event) =>
+        hasSchedule &&
+        getScheduleAvailability(event, schedule).status === "available",
+    };
+    return {
+      sortedEvents: sortEvents(filteredEvents, activeSort, options),
+      note: sortNote(filteredEvents, activeSort, options),
+    };
+  }, [filteredEvents, activeSort, interestIds, hasSchedule, schedule]);
 
   function clearFilters() {
     setQuery("");
     setCategory("");
     setDate("");
     setLocation("");
+    setAccess("");
     setScheduleFilter("all");
   }
 
   const hasFilters = Boolean(
-    query || category || date || location || scheduleFilter !== "all"
+    query || category || date || location || access || scheduleFilter !== "all"
   );
 
   return (
@@ -139,10 +180,10 @@ export default function EventSearch({
       className="space-y-5"
       aria-label="Search campus events"
     >
-      <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-5">
 
         {/* Search bar */}
-        <div className="relative lg:col-span-4">
+        <div className="relative md:col-span-2 lg:col-span-5">
           <Search
             size={19}
             className="absolute left-3 top-1/2 -translate-y-1/2 ga-muted"
@@ -216,6 +257,27 @@ export default function EventSearch({
           />
         </div>
 
+        {/* Accessibility filter */}
+        <div className="relative min-w-0">
+          <select
+            value={access}
+            onChange={(event) => setAccess(event.target.value)}
+            aria-label="Filter by accessibility"
+            className="w-full appearance-none rounded-lg border border-gray-300 bg-white py-3 pl-3 pr-10 text-sm text-gray-900"
+          >
+            <option value="">Any accessibility</option>
+            <option value="wheelchair">Wheelchair accessible</option>
+            <option value="asl">ASL interpretation</option>
+            <option value="both">Wheelchair and ASL</option>
+          </select>
+
+          <ChevronDown
+            size={16}
+            aria-hidden="true"
+            className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-gray-600"
+          />
+        </div>
+
         {/* Clear filters */}
         <button
           type="button"
@@ -229,67 +291,149 @@ export default function EventSearch({
       </div>
 
 
-      {scheduleStatus !== "unused" && (
-        <div className="flex flex-wrap items-center gap-3">
-          <span className="text-sm font-medium text-[#292437]">
-            Schedule availability:
-          </span>
+      {/* Toggles: schedule availability and (signed in) your own events */}
+      {(scheduleStatus !== "unused" || signedIn) && (
+        <div className="flex flex-wrap items-center gap-x-8 gap-y-3">
+          {scheduleStatus !== "unused" && (
+            <div className="flex flex-wrap items-center gap-3">
+              <span className="text-sm font-medium text-[#292437]">
+                Schedule availability:
+              </span>
 
-          <div className="inline-flex rounded-full border border-[#D8CDE9] bg-white p-1">
-            <button
-              type="button"
-              onClick={() => setScheduleFilter("all")}
-              aria-pressed={scheduleFilter === "all"}
-              className={`rounded-full px-4 py-2 text-sm font-medium transition ${scheduleFilter === "all"
-                ? "bg-[#65449B] text-white"
-                : "text-[#65449B] hover:bg-[#F5F1FA]"
-                }`}
-            >
-              All events
-            </button>
+              <div className="inline-flex rounded-full border border-[#D8CDE9] bg-white p-1">
+                <button
+                  type="button"
+                  onClick={() => setScheduleFilter("all")}
+                  aria-pressed={scheduleFilter === "all"}
+                  className={`rounded-full px-4 py-2 text-sm font-medium transition ${scheduleFilter === "all"
+                    ? "bg-[#65449B] text-white"
+                    : "text-[#65449B] hover:bg-[#F5F1FA]"
+                    }`}
+                >
+                  All events
+                </button>
 
-            <button
-              type="button"
-              onClick={() => setScheduleFilter("available")}
-              disabled={scheduleStatus !== "ready" || schedule.length === 0}
-              aria-pressed={scheduleFilter === "available"}
-              className={`rounded-full px-4 py-2 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-40 ${scheduleFilter === "available"
-                ? "bg-[#65449B] text-white"
-                : "text-[#65449B] hover:bg-[#F5F1FA]"
-                }`}
-            >
-              Fits my schedule
-            </button>
-          </div>
+                <button
+                  type="button"
+                  onClick={() => setScheduleFilter("available")}
+                  disabled={scheduleStatus !== "ready" || schedule.length === 0}
+                  aria-pressed={scheduleFilter === "available"}
+                  className={`rounded-full px-4 py-2 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-40 ${scheduleFilter === "available"
+                    ? "bg-[#65449B] text-white"
+                    : "text-[#65449B] hover:bg-[#F5F1FA]"
+                    }`}
+                >
+                  Fits my schedule
+                </button>
+              </div>
 
-          {scheduleStatus === "loading" && (
-            <span className="text-xs text-gray-500">
-              Checking your schedule...
-            </span>
+              {scheduleStatus === "loading" && (
+                <span className="text-xs text-gray-500">
+                  Checking your schedule...
+                </span>
+              )}
+
+              {scheduleStatus === "ready" && schedule.length === 0 && (
+                <Link
+                  href="/schedule"
+                  className="text-sm font-medium text-[#65449B] hover:underline"
+                >
+                  Add your schedule
+                </Link>
+              )}
+            </div>
           )}
 
-          {scheduleStatus === "ready" && schedule.length === 0 && (
-            <Link
-              href="/schedule"
-              className="text-sm font-medium text-[#65449B] hover:underline"
+          {/* Events the user hosts are hidden unless they show them */}
+          {signedIn && (
+            <div
+              className="flex flex-wrap items-center gap-3"
+              title={
+                myEventCount
+                  ? "Include the events you host, to see how they look to students"
+                  : "You don't host any upcoming published events"
+              }
             >
-              Add your class schedule
-            </Link>
+              <span className="text-sm font-medium text-[#292437]">
+                Your events:
+              </span>
+
+              <div className="inline-flex rounded-full border border-[#D8CDE9] bg-white p-1">
+                <button
+                  type="button"
+                  onClick={() => setShowMine(false)}
+                  aria-pressed={!showMine}
+                  className={`rounded-full px-4 py-2 text-sm font-medium transition ${!showMine
+                    ? "bg-[#65449B] text-white"
+                    : "text-[#65449B] hover:bg-[#F5F1FA]"
+                    }`}
+                >
+                  Hide
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setShowMine(true)}
+                  disabled={myEventCount === 0}
+                  aria-pressed={showMine}
+                  className={`rounded-full px-4 py-2 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-40 ${showMine
+                    ? "bg-[#65449B] text-white"
+                    : "text-[#65449B] hover:bg-[#F5F1FA]"
+                    }`}
+                >
+                  Show my events ({myEventCount})
+                </button>
+              </div>
+            </div>
           )}
         </div>
       )}
 
+      {/* Results count and sort order */}
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <p className="text-sm ga-muted" aria-live="polite">
+          {filteredEvents.length}{" "}
+          {filteredEvents.length === 1 ? "event" : "events"} found
+        </p>
 
-      {/* Results count */}
-      <p className="text-sm ga-muted" aria-live="polite">
-        {filteredEvents.length}{" "}
-        {filteredEvents.length === 1 ? "event" : "events"} found
-      </p>
+        <div className="flex items-center gap-2">
+          <label htmlFor="event-sort" className="text-sm font-medium text-[#292437]">
+            Sort by
+          </label>
+          <div className="relative">
+            <select
+              id="event-sort"
+              value={activeSort}
+              onChange={(event) => setSort(event.target.value)}
+              style={{ paddingRight: "36px" }}
+              className="appearance-none rounded-lg border border-gray-300 bg-white py-2 pl-3 text-sm text-gray-900"
+            >
+              {sortOptions.map((option) => (
+                <option key={option.id} value={option.id}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+            <ChevronDown
+              size={15}
+              aria-hidden="true"
+              className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-600"
+            />
+          </div>
+        </div>
+      </div>
+
+      {note && (
+        <p role="status" className="flex items-start gap-2 text-sm ga-muted">
+          <Info size={15} className="mt-0.5 shrink-0" aria-hidden="true" />
+          {note}
+        </p>
+      )}
 
       {/* Event results */}
       {filteredEvents.length > 0 ? (
         <div className="ga-public-grid">
-          {filteredEvents.map((event) => {
+          {sortedEvents.map((event) => {
             const categoryNames = orderedCategoryNames(
               event.category_ids,
               categories
@@ -315,6 +459,13 @@ export default function EventSearch({
                 </div>
 
                 <div className="ga-chip-group ga-public-card-chips">
+                  {/* Your plans page: Going, Interested, Saved, Not going */}
+                  {event.hosted_by_you && <span className="ga-badge plan">You&apos;re hosting</span>}
+                  {(event.plan_labels ?? []).map((label) => (
+                    <span className="ga-badge plan" key={label}>
+                      {label}
+                    </span>
+                  ))}
                   {categoryNames.map((name) => (
                     <span className="ga-badge" key={name}>
                       {name}
@@ -337,7 +488,7 @@ export default function EventSearch({
                       <>
                         <span className="ga-fit conflict">
                           <CalendarX2 size={13} aria-hidden="true" />
-                          Class conflict
+                          Schedule conflict
                         </span>
                         <div className="ga-fit-detail">
                           Overlaps with{" "}
@@ -402,7 +553,7 @@ export default function EventSearch({
 
           <p className="ga-muted">
             {scheduleFilter === "available"
-              ? "No events match your current filters without a detected class conflict. Try All events to see more options."
+              ? "No events match your current filters without a schedule conflict. Try All events to see more options."
               : "Try another keyword or adjust your filters."}
           </p>
 

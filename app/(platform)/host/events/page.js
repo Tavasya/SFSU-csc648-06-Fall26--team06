@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Plus, CalendarDays, FileText, Users, Bookmark } from "lucide-react";
+import { Plus, CalendarDays, FileText, Users, Bookmark, ArrowRight, Check, Star } from "lucide-react";
 import { pageContext } from "@/lib/events/page-data";
 import { engagementTotals, withEngagement } from "@/lib/events/engagement";
 import Access from "@/components/gatoraid/Access";
@@ -17,6 +17,18 @@ export default async function Page() {
     // Each event gets its saves and RSVP counts (counts only, never who).
     events = await withEngagement(db, result.data || []);
     error = result.error;
+  }
+  // The organizer's own plans as a student (their saves and RSVPs), linking to Your plans.
+  let plans = null;
+  if (user) {
+    const [savedResult, rsvpResult] = await Promise.all([
+      db.from("saved_events").select("event_id").eq("user_id", user.id),
+      db.from("event_rsvps").select("status").eq("user_id", user.id),
+    ]);
+    if (!savedResult.error && !rsvpResult.error) {
+      const count = (status) => rsvpResult.data.filter((r) => r.status === status).length;
+      plans = { going: count("attending"), interested: count("interested"), saved: savedResult.data.length };
+    }
   }
   const upcoming = events.filter(
       (e) =>
@@ -84,6 +96,28 @@ export default async function Page() {
         </p>
       ) : (
         <EventTable initialEvents={events} />
+      )}
+      {plans && (
+        <Link className="ga-card ga-plans-link" href="/saved">
+          <div>
+            <h2>Your plans</h2>
+            <p className="ga-muted">Events you&apos;re going to, interested in or saved as a student.</p>
+          </div>
+          <ul>
+            <li>
+              <Check size={16} /> <strong>{plans.going}</strong> going
+            </li>
+            <li>
+              <Star size={16} /> <strong>{plans.interested}</strong> interested
+            </li>
+            <li>
+              <Bookmark size={16} /> <strong>{plans.saved}</strong> saved
+            </li>
+          </ul>
+          <span className="ga-text-button">
+            View your plans <ArrowRight size={15} />
+          </span>
+        </Link>
       )}
     </>
   );

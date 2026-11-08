@@ -316,3 +316,69 @@
 [data-theme="dark"] .site-theme-sun {
   display: block;
 }
+
+/* Schedule conflict reminder (components/student/ScheduleConflict.js).
+   Rendered at the end of <body>, so it lives here with the other shared styles. */
+.ga-conflict-dialog {
+  /* Tailwind's reset removes the browser's centering, so put it back. */
+  position: fixed;
+  inset: 0;
+  margin: auto;
+  height: fit-content;
+  width: min(420px, calc(100% - 32px));
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: 28px;
+  background: var(--surface);
+  color: var(--ink);
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+  box-shadow: 0 24px 64px -16px var(--shadow);
+}
+.ga-conflict-dialog::backdrop {
+  background: rgb(27 22 41 / 0.45);
+}
+.ga-conflict-icon {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+.ga-conflict-dialog h2 {
+  margin: 16px 0 8px;
+  font-size: 19px;
+  font-weight: 650;
+}
+.ga-conflict-dialog p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--muted);
+}
+.ga-conflict-dialog strong {
+  color: var(--ink);
+}
+.ga-conflict-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 24px;
+}
+.ga-conflict-actions button {
+  padding: 9px 18px;
+  border-radius: 999px;
+  border: 1px solid var(--brand);
+  background: var(--brand);
+  color: var(--on-brand);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 550;
+  cursor: pointer;
+}
+.ga-conflict-actions button.secondary {
+  background: var(--surface);
+  color: var(--ink);
+  border-color: var(--line);
+}

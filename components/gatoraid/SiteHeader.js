@@ -29,7 +29,7 @@ const MAIN = [
 
 // Personal links, shown in the account menu.
 const ACCOUNT = [
-  { href: "/saved", label: "Saved events" },
+  { href: "/saved", label: "Your plans" },
   { href: "/interests", label: "Your interests" },
   { href: "/schedule", label: "Upload schedule" },
 ];

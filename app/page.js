@@ -14,6 +14,7 @@ import Link from "next/link";
 import {
   Accessibility,
   ArrowRight,
+  Briefcase,
   BellRing,
   BookmarkCheck,
   Box,
@@ -22,6 +23,7 @@ import {
   CalendarX2,
   Check,
   Clock,
+  Compass,
   HeartHandshake,
   Lock,
   MapPin,
@@ -46,9 +48,9 @@ import {
 import "./home.css";
 
 export const metadata = {
-  title: "GatorAid | Every SFSU event, in one place",
+  title: "GatorAid | Every San Francisco State event, in one place",
   description:
-    "Find SF State events that fit between your classes, see where they are on campus, and ask Allison what's happening.",
+    "Find San Francisco State events that fit around your classes and work, see where they are on campus, and ask Allison what's happening.",
 };
 
 const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
@@ -59,16 +61,38 @@ const PROBLEMS = [
     Icon: Search,
     title: "Spread across a dozen places",
     text: "Instagram stories, flyers, Discord servers, club emails. To know what's on this week, you'd have to check them all.",
+    answer: "Every campus event in one feed and on one map",
   },
   {
     Icon: CalendarX2,
     title: "Planned without your schedule",
     text: "You find a workshop you'd love, then realize it's during your lab. Or you hear about it the day after.",
+    answer: "Picked for your interests, checked against your classes and work",
   },
   {
     Icon: MapPin,
     title: "Hard to find on campus",
     text: "\u201cHSS 306\u201d doesn't mean much if you've never been inside the Humanities building.",
+    answer: "3D scans of campus rooms you can walk through",
+  },
+];
+
+// Who GatorAid is for (the long version is on /about-gatoraid).
+const AUDIENCES = [
+  {
+    Icon: Compass,
+    title: "New and transfer students",
+    text: "Finding their way around a campus, and a community, they don't know yet.",
+  },
+  {
+    Icon: Briefcase,
+    title: "Busy students",
+    text: "Commuters and students who work, who need events that fit between classes and shifts.",
+  },
+  {
+    Icon: Megaphone,
+    title: "Clubs and organizers",
+    text: "Reaching the students who would actually care about their event.",
   },
 ];
 
@@ -76,19 +100,19 @@ const MORE = [
   {
     Icon: Upload,
     title: "Schedule scanner",
-    text: "Upload a screenshot of your classes. GatorAid reads it for you.",
+    text: "Scan your class schedule, then add work and other commitments.",
     href: "/schedule",
   },
   {
     Icon: BookmarkCheck,
-    title: "Saved events",
-    text: "Save events and RSVP in one tap.",
+    title: "Your plans",
+    text: "Everything you saved or RSVP'd to, in one list.",
     href: "/saved",
   },
   {
     Icon: CalendarDays,
     title: "Your calendar",
-    text: "Your classes and events in one weekly view.",
+    text: "Your schedule and events in one weekly view.",
     href: "/calendar",
   },
   {
@@ -140,16 +164,22 @@ async function loadEvents() {
   try {
     const db = await createClient();
     const now = new Date();
+    const {
+      data: { user },
+    } = await db.auth.getUser();
+    // A signed-in host's own events are left out; they're on Your events.
+    let eventsQuery = db
+      .from("events")
+      .select("*, locations(building_name)")
+      .eq("publication_status", "published")
+      .eq("status", "active")
+      .gte("end_date_time", now.toISOString())
+      .order("start_date_time")
+      .limit(24);
+    if (user) eventsQuery = eventsQuery.neq("host_id", user.id);
     const [{ data: events, error }, { data: categories }] =
       await Promise.all([
-        db
-          .from("events")
-          .select("*, locations(building_name)")
-          .eq("publication_status", "published")
-          .eq("status", "active")
-          .gte("end_date_time", now.toISOString())
-          .order("start_date_time")
-          .limit(24),
+        eventsQuery,
         db.from("categories").select("id, name"),
       ]);
     if (error) throw error;
@@ -195,15 +225,17 @@ export default async function Home() {
           <div className="site-wrap home-hero-grid">
             <div>
               <p className="home-eyebrow">
-                Made for San Francisco State students
+                Made by San Francisco State students, for San Francisco
+                State students
               </p>
               <h1>
-                Discover SF State events, <em>matched just for you</em>.
+                Discover San Francisco State events, <em>matched just for you</em>.
               </h1>
               <p className="home-lead">
                 GatorAid brings club meetings, workshops, career events and
                 socials into one place, recommends the ones that match your
-                interests and fit between your classes, and shows you where
+                interests and fit around your classes, work and other
+                commitments, and shows you where
                 they are on campus, right down to a 3D view of the room.
               </p>
               <div className="home-ctas">
@@ -220,25 +252,54 @@ export default async function Home() {
           </div>
         </section>
 
-        {/* Problem */}
-        <section className="home-section" id="problem">
+        {/* Problem, with a project overview: the "introduction" screen */}
+        <section className="home-section home-full" id="problem">
           <div className="site-wrap">
-            <div className="home-section-head">
-              <p className="home-eyebrow">The problem</p>
-              <h2>
-                Great events happen on campus every week. Finding them
-                shouldn&apos;t be the hard part.
-              </h2>
+            <div className="home-intro">
+              <div className="home-section-head">
+                <p className="home-eyebrow">The problem</p>
+                <h2>
+                  Great events happen on campus every week. Finding them
+                  shouldn&apos;t be the hard part.
+                </h2>
+                <p className="home-intro-lead">
+                  GatorAid is a web app made by San Francisco State students for
+                  San Francisco State students. It brings every campus event into
+                  one place, recommends the ones that match your interests and
+                  fit your week, and lets you walk through the room in 3D before
+                  you go.
+                </p>
+              </div>
+              <div className="home-audience">
+                <p className="home-audience-title">Who it&apos;s for</p>
+                <ul>
+                  {AUDIENCES.map(({ Icon, title, text }) => (
+                    <li key={title}>
+                      <Icon size={18} />
+                      <div>
+                        <h3>{title}</h3>
+                        <p>{text}</p>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </div>
             </div>
+
             <div className="home-problems">
-              {PROBLEMS.map(({ Icon, title, text }) => (
+              {PROBLEMS.map(({ Icon, title, text, answer }) => (
                 <div className="home-problem" key={title}>
                   <Icon size={20} />
                   <h3>{title}</h3>
                   <p>{text}</p>
+                  <p className="home-problem-answer">
+                    <Check size={15} />
+                    {answer}
+                  </p>
                 </div>
               ))}
             </div>
+
           </div>
         </section>
 
@@ -247,14 +308,14 @@ export default async function Home() {
           <div className="site-wrap">
             <div className="home-section-head">
               <p className="home-eyebrow">How GatorAid helps</p>
-              <h2>Built around a student&apos;s week, not just a list.</h2>
+              <h2>Built around a student&apos;s interests and week, not just a list.</h2>
             </div>
 
             <Feature
               Icon={Sparkles}
               label="For you"
-              title="Recommendations that match your interests and your classes"
-              text="Pick what you're into, like tech, art, careers or wellness, and upload a screenshot of your class schedule. GatorAid recommends events that match, tells you why, and marks the ones that fit between classes."
+              title="Recommendations that match your interests and your schedule"
+              text="Pick what you're into, like tech, art, careers or wellness, then add your schedule: scan your classes and add work shifts or anything else you're committed to. GatorAid recommends events that match, tells you why, and marks the ones that fit around your week."
               href="/events/for-you"
               cta="See events for you"
               visual={<ScheduleVisual />}
@@ -313,7 +374,7 @@ export default async function Home() {
             <div className="home-events-head">
               <div>
                 <p className="home-eyebrow">
-                  {isThisWeek ? "This week at SFSU" : "Coming up at SFSU"}
+                  {isThisWeek ? "This week at San Francisco State" : "Coming up at San Francisco State"}
                 </p>
                 <h2>
                   {isThisWeek ? "Happening this week" : "Next on campus"}
@@ -343,6 +404,8 @@ export default async function Home() {
                 </Link>
               </div>
             )}
+
+            {map && <ProjectStats map={map} />}
           </div>
         </section>
 
@@ -358,7 +421,7 @@ export default async function Home() {
               <p className="home-mission-lead">
                 Campus events are where friendships, study groups and clubs
                 start. GatorAid makes it easier to show up, especially for new
-                students still finding their place at SF State.
+                students still finding their place at San Francisco State.
               </p>
               <div className="home-mission-links">
                 <Link className="home-link" href="/about-gatoraid">
@@ -404,6 +467,32 @@ export default async function Home() {
 
       <SiteFooter />
     </div>
+  );
+}
+
+// Live numbers from the Campus Map data, under this week's events.
+function ProjectStats({ map }) {
+  const rooms = Object.values(map.scans ?? {}).reduce((sum, list) => sum + list.length, 0);
+  const buildings = new Set(map.events.map((event) => event.mapId).filter(Boolean)).size;
+  const stats = [
+    { value: map.events.length, label: "upcoming events" },
+    { value: buildings, label: "campus buildings with events" },
+    { value: rooms, label: rooms === 1 ? "room scanned in 3D" : "rooms scanned in 3D" },
+  ].filter((stat) => stat.value > 0);
+  if (!stats.length) return null;
+  return (
+    <dl className="home-stats">
+      {stats.map(({ value, label }) => (
+        <div key={label}>
+          <dt>{value}</dt>
+          <dd>{label}</dd>
+        </div>
+      ))}
+      <div className="home-stats-note">
+        <dt>Live</dt>
+        <dd>from the same data students see</dd>
+      </div>
+    </dl>
   );
 }
 

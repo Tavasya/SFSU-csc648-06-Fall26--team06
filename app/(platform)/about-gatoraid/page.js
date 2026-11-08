@@ -36,13 +36,13 @@ export const metadata = {
 const PROBLEMS = [
   [Layers, "Scattered", "Information lives on dozens of university pages, Instagram accounts and flyers."],
   [MapPinned, "Unfamiliar", "A building name doesn't tell you where it is or what the room looks like."],
-  [Clock3, "Busy", "It's hard to tell which events fit around your classes."],
+  [Clock3, "Busy", "It's hard to tell which events fit around your classes, work and everything else."],
 ];
 
 const FEATURES = [
   [Compass, "Explore & For You", "Every campus event in one place, with recommendations based on your interests."],
   [CalendarRange, "Calendar", "Your saved events, RSVPs and classes in one week view."],
-  [ScanText, "AI Schedule Scanner", "Upload a screenshot of your class schedule and GatorAid finds events that fit around it."],
+  [ScanText, "AI Schedule Scanner", "Scan your class schedule, add work and other commitments, and GatorAid finds events that fit around them."],
   [Sparkles, "Allison, your AI assistant", "Ask what's happening, get long descriptions summarized, and preview the venue."],
   [MapIcon, "Campus Map", "See where every event is on an interactive 2D map of SFSU."],
   [Box, "3D Venue Previews", "Look around a room before you go, starting with the Cesar Chavez Student Center."],
@@ -98,7 +98,7 @@ export default function Page() {
         </div>
       </section>
 
-      <section className="ga-about-section">
+      <section className="ga-about-section full">
         <h2>The problem</h2>
         <p className="ga-about-lead">
           <strong>Campus life at SFSU is hard to find.</strong> Events, resources and locations are

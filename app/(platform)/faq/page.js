@@ -46,7 +46,7 @@ const SECTIONS = [
     questions: [
       [
         "What's the difference between saving an event and RSVPing?",
-        "Saving is a bookmark: the event appears under Saved events and on your calendar. An RSVP (Attending, Interested or Not Attending) tells the organizer you're coming. They're separate, so saving an event never changes your RSVP.",
+        "Saving is a bookmark: the event appears in Your plans and on your calendar. An RSVP (Attending, Interested or Not Attending) tells the organizer you're coming. They're separate, so saving an event never changes your RSVP.",
       ],
       [
         "Can I change my RSVP?",
@@ -63,7 +63,7 @@ const SECTIONS = [
     ],
   },
   {
-    title: "Calendar and class schedule",
+    title: "Calendar and your schedule",
     icon: "calendar",
     questions: [
       [
@@ -72,7 +72,7 @@ const SECTIONS = [
       ],
       [
         "How does the AI schedule scanner work?",
-        "Upload a screenshot of your class schedule. GatorAid uses Google's Gemini AI to read the class names, days and times, so it can show your classes on your calendar and point out events that fit around them.",
+        "Upload a screenshot of your class schedule. GatorAid uses Google's Gemini AI to read the class names, days and times, so it can show your classes on your calendar and point out events that fit around them. You can also add work shifts, practice or any other commitment by hand.",
       ],
     ],
   },

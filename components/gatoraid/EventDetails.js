@@ -7,10 +7,13 @@ import {
   Accessibility,
   Mail,
   ArrowLeft,
+  Megaphone,
+  Pencil,
 } from "lucide-react";
 import Link from "next/link";
 import EventPlacePreview from "@/components/map/EventPlacePreview";
 import EventActions from "@/components/student/EventActions";
+import { accessibilityText } from "@/lib/events/accessibility";
 import {
   bannerFor,
   bannerStyle,
@@ -23,6 +26,7 @@ export default function EventDetails({
   coverUrl,
   hostName,
   preview = false,
+  isHost = false, // the signed-in user created this event
   rooms = [],
   places, // the Campus Map places, for the Location section's small map
   from = null, // "assistant" when opened from the AI Assistant (Allison)
@@ -35,6 +39,12 @@ export default function EventDetails({
       timeZone: "America/Los_Angeles",
       ...opts,
     }).format(new Date(v));
+  // We don't verify SFSU clubs yet, so events show the host's own name.
+  const host = hostName || "GatorAid organizer";
+  // Opens a new email to the host, with the event in the subject.
+  const mailto =
+    event.contact_email &&
+    "mailto:" + event.contact_email + "?subject=" + encodeURIComponent("Question about " + event.title);
   return (
     <>
       <Link
@@ -44,6 +54,22 @@ export default function EventDetails({
         <ArrowLeft size={16} />
         {preview ? "Back to your events" : from === "assistant" ? "Back to chat with Allison" : "Back to events"}
       </Link>
+      {/* The host sees their own event as theirs, with links to manage it. */}
+      {isHost && !preview && (
+        <div className="ga-preview-bar ga-host-bar">
+          <span>
+            <Megaphone size={17} /> You&apos;re hosting this event. Students see this page as shown below.
+          </span>
+          <div className="ga-actions">
+            <Link className="ga-button secondary" href={"/host/events/" + event.id + "/edit"}>
+              <Pencil size={14} /> Edit event
+            </Link>
+            <Link className="ga-button" href="/host/events">
+              Your events
+            </Link>
+          </div>
+        </div>
+      )}
       <div className="ga-detail-grid">
         <div>
           <div
@@ -74,7 +100,7 @@ export default function EventDetails({
             ))}
           </div>
           <h1>{event.title}</h1>
-          <p className="ga-muted">Hosted by {hostName || "SFSU organizer"}</p>
+          <p className="ga-muted">Hosted by {host}</p>
           <div className="ga-detail-facts">
             {[
               [
@@ -107,13 +133,20 @@ export default function EventDetails({
               [Users, event.audience],
               [
                 Accessibility,
-                event.wheelchair_accessible
-                  ? "Wheelchair accessible"
-                  : "Contact organizer for access information",
+                accessibilityText({ wheelchair: event.wheelchair_accessible, asl: event.asl_available }),
               ],
-              [Mail, event.contact_email || "Contact the event organizer"],
-            ].map(([Icon, value]) => (
-              <div key={value}>
+              [
+                Mail,
+                mailto ? (
+                  <a className="ga-detail-email" href={mailto}>
+                    {event.contact_email}
+                  </a>
+                ) : (
+                  "No contact email listed"
+                ),
+              ],
+            ].map(([Icon, value], i) => (
+              <div key={i}>
                 <Icon size={19} />
                 <span>{value}</span>
               </div>
@@ -156,14 +189,12 @@ export default function EventDetails({
               ? "This is how your event will appear to students."
               : "Manage your saved event and RSVP below."}
           </p>
-          {!preview && <EventActions event={event} />}
-          {event.contact_email && (
-            <a
-              className="ga-button secondary"
-              href={"mailto:" + event.contact_email}
-            >
-              Contact organizer
-            </a>
+          {!preview && !isHost && <EventActions event={event} />}
+          {isHost && !preview && (
+            <p className="ga-small ga-muted">
+              Hosts can&apos;t save or RSVP to their own events. See how many students are coming on{" "}
+              <Link href="/host/events">Your events</Link>.
+            </p>
           )}
         </aside>
       </div>
