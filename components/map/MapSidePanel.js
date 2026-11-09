@@ -69,6 +69,7 @@ export default function MapSidePanel({
   openEvent = null, // the event shown in the detail view, or null for the list
   onOpenEvent,
   onCloseEvent,
+  eventId, // optional, for the RoomScansCard to pass to the 3D viewer
 }) {
   const { getCampusFeature, venueMap } = campus;
   // Where the open event is: its Supabase location name, or the room / building on the map.
@@ -179,7 +180,7 @@ export default function MapSidePanel({
           {/* Only buildings with a scanned room (Supabase "rooms" table) show this card. */}
           {selection.scannedRooms.length > 0 && (
             <div className="mt-2">
-              <RoomScansCard rooms={selection.scannedRooms} />
+              <RoomScansCard rooms={selection.scannedRooms} eventId={eventId} />
             </div>
           )}
         </>

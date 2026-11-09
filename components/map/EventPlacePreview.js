@@ -56,7 +56,7 @@ export default function EventPlacePreview({
           </Link>
         </div>
       )}
-      <RoomScansCard rooms={rooms} viewerClassName="h-56 sm:h-64" />
+      <RoomScansCard rooms={rooms} viewerClassName="h-56 sm:h-64" eventId={eventId} />
     </div>
   );
 }

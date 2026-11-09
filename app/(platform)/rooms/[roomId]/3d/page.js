@@ -1,46 +1,19 @@
 "use client";
 
 import { useEffect, useRef, useState } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useSearchParams } from 'next/navigation';
 
-const testRSVP = {
-  "rsvps": [
-    {
-      "id": "1",
-      "username": "alice",
-      "profilePictureUrl": "https://example.com/alice.png"
-    },
-    {
-      "id": "2",
-      "username": "bob",
-      "profilePictureUrl": "https://example.com/bob.png"
-    },
-    {
-      "id": "3",
-      "username": "charlie",
-      "profilePictureUrl": "https://example.com/charlie.png"
-    },
-    {
-      "id": "4",
-      "username": "diana",
-      "profilePictureUrl": "https://example.com/diana.png"
-    },
-    {
-      "id": "5",
-      "username": "eve",
-      "profilePictureUrl": "https://example.com/eve.png"
-    }
-  ]
-}
 
 export default function Page() {
 
     const canvasRef = useRef(null)
     const unityInstanceRef = useRef(null)
     const [roomInfo, setRoomInfo] = useState(null);
+    const [hasSentRSVP, setHasSentRSVP] = useState(false);
 
     const params = useParams();
-    console.log("params are ", params);
+    const searchParams = useSearchParams();
+    const eventId = searchParams.get('eventId');
 
     // Load Room Info
     useEffect(() => {
@@ -60,7 +33,6 @@ export default function Page() {
 
         fetchRoomInfo();
     }, [params.roomId]);
-    console.log("roomInfo is ", roomInfo);
 
     // Load Unity WebGL build
     useEffect(() => {
@@ -126,23 +98,39 @@ export default function Page() {
     );
 
 
-    // Exposed function to be called by Unity
-    window.openUserProfile = function(userId) {
-        console.log("Browser received id: ", userId);
+    useEffect(() => {
+        // Exposed function to be called by Unity
+        window.openUserProfile = function(userId) {
+            console.log("Browser received id: ", userId);
 
-        // TODO: Implement navigation to the user's profile page
-    }
+            // TODO: Implement navigation to the user's profile page
+        }
+        return () => {
+            // Clean up the global function when the component unmounts
+            delete window.openUserProfile;
+        }
+    }, []);
 
 
     // Sends RSVP data to Unity
-    function SendRSVPToUnity(RSVPS) {
+    async function SendRSVPToUnity() {
         if (!unityInstanceRef.current) {
             console.error('Unity instance is not ready yet')
             return;
         }
 
-        const rsvpData = JSON.stringify(RSVPS);
-        unityInstanceRef.current.SendMessage("RSVP Spawner", "SpawnRSVPs", rsvpData);
+        // Get RSVP data from the API
+        const response = await fetch(`/api/rooms/${params.roomId}/${eventId}`);
+        if (!response.ok) {
+            console.error('Failed to fetch RSVP data:', response.statusText);
+            return;
+        }
+
+        // Send the RSVP data to Unity
+        const data = await response.json();
+        unityInstanceRef.current.SendMessage("RSVP Spawner", "SpawnRSVPs", JSON.stringify(data));
+
+        setHasSentRSVP(true);
     }
 
     return (
@@ -153,9 +141,12 @@ export default function Page() {
             <div style={{ width: '80%', height: '60%', backgroundColor: 'black', aspectRatio: '3/2', borderRadius: '20px' }}>
                 {UnityPlayer()}
             </div>
-            <button onClick={() => SendRSVPToUnity(testRSVP)} style={{ marginTop: '20px', padding: '10px 20px', fontSize: '16px', borderRadius: '5px', backgroundColor: '#604398', color: 'white', border: 'none', cursor: 'pointer' }}>
-                Send RSVP Data to Unity
-            </button>
+
+            {!hasSentRSVP && (
+                <button onClick={SendRSVPToUnity} style={{ marginTop: '20px', padding: '10px 20px', fontSize: '16px', borderRadius: '5px', backgroundColor: '#604398', color: 'white', border: 'none', cursor: 'pointer' }}>
+                    Send RSVP Data to Unity
+                </button>
+            )}
         </main>
     );
 }
