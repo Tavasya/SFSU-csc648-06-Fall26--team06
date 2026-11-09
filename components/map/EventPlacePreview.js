@@ -39,7 +39,7 @@ export default function EventPlacePreview({
   return (
     <div className="campus-map mt-4 space-y-4">
       {/* The 3D room comes first, then where the building is on the map. */}
-      <RoomScansCard rooms={rooms} viewerClassName="h-56 sm:h-64" />
+      <RoomScansCard rooms={rooms} viewerClassName="h-56 sm:h-64" eventId={eventId} />
       {place && (
         <div>
           <MapView
