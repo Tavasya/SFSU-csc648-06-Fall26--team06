@@ -5,7 +5,9 @@
  * PURPOSE:
  * The schedule upload form on /schedule: upload a screenshot of your class
  * schedule (scanned by POST /api/users/me/schedule/scan) or enter classes by
- * hand, review them, and save them to your account. The page
+ * hand, review them, and save them to your account. Each entry has a type
+ * (lib/schedule/kinds.js): scanned entries are classes, and entries added by
+ * hand can be work, practice, a club or anything else. The page
  * (app/(platform)/schedule/page.js) only shows it to signed-in students.
  */
 
@@ -28,6 +30,7 @@ import {
     Info,
     FileImage,
 } from "lucide-react";
+import { SCHEDULE_KINDS, scheduleKind, scheduleKindLabel } from "@/lib/schedule/kinds";
 
 const MAX_SIZE = 5 * 1024 * 1024;
 const ALLOWED_TYPES = ["image/png", "image/jpeg", "image/webp"];
@@ -46,6 +49,12 @@ function formatClassName(value) {
 
     // Other course names become uppercase
     return cleaned.toUpperCase();
+}
+
+// Course codes are formatted (CSC 648); other entries keep the student's wording.
+function formatName(value, kind) {
+    if (scheduleKind(kind) === "class") return formatClassName(value);
+    return value.trim().replace(/\s+/g, " ");
 }
 
 function formatDays(value) {
@@ -78,6 +87,25 @@ function formatDays(value) {
     )].join(", ");
 }
 
+// Week order: entries that start earlier in the week (Monday) come first,
+// then by start time. Entries without a valid day go last.
+function sortByWeek(classes) {
+    const firstDay = (course) => {
+        const indexes = formatDays(course.days || "")
+            .split(",")
+            .map((day) => DAYS.indexOf(day.trim()))
+            .filter((index) => index >= 0);
+        return indexes.length ? Math.min(...indexes) : DAYS.length;
+    };
+
+    return [...classes].sort(
+        (a, b) =>
+            firstDay(a) - firstDay(b) ||
+            (a.startTime || "").localeCompare(b.startTime || "") ||
+            a.name.localeCompare(b.name)
+    );
+}
+
 function formatTime12Hour(value) {
     if (!value) return "";
 
@@ -100,6 +128,7 @@ function emptyClass() {
     return {
         id: crypto.randomUUID(),
         name: "",
+        kind: "other",
         days: "",
         startTime: "",
         endTime: "",
@@ -154,6 +183,8 @@ export default function ScheduleUploader() {
     const [image, setImage] = useState(null);
     const [preview, setPreview] = useState(null);
     const [classes, setClasses] = useState([]);
+    // False when the database can't store entry types yet (see the API route).
+    const [typesSaved, setTypesSaved] = useState(true);
     const [scanning, setScanning] = useState(false);
     const [error, setError] = useState("");
     const [dragging, setDragging] = useState(false);
@@ -218,13 +249,14 @@ export default function ScheduleUploader() {
                 if (Array.isArray(data.classes) && data.classes.length > 0) {
                     const savedClasses = data.classes.map((course) => ({
                         id: course.id || crypto.randomUUID(),
-                        name: formatClassName(course.name || ""),
+                        kind: scheduleKind(course.kind),
+                        name: formatName(course.name || "", course.kind),
                         days: formatDays(course.days || ""),
                         startTime: course.startTime || "",
                         endTime: course.endTime || "",
                     }));
 
-                    setClasses(savedClasses);
+                    setClasses(sortByWeek(savedClasses));
                     setSaved(true);
                     setHasSavedSchedule(true);
                     setStep(3);
@@ -385,6 +417,7 @@ export default function ScheduleUploader() {
 
             const extracted = data.classes.map((course) => ({
                 id: crypto.randomUUID(),
+                kind: "class",
                 name: formatClassName(course.name || ""),
                 days: formatDays(course.days || ""),
                 startTime: course.startTime || "",
@@ -396,12 +429,12 @@ export default function ScheduleUploader() {
 
             if (extracted.length === 0) {
                 setError(
-                    "No classes were detected. Try a clearer screenshot or enter classes manually."
+                    "No classes were detected. Try a clearer screenshot, or add your schedule by hand."
                 );
                 return;
             }
 
-            setClasses(extracted);
+            setClasses(sortByWeek(extracted));
             setManualMode(false);
             setStep(2);
         } catch (err) {
@@ -443,11 +476,14 @@ export default function ScheduleUploader() {
         setSaved(false);
 
         setClasses((previous) =>
-            previous.map((course) =>
-                course.id === id
-                    ? { ...course, [field]: value }
-                    : course
-            )
+            previous.map((course) => {
+                if (course.id !== id) return course;
+                // A new type re-formats the name right away (CSC 648 for classes).
+                if (field === "kind") {
+                    return { ...course, kind: value, name: formatName(course.name, value) };
+                }
+                return { ...course, [field]: value };
+            })
         );
     }
 
@@ -459,7 +495,7 @@ export default function ScheduleUploader() {
                 if (field === "name") {
                     return {
                         ...course,
-                        name: formatClassName(course.name),
+                        name: formatName(course.name, course.kind),
                     };
                 }
 
@@ -494,7 +530,7 @@ export default function ScheduleUploader() {
                 .map((day) => day.trim());
 
             return (
-                formatClassName(course.name).length > 0 &&
+                formatName(course.name, course.kind).length > 0 &&
                 days.length > 0 &&
                 days.every((day) => DAYS.includes(day)) &&
                 course.startTime &&
@@ -508,47 +544,49 @@ export default function ScheduleUploader() {
 
     function proceedToConfirm() {
         if (classes.length === 0) {
-            setError("Please add at least one class.");
+            setError("Please add at least one class or commitment.");
             return;
         }
 
         for (let index = 0; index < classes.length; index++) {
             const course = classes[index];
 
-            const name = formatClassName(course.name);
+            const name = formatName(course.name, course.kind);
             const days = formatDays(course.days)
                 .split(",")
                 .map((day) => day.trim());
 
             if (!name) {
-                setError(`Class ${index + 1}: Please enter a class name.`);
+                setError(`Commitment ${index + 1}: Please enter a name.`);
                 return;
             }
 
             if (!days.length || !days.every((day) => DAYS.includes(day))) {
-                setError(`Class ${index + 1}: Please enter valid meeting days.`);
+                setError(`Commitment ${index + 1}: Please enter valid days.`);
                 return;
             }
 
             if (!course.startTime || !course.endTime) {
-                setError(`Class ${index + 1}: Please enter both class times.`);
+                setError(`Commitment ${index + 1}: Please enter both times.`);
                 return;
             }
 
             if (course.startTime >= course.endTime) {
                 setError(
-                    `Class ${index + 1} (${name}): End time must be later than start time. Check AM and PM.`
+                    `Commitment ${index + 1} (${name}): End time must be later than start time. Check AM and PM.`
                 );
                 return;
             }
         }
 
         setClasses((previous) =>
-            previous.map((course) => ({
-                ...course,
-                name: formatClassName(course.name),
-                days: formatDays(course.days),
-            }))
+            sortByWeek(
+                previous.map((course) => ({
+                    ...course,
+                    name: formatName(course.name, course.kind),
+                    days: formatDays(course.days),
+                }))
+            )
         );
 
         setError("");
@@ -561,7 +599,7 @@ export default function ScheduleUploader() {
         if (saving) return;
 
         if (!validSchedule()) {
-            setError("Please review your class information.");
+            setError("Please review your schedule details.");
             setStep(2);
             return;
         }
@@ -590,6 +628,7 @@ export default function ScheduleUploader() {
             }
 
             setSaved(true);
+            setTypesSaved(data.typesSaved !== false);
         } catch (error) {
             setError(
                 error.message || "Unable to save your schedule."
@@ -608,12 +647,13 @@ export default function ScheduleUploader() {
                 </p>
 
                 <h1 className="text-3xl font-bold tracking-tight text-[#292437]">
-                    Set up your class schedule
+                    Set up your schedule
                 </h1>
 
                 <p className="mt-2 text-sm text-[#777184]">
-                    Upload a screenshot of your schedule. We&apos;ll pull out your
-                    classes so recommendations can fit your free time.
+                    Upload a screenshot of your class schedule, then add anything else that fills
+                    your week, like work shifts, practice or club meetings. Recommendations
+                    will fit around all of it.
                 </p>
             </div>
 
@@ -716,11 +756,11 @@ export default function ScheduleUploader() {
                                             </div>
 
                                             <h2 className="font-semibold text-[#292437]">
-                                                Drag a screenshot of your class schedule here
+                                                Drag a screenshot of your schedule here
                                             </h2>
 
                                             <p className="mt-2 text-sm text-gray-500">
-                                                PNG, JPG, or WebP · up to 5 MB
+                                                PNG, JPG, or WebP · up to 5 MB · you can add work and other commitments next
                                             </p>
 
                                             <button
@@ -804,7 +844,7 @@ export default function ScheduleUploader() {
                                         onClick={startManualEntry}
                                         className="text-sm font-medium text-[#65449B] hover:underline"
                                     >
-                                        Or add classes manually →
+                                        Or add your schedule manually →
                                     </button>
                                 )}
                             </div>
@@ -815,10 +855,10 @@ export default function ScheduleUploader() {
                                 <div className="mb-2 flex flex-wrap items-center justify-between gap-3">
                                     <div>
                                         <h2 className="text-xl font-bold text-[#292437]">
-                                            Review your classes
+                                            Review your schedule
                                         </h2>
                                         <p className="mt-1 text-sm text-gray-500">
-                                            Check the extracted details before confirming.
+                                            Check what we found, and add work shifts or anything else you&apos;re committed to.
                                         </p>
                                     </div>
 
@@ -828,7 +868,7 @@ export default function ScheduleUploader() {
                                         className="flex items-center gap-2 rounded-full border border-[#D8CDE9] px-4 py-2 text-sm font-semibold text-[#65449B]"
                                     >
                                         <Plus size={16} />
-                                        Add class
+                                        Add commitment
                                     </button>
                                 </div>
 
@@ -840,7 +880,7 @@ export default function ScheduleUploader() {
                                         >
                                             <div className="mb-4 flex items-center justify-between">
                                                 <h3 className="font-semibold text-[#292437]">
-                                                    Class {index + 1}
+                                                    Commitment {index + 1}
                                                 </h3>
 
                                                 <button
@@ -855,7 +895,28 @@ export default function ScheduleUploader() {
 
                                             <div className="grid gap-4 sm:grid-cols-2">
                                                 <label className="text-sm font-medium text-gray-700">
-                                                    Class name
+                                                    Type
+                                                    <select
+                                                        value={course.kind}
+                                                        onChange={(event) =>
+                                                            updateClass(
+                                                                course.id,
+                                                                "kind",
+                                                                event.target.value
+                                                            )
+                                                        }
+                                                        className="mt-1 w-full rounded-lg border border-gray-300 bg-white p-3 outline-none focus:border-[#65449B]"
+                                                    >
+                                                        {SCHEDULE_KINDS.map((kind) => (
+                                                            <option key={kind.id} value={kind.id}>
+                                                                {kind.label}
+                                                            </option>
+                                                        ))}
+                                                    </select>
+                                                </label>
+
+                                                <label className="text-sm font-medium text-gray-700">
+                                                    Name
                                                     <input
                                                         value={course.name}
                                                         onBlur={() => normalizeClassField(course.id, "name")}
@@ -866,13 +927,17 @@ export default function ScheduleUploader() {
                                                                 event.target.value
                                                             )
                                                         }
-                                                        placeholder="CSC 648"
+                                                        placeholder={
+                                                            course.kind === "class"
+                                                                ? "CSC 648"
+                                                                : "Library shift, soccer practice…"
+                                                        }
                                                         className="mt-1 w-full rounded-lg border border-gray-300 bg-white p-3 outline-none focus:border-[#65449B]"
                                                     />
                                                 </label>
 
-                                                <label className="text-sm font-medium text-gray-700">
-                                                    Meeting days
+                                                <label className="text-sm font-medium text-gray-700 sm:col-span-2">
+                                                    Days
                                                     <input
                                                         value={course.days}
                                                         onBlur={() => normalizeClassField(course.id, "days")}
@@ -955,7 +1020,7 @@ export default function ScheduleUploader() {
                                     />
                                     <div>
                                         <h2 className="text-xl font-bold text-[#292437]">
-                                            Confirm your class schedule
+                                            Confirm your schedule
                                         </h2>
                                         <p className="text-sm text-gray-500">
                                             Review the final details below.
@@ -969,8 +1034,11 @@ export default function ScheduleUploader() {
                                             key={course.id}
                                             className="rounded-xl border border-[#E9E5F0] bg-[#FBFAFD] p-4"
                                         >
-                                            <p className="font-semibold text-[#292437]">
+                                            <p className="flex flex-wrap items-center gap-2 font-semibold text-[#292437]">
                                                 {course.name}
+                                                <span className="rounded-full bg-[#F1ECF8] px-2 py-0.5 text-xs font-medium text-[#65449B]">
+                                                    {scheduleKindLabel(course.kind)}
+                                                </span>
                                             </p>
 
                                             <p className="mt-1 text-sm text-gray-600">
@@ -982,6 +1050,38 @@ export default function ScheduleUploader() {
                                         </div>
                                     ))}
                                 </div>
+
+                                {saved && (
+                                    <div
+                                        role="status"
+                                        className="mt-6 flex flex-wrap items-center justify-between gap-4 rounded-xl border border-green-200 bg-green-50 p-4"
+                                    >
+                                        <div className="flex items-start gap-3">
+                                            <CalendarDays size={20} className="mt-0.5 shrink-0 text-green-700" />
+                                            <div>
+                                                <p className="font-semibold text-[#292437]">
+                                                    Your schedule is saved
+                                                </p>
+                                                <p className="text-sm text-gray-600">
+                                                    See it next to your saved events and RSVPs on Your calendar.
+                                                </p>
+                                                {!typesSaved && classes.some((course) => course.kind !== "class") && (
+                                                    <p className="mt-1 text-sm text-gray-600">
+                                                        Types other than Class can&apos;t be saved yet, so these
+                                                        show as Class for now.
+                                                    </p>
+                                                )}
+                                            </div>
+                                        </div>
+                                        <Link
+                                            href="/calendar"
+                                            className="flex items-center gap-2 rounded-full bg-[#65449B] px-5 py-2.5 text-sm font-semibold text-white hover:bg-[#523783]"
+                                        >
+                                            Go to Your calendar
+                                            <ArrowRight size={16} />
+                                        </Link>
+                                    </div>
+                                )}
 
                                 <div className="mt-6 flex flex-wrap justify-between gap-3">
                                     <button
@@ -1026,9 +1126,9 @@ export default function ScheduleUploader() {
                         <div className="space-y-4">
                             {[
                                 "Helps identify campus events that fit your availability.",
-                                "AI may make mistakes, so you can review and correct every class.",
-                                "Only confirmed class information will be eligible for saving.",
-                                "You can replace your schedule or enter classes manually.",
+                                "AI may make mistakes, so you can review and correct everything.",
+                                "Only the classes and commitments you confirm are saved.",
+                                "Add work, practice or anything else by hand; the scanner reads classes.",
                             ].map((item) => (
                                 <div key={item} className="flex items-start gap-2">
                                     <Check

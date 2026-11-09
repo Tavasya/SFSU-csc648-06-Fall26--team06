@@ -24,8 +24,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import {
-  ArrowRight, Box, CalendarDays, DollarSign, LayoutGrid, Map as MapIcon,
-  Search, Sparkles, Sunset, Trash2,
+  ArrowLeftRight, ArrowRight, Box, Sunset, CalendarDays, DollarSign, LayoutGrid, Map as MapIcon,
+  Search, Sparkles, Trash2,
 } from "lucide-react";
 import AssistantEventCard, { VenuePreview } from "@/components/assistant/AssistantEventCard";
 import { gridItems } from "@/lib/assistant/grid";
@@ -37,8 +37,8 @@ const NAME = "Allison";
 const STORAGE_PREFIX = "gatoraid-allison-chat:";
 const MAX_SAVED_MESSAGES = 40;
 
-// General starting points: dates, time of day, categories, cost, a building and
-// summaries. Creative Arts has the Art Gallery 3D scan, so its events show a 3D preview.
+// General starting points: dates, categories, cost, a building, comparing two
+// events and summaries. Creative Arts has the Art Gallery 3D scan, so its events show a 3D preview.
 const SUGGESTIONS = [
   { icon: CalendarDays, text: "What's happening on campus today?", hint: "Today" },
   { icon: Sunset, text: "Evening events tomorrow", hint: "Time of day" },
@@ -77,7 +77,21 @@ async function loadStatuses() {
   return statuses;
 }
 
-export default function AssistantChat() {
+// compare: two upcoming event titles picked by the page (app/(platform)/assistant/page.js),
+// so the compare prompt always names real events. With them, the summary prompt
+// moves up to the time-of-day slot and the compare prompt takes the last slot.
+// Without them, the time-of-day prompt stays.
+export default function AssistantChat({ compare = null }) {
+  const summary = SUGGESTIONS.find((s) => s.icon === Sparkles);
+  const suggestions = compare
+    ? SUGGESTIONS.map((s) =>
+        s.icon === Sunset
+          ? summary
+          : s === summary
+            ? { icon: ArrowLeftRight, text: `Compare ${compare[0]} and ${compare[1]}`, hint: "Compare" }
+            : s,
+      )
+    : SUGGESTIONS;
   const [storageKey, setStorageKey] = useState(null);
   const [chat, setChat] = useState([]); // [{ role: "user" | "assistant", text, events, categories, total }]
   const [message, setMessage] = useState("");
@@ -172,7 +186,7 @@ export default function AssistantChat() {
               sign in to save events and RSVP.
             </p>
             <div className="ga-assistant-suggestions">
-              {SUGGESTIONS.map(({ icon: Icon, text, hint }) => (
+              {suggestions.map(({ icon: Icon, text, hint }) => (
                 <button type="button" key={text} onClick={() => ask(text)}>
                   <span className="ga-assistant-suggestion-icon"><Icon size={18} /></span>
                   <span>

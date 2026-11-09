@@ -1,11 +1,22 @@
 "use client";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { CalendarDays } from "lucide-react";
+// useSearchParams needs a Suspense boundary in Next.js.
 export default function Login() {
+  return (
+    <Suspense fallback={null}>
+      <LoginForm />
+    </Suspense>
+  );
+}
+
+function LoginForm() {
   const router = useRouter();
-  const [signup, setSignup] = useState(false),
+  // /login?mode=signup opens on "Create account" (e.g. from the Campus Map).
+  const params = useSearchParams();
+  const [signup, setSignup] = useState(params.get("mode") === "signup"),
     [busy, setBusy] = useState(false),
     [message, setMessage] = useState("");
   async function submit(e) {

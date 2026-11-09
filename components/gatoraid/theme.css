@@ -1,0 +1,254 @@
+/*
+ * components/gatoraid/theme.css
+ *
+ * PURPOSE:
+ * Light and dark color tokens for all of GatorAid, imported once in
+ * app/layout.js. The theme is set on <html data-theme="light|dark"> by the
+ * script in app/layout.js (saved choice, or the device setting) and changed
+ * with the toggle in SiteHeader.js.
+ *
+ * The second half maps the Tailwind color classes and campus map colors used
+ * in app components to dark versions, so pages work in dark mode without
+ * editing each component.
+ */
+
+:root {
+  --bg: #faf9fc;
+  --surface: #ffffff;
+  --surface-2: #f4f3f7;
+  --ink: #1f1b2b;
+  --muted: #6b6578;
+  --line: #ebe8f0;
+  --line-strong: #d6cce6;
+  --brand: #5b3f94;
+  --brand-hover: #46307a;
+  --on-brand: #ffffff;
+  --accent: #5b3f94;
+  --accent-soft: #f3effa;
+  --gold: #e3b23c;
+  --gold-soft: #fdf6e3;
+  --gold-ink: #8a6512;
+  --gold-line: #efdba5;
+  --success: #3e795b;
+  --success-soft: #eaf6ef;
+  --danger: #a6512f;
+  --danger-soft: #fbefe9;
+  --highlight: #f6e3ad;
+  --hero-glow: #f1ebfb;
+  --shadow: rgb(59 42 102 / 0.2);
+  --header-bg: rgb(255 255 255 / 0.88);
+  --room-wall-a: #f6f2fc;
+  --room-wall-b: #efe8fa;
+  --room-floor: #fbfafd;
+  --room-grid: #e7def3;
+  --room-line: #b9a6dc;
+  --room-edge: #5b3f94;
+  --room-top: #e6dcf5;
+  --room-side-a: #d4c6ec;
+  --room-side-b: #c3b1e2;
+  --room-gold: #f3d98f;
+  --room-screen: #ffffff;
+  --room-you: #5b3f94;
+  --room-you-ring: #ffffff;
+  --room-you-glow: rgb(91 63 148 / 0.16);
+  color-scheme: light;
+}
+:root[data-theme="dark"] {
+  --bg: #121019;
+  --surface: #1b1824;
+  --surface-2: #242030;
+  --ink: #ece9f3;
+  --muted: #a7a1b5;
+  --line: #2e293a;
+  --line-strong: #433b56;
+  --brand: #7356c2;
+  --brand-hover: #8669d2;
+  --on-brand: #ffffff;
+  --accent: #c3aef5;
+  --accent-soft: #2a2240;
+  --gold: #e8be55;
+  --gold-soft: #332a1a;
+  --gold-ink: #f0d084;
+  --gold-line: #5c4a22;
+  --success: #86d3a8;
+  --success-soft: #16301f;
+  --danger: #f2a68a;
+  --danger-soft: #3a2219;
+  --highlight: #3f2f6b;
+  --hero-glow: #251c3b;
+  --shadow: rgb(0 0 0 / 0.5);
+  --header-bg: rgb(18 16 25 / 0.85);
+  --room-wall-a: #241e33;
+  --room-wall-b: #201a2d;
+  --room-floor: #1c1826;
+  --room-grid: #2c2640;
+  --room-line: #4b3f68;
+  --room-edge: #a68ae6;
+  --room-top: #3a2f57;
+  --room-side-a: #30274a;
+  --room-side-b: #282040;
+  --room-gold: #b58e2e;
+  --room-screen: #2d2547;
+  --room-you: #c3aef5;
+  --room-you-ring: #1b1824;
+  --room-you-glow: rgb(195 174 245 / 0.18);
+  color-scheme: dark;
+}
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+}
+
+/* Tailwind color classes in app components. Inside the utilities layer so
+   they also apply where components reset styles with `all: revert-layer`
+   (components/map/map.css), and win over the plain classes by specificity. */
+@layer utilities {
+[data-theme="dark"] .text-\[\#262332\],
+[data-theme="dark"] .text-\[\#292437\],
+[data-theme="dark"] .text-gray-900,
+[data-theme="dark"] .text-gray-700 {
+  color: var(--ink);
+}
+[data-theme="dark"] .text-\[\#777180\],
+[data-theme="dark"] .text-\[\#777184\],
+[data-theme="dark"] .text-\[\#51475f\],
+[data-theme="dark"] .text-gray-500,
+[data-theme="dark"] .text-gray-600,
+[data-theme="dark"] .text-gray-400 {
+  color: var(--muted);
+}
+[data-theme="dark"] .text-\[\#604398\],
+[data-theme="dark"] .text-\[\#65449B\],
+[data-theme="dark"] .hover\:text-\[\#503581\]:hover {
+  color: var(--accent);
+}
+[data-theme="dark"] .text-\[\#78672e\] {
+  color: var(--gold-ink);
+}
+[data-theme="dark"] .text-red-600,
+[data-theme="dark"] .text-red-700,
+[data-theme="dark"] .text-red-800 {
+  color: var(--danger);
+}
+[data-theme="dark"] .text-green-600,
+[data-theme="dark"] .text-green-700 {
+  color: var(--success);
+}
+[data-theme="dark"] .bg-white,
+[data-theme="dark"] .bg-white\/95,
+[data-theme="dark"] .bg-white\/85,
+[data-theme="dark"] .bg-\[\#FBFAFD\],
+[data-theme="dark"] .bg-\[\#fbfafd\] {
+  background-color: var(--surface);
+}
+[data-theme="dark"] .bg-\[\#f6f0fc\],
+[data-theme="dark"] .bg-\[\#F5F1FA\],
+[data-theme="dark"] .bg-\[\#F4F0FB\],
+[data-theme="dark"] .bg-\[\#f3eefa\],
+[data-theme="dark"] .bg-\[\#EEEAF4\],
+[data-theme="dark"] .bg-\[\#EBE7F2\],
+[data-theme="dark"] .bg-gray-100,
+[data-theme="dark"] .hover\:bg-\[\#f0e9f9\]:hover,
+[data-theme="dark"] .hover\:bg-\[\#F5F1FA\]:hover,
+[data-theme="dark"] .hover\:bg-\[\#fbfafd\]:hover,
+[data-theme="dark"] .hover\:bg-\[\#f7f5fb\]:hover,
+[data-theme="dark"] .hover\:bg-\[\#F3EEFA\]:hover {
+  background-color: var(--accent-soft);
+}
+[data-theme="dark"] .bg-\[\#fff4d1\],
+[data-theme="dark"] .bg-\[\#fffbef\],
+[data-theme="dark"] .hover\:bg-\[\#fff4d1\]:hover {
+  background-color: var(--gold-soft);
+}
+[data-theme="dark"] .bg-\[\#FFF0EE\],
+[data-theme="dark"] .bg-red-50 {
+  background-color: var(--danger-soft);
+}
+[data-theme="dark"] .bg-green-50 {
+  background-color: var(--success-soft);
+}
+[data-theme="dark"] .bg-gray-300 {
+  background-color: var(--line-strong);
+}
+[data-theme="dark"] .bg-\[\#604398\],
+[data-theme="dark"] .bg-\[\#65449B\] {
+  background-color: var(--brand);
+}
+[data-theme="dark"] .hover\:bg-\[\#523783\]:hover,
+[data-theme="dark"] .hover\:bg-\[\#503581\]:hover {
+  background-color: var(--brand-hover);
+}
+[data-theme="dark"] .border-\[\#ebe7f0\],
+[data-theme="dark"] .border-\[\#E8E3EF\],
+[data-theme="dark"] .border-\[\#E9E5F0\],
+[data-theme="dark"] .border-gray-300,
+[data-theme="dark"] .border-red-100,
+[data-theme="dark"] .divide-\[\#ebe7f0\] > :not(:last-child) {
+  border-color: var(--line);
+}
+[data-theme="dark"] .border-\[\#D8CDE9\],
+[data-theme="dark"] .border-\[\#d9cfe8\],
+[data-theme="dark"] .border-\[\#BCA9DD\],
+[data-theme="dark"] .hover\:border-\[\#d9cfe8\]:hover,
+[data-theme="dark"] .hover\:border-\[\#604398\]\/40:hover {
+  border-color: var(--line-strong);
+}
+[data-theme="dark"] .border-\[\#f0dfaa\],
+[data-theme="dark"] .border-\[\#efce6b\] {
+  border-color: var(--gold-line);
+}
+[data-theme="dark"] .border-\[\#604398\],
+[data-theme="dark"] .border-\[\#65449B\],
+[data-theme="dark"] .focus\:border-\[\#65449B\]:focus,
+[data-theme="dark"] .hover\:border-\[\#604398\]:hover {
+  border-color: var(--accent);
+}
+}
+
+/* Campus map */
+[data-theme="dark"] .campus-map [fill="#F0EDF3" i] {
+  fill: #16131e;
+}
+[data-theme="dark"] .campus-map [fill="#FAF8F3" i] {
+  fill: #1e1a27;
+}
+[data-theme="dark"] .campus-map [fill="#BCDCA3" i] {
+  fill: #26402a;
+}
+[data-theme="dark"] .campus-map [fill="#9ACB8C" i] {
+  fill: #2f5534;
+}
+[data-theme="dark"] .campus-map [fill="#EEE5D3" i] {
+  fill: #2a2532;
+}
+[data-theme="dark"] .campus-map [fill="#BCD7E6" i] {
+  fill: #1d3546;
+}
+[data-theme="dark"] .campus-map [stroke="#D9D2E2" i] {
+  stroke: #3a3448;
+}
+[data-theme="dark"] .campus-map [stroke="#FFFFFF" i] {
+  stroke: #4a4359;
+}
+[data-theme="dark"] .campus-map [fill="#ECE5D3" i] {
+  fill: #2a2632;
+}
+[data-theme="dark"] .campus-map [stroke="#B8923F" i] {
+  stroke: #5d4c2b;
+}
+[data-theme="dark"] .campus-map [fill="#E3DEE9" i] {
+  fill: #221e2b;
+}
+[data-theme="dark"] .campus-map [fill="#5B4D7C" i] {
+  fill: #c2b7da;
+}
+[data-theme="dark"] .campus-map .fill-\[\#EBCB7E\] {
+  fill: #6f5a2b;
+}
+[data-theme="dark"] .campus-map .stroke-\[\#B8923F\] {
+  stroke: #a5843e;
+}
+[data-theme="dark"] .campus-map .group:hover .group-hover\:fill-\[\#E0B65A\] {
+  fill: #93752f;
+}

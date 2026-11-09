@@ -4,11 +4,11 @@
  * PURPOSE:
  * Shows where an event is, on the event detail page
  * (components/gatoraid/EventDetails.js, "Location" section):
+ *  - the 3D room scan card when the building has a scanned room (first)
  *  - a small 2D campus map zoomed in on the event's building, highlighted
  *    (rooms like "Jack Adams Hall" highlight their building)
  *  - an "Open in campus map" link that opens /map on that building with this
  *    event already open in the side panel
- *  - the 3D room scan card when the building has a scanned room
  *
  * Renders nothing for locations that aren't on the map and have no scans.
  */
@@ -38,6 +38,8 @@ export default function EventPlacePreview({
 
   return (
     <div className="campus-map mt-4 space-y-4">
+      {/* The 3D room comes first, then where the building is on the map. */}
+      <RoomScansCard rooms={rooms} viewerClassName="h-56 sm:h-64" />
       {place && (
         <div>
           <MapView
@@ -56,7 +58,6 @@ export default function EventPlacePreview({
           </Link>
         </div>
       )}
-      <RoomScansCard rooms={rooms} viewerClassName="h-56 sm:h-64" eventId={eventId} />
     </div>
   );
 }

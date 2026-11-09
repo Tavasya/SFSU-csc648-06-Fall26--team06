@@ -58,6 +58,7 @@ export default async function MapPage({ searchParams }) {
       unmatched={data.unmatched}
       scans={data.scans}
       isSample={isSample}
+      signedIn={Boolean(data.signedIn)}
       {...start}
     />
   );

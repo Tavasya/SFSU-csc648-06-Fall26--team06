@@ -37,12 +37,21 @@ function database() {
   const db = {
     user: { id: "student-one" }, tables,
     auth: { getUser: async () => ({ data: { user: db.user } }) },
+    // event_attendance(): attending counts, like the database function.
+    async rpc(name, args) {
+      if (name !== "event_attendance") return { data: null, error: { message: "unknown function" } };
+      return { data: args.event_ids.map((eventId) => ({
+        event_id: eventId,
+        attending: tables.event_rsvps.filter((r) => r.event_id === eventId && r.status === "attending").length,
+      })) };
+    },
     from(table) {
       const filters = [];
       let operation = "read", value, options, single = false;
       const query = {
         select() { return this; },
         eq(key, target) { filters.push((row) => row[key] === target); return this; },
+        neq(key, target) { filters.push((row) => row[key] !== target); return this; },
         gt(key, target) { filters.push((row) => row[key] > target); return this; },
         in(key, targets) { filters.push((row) => targets.includes(row[key])); return this; },
         overlaps(key, targets) { filters.push((row) => row[key].some((item) => targets.includes(item))); return this; },
@@ -103,6 +112,36 @@ test("repeat saves and RSVPs persist one row, independently and per authenticate
   db.user = { id: "student-two" };
   assert.equal((await (await saved.GET(request(), context)).json()).saved, false);
   assert.equal((await (await rsvp.GET(request(), context)).json()).rsvp, null);
+});
+test("a full event refuses new attending RSVPs but keeps existing ones", async () => {
+  const db = database();
+  db.tables.events[0].capacity = 1;
+  db.user = { id: "student-two" };
+  assert.equal((await rsvp.PUT(request("PUT", { status: "attending" }), context)).status, 200);
+  assert.equal((await (await rsvp.GET(request(), context)).json()).full, true);
+  // Already attending: saving the same RSVP again still works.
+  assert.equal((await rsvp.PUT(request("PUT", { status: "attending" }), context)).status, 200);
+  db.user = { id: "student-one" };
+  const refused = await rsvp.PUT(request("PUT", { status: "attending" }), context);
+  assert.equal(refused.status, 409);
+  assert.match((await refused.json()).error, /capacity has been reached/);
+  // Interested is still allowed when the event is full.
+  assert.equal((await rsvp.PUT(request("PUT", { status: "interested" }), context)).status, 200);
+});
+test("hosts can't save or RSVP to their own event", async () => {
+  const db = database();
+  db.tables.events[0].host_id = "student-one";
+  for (const response of [
+    await saved.PUT(request("PUT"), context),
+    await rsvp.PUT(request("PUT", { status: "attending" }), context),
+  ]) {
+    assert.equal(response.status, 403);
+    assert.match((await response.json()).error, /your own event/);
+  }
+  assert.equal(db.tables.saved_events.length + db.tables.event_rsvps.length, 0);
+  // Anyone else still can.
+  db.user = { id: "student-two" };
+  assert.equal((await saved.PUT(request("PUT"), context)).status, 200);
 });
 test("cancelled events reject attending but allow withdrawing; drafts are inaccessible", async () => {
   const db = database();

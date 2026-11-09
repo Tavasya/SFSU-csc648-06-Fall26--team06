@@ -1,7 +1,5 @@
 /* AI Event Assistant, Allison (/assistant). Everything is scoped under .ga-assistant. */
 .ga-assistant {
-  --gold: #f5c242;
-  --gold-soft: #fdf3d4;
   display: grid;
   grid-template-columns: minmax(0, 1fr) 300px;
   gap: 28px;
@@ -31,7 +29,7 @@
 }
 .ga-assistant-beta {
   background: var(--gold-soft);
-  color: #8a6400;
+  color: var(--gold-ink);
   border-radius: 10px;
   padding: 2px 10px;
   font-size: 12px;
@@ -61,8 +59,8 @@
 }
 .ga-assistant-welcome .ga-chip:hover,
 .ga-assistant-aside .ga-chip:hover {
-  border-color: #c6b6e0;
-  background: #f4f0fa;
+  border-color: var(--line-strong);
+  background: var(--accent-soft);
 }
 
 /* Conversation */
@@ -74,7 +72,7 @@
 .ga-assistant-user {
   align-self: flex-end;
   max-width: 75%;
-  background: var(--purple);
+  background: var(--brand);
   color: #fff;
   padding: 12px 18px;
   border-radius: 18px 18px 4px 18px;
@@ -92,14 +90,14 @@
   gap: 10px;
 }
 .ga-assistant-bubble {
-  background: #fff;
+  background: var(--surface);
   border: 1px solid var(--line);
   border-radius: 4px 18px 18px 18px;
   padding: 12px 18px;
   max-width: 80%;
 }
 .ga-assistant-bubble small {
-  color: #8a6400;
+  color: var(--gold-ink);
   font-weight: 600;
 }
 .ga-assistant-bubble p {
@@ -152,8 +150,8 @@
   font-size: 12px;
 }
 .ga-assistant-card:hover {
-  border-color: #c6b6e0;
-  box-shadow: 0 8px 24px #60439814;
+  border-color: var(--line-strong);
+  box-shadow: 0 8px 24px var(--shadow);
 }
 /* Full-width buttons, stacked, so every card's actions line up */
 .ga-assistant-card-actions {
@@ -193,20 +191,20 @@
   justify-content: center;
   gap: 5px;
   padding: 8px 12px;
-  border: 1px solid #d8cde9;
+  border: 1px solid var(--line-strong);
   border-radius: 999px;
-  background: #fff;
+  background: var(--surface);
   color: var(--purple);
   font-size: 12px;
   font-weight: 600;
   white-space: nowrap;
 }
 .ga-assistant-card-rsvp button:hover:not(:disabled) {
-  background: #f3eefa;
+  background: var(--accent-soft);
 }
 .ga-assistant-card-rsvp button[aria-pressed="true"] {
   border-color: var(--purple);
-  background: var(--purple);
+  background: var(--brand);
   color: #fff;
 }
 .ga .ga-assistant-card-rsvp button:disabled {
@@ -219,18 +217,18 @@
   justify-content: center;
   gap: 6px;
   padding: 8px 12px;
-  border: 1px dashed #c6b6e0;
+  border: 1px dashed var(--line-strong);
   border-radius: 999px;
   color: var(--purple);
   font-size: 12px;
   font-weight: 600;
 }
 .ga-assistant-card-signin:hover {
-  background: #f3eefa;
+  background: var(--accent-soft);
 }
 .ga-assistant-card-error {
   margin: 6px 0 0;
-  color: #b42318;
+  color: var(--danger);
   font-size: 12px;
 }
 
@@ -265,7 +263,7 @@
 }
 .ga-assistant-preview .ga-chip[aria-pressed="true"] {
   border-color: var(--purple);
-  background: var(--purple);
+  background: var(--brand);
   color: #fff;
 }
 .ga-assistant-preview iframe {
@@ -286,7 +284,7 @@
   flex-shrink: 0;
   border: 1px solid var(--line);
   border-radius: 50%;
-  background: #fff;
+  background: var(--surface);
   color: var(--ink);
 }
 
@@ -304,13 +302,13 @@
   padding: 12px 14px;
   border: 1px solid var(--line);
   border-radius: 14px;
-  background: #fff;
+  background: var(--surface);
   color: var(--ink);
   text-align: left;
 }
 .ga-assistant-suggestions button:hover {
-  border-color: #c6b6e0;
-  background: #faf8fd;
+  border-color: var(--line-strong);
+  background: var(--accent-soft);
 }
 .ga-assistant-suggestions button > span:nth-child(2) {
   flex: 1;
@@ -326,7 +324,7 @@
 }
 .ga-assistant-suggestions svg:last-child {
   flex-shrink: 0;
-  color: #9a93a6;
+  color: var(--muted);
 }
 .ga-assistant-suggestion-icon {
   display: inline-flex;
@@ -355,14 +353,14 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  background: #fff;
+  background: var(--surface);
   border: 1px solid var(--line);
   border-radius: 18px;
   padding: 10px 10px 10px 20px;
-  box-shadow: 0 10px 30px #26233214;
+  box-shadow: 0 10px 30px var(--shadow);
 }
 .ga-assistant-input:focus-within {
-  border-color: #c6b6e0;
+  border-color: var(--line-strong);
 }
 /* .ga .ga-assistant-input beats the app-wide .ga input:not([type="checkbox"]) box style */
 .ga .ga-assistant-input input,
@@ -401,7 +399,7 @@
   flex-direction: column;
   gap: 16px;
   position: sticky;
-  top: 20px;
+  top: calc(var(--site-header-height) + 20px);
 }
 .ga-assistant-aside h2 {
   margin-bottom: 6px;
