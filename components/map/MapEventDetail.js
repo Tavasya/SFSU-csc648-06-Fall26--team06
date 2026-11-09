@@ -6,7 +6,8 @@
  * clicks an event in a building's list and shows the same information as the
  * full event page (components/gatoraid/EventDetails.js), sized for the panel:
  * cover, categories, date and time, location and room, audience,
- * accessibility, contact, description and admission / RSVP info.
+ * accessibility, host and contact email, description, admission, and the
+ * Save / RSVP buttons (MapEventActions.js).
  *
  */
 
@@ -21,12 +22,13 @@ import {
   CalendarDays,
   ChevronLeft,
   Clock,
-  Hand,
   Mail,
   MapPin,
   Users,
 } from "lucide-react";
 import { formatLongDate } from "@/lib/map/events";
+import MapEventActions from "@/components/map/MapEventActions";
+import { accessibilityText } from "@/lib/events/accessibility";
 import { bannerFor, bannerStyle } from "@/lib/events/banner";
 
 // Banner for an event without an uploaded cover: its first tag picks the colors
@@ -79,11 +81,15 @@ export default function MapEventDetail({
     { Icon: Users, text: event.audience },
     {
       Icon: Accessibility,
-      text: event.wheelchairAccessible ? "Wheelchair accessible" : "Contact organizer for access information",
+      text: accessibilityText({ wheelchair: event.wheelchairAccessible, asl: event.aslAvailable }),
     },
-    event.aslAvailable && { Icon: Hand, text: "ASL interpretation available" },
-    { Icon: Mail, text: event.contactEmail || "Contact the event organizer" },
-  ].filter(Boolean);
+  ];
+
+  // We don't verify SFSU clubs yet, so events show the host's own name.
+  const hostName = event.hostName || "GatorAid organizer";
+  const mailto =
+    event.contactEmail &&
+    `mailto:${event.contactEmail}?subject=${encodeURIComponent(`Question about ${event.title}`)}`;
 
   return (
     <article aria-labelledby="map-event-title">
@@ -129,6 +135,33 @@ export default function MapEventDetail({
       </h3>
       {isSample && <p className="mt-1 text-[12px] text-[#777180]">Sample event</p>}
 
+      {/* Host right under the title; the email link opens a new message */}
+      <div className="mt-3 flex items-center gap-3 rounded-[13px] bg-[#F5F1FA] p-3 text-[13px]">
+        <span
+          className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-[#604398] text-[14px] font-semibold text-white"
+          aria-hidden="true"
+        >
+          {hostName[0].toUpperCase()}
+        </span>
+        <div className="min-w-0">
+          <p className="text-[#51475f]">
+            Hosted by <span className="font-semibold text-[#262332]">{hostName}</span>
+            {event.hostedByYou && " (you)"}
+          </p>
+          {mailto ? (
+            <a
+              href={mailto}
+              className="flex items-center gap-1 break-all text-[12px] text-[#604398] underline underline-offset-2 hover:text-[#503581]"
+            >
+              <Mail size={13} className="shrink-0" aria-hidden="true" />
+              {event.contactEmail}
+            </a>
+          ) : (
+            <p className="text-[12px] text-[#777180]">No contact email listed</p>
+          )}
+        </div>
+      </div>
+
       <ul className="mt-4 space-y-2.5">
         {facts.map(({ Icon: FactIcon, text, detail }) => (
           <li key={text} className="flex gap-2.5 text-[13px] text-[#51475f]">
@@ -146,20 +179,28 @@ export default function MapEventDetail({
         <p className="mt-1.5 whitespace-pre-line text-[13px] text-[#51475f]">{event.description}</p>
       </section>
 
-      {/* Admission and RSVP (same wording as the full event page) */}
+      {/* Admission, capacity and the Save / Interested / Going buttons */}
       <section className="mt-5 rounded-[13px] border border-[#ebe7f0] bg-[#fbfafd] p-4">
-        <h4 className="text-[15px] font-semibold text-[#262332]">
-          {event.admissionType === "paid" ? "Paid admission" : "Free admission"}
-        </h4>
-        <p className="mt-0.5 text-[12px] text-[#777180]">
-          {event.capacity ? `${event.capacity} attendee capacity` : "Open capacity"}
+        <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[13px] text-[#51475f]">
+          <span className="font-semibold text-[#262332]">
+            {event.admissionType === "paid" ? "Paid admission" : "Free admission"}
+          </span>
+          <span aria-hidden="true">·</span>
+          <span>
+            {event.capacity
+              ? event.attendingCount != null
+                ? `${Math.min(event.attendingCount, event.capacity)} of ${event.capacity} spots taken`
+                : `${event.capacity} spots`
+              : "Open capacity"}
+          </span>
+          <span aria-hidden="true">·</span>
+          <span>{event.rsvpRequired ? "RSVP required" : "No RSVP required"}</span>
         </p>
-        <span className="mt-2 inline-block rounded-md bg-[#f6f0fc] px-2 py-0.5 text-[11px] font-medium text-[#604398]">
-          {event.rsvpRequired ? "RSVP required" : "No RSVP required"}
-        </span>
-        <p className="mt-2 text-[12px] text-[#777180]">
-          RSVP is not available yet. Contact the organizer for registration details.
-        </p>
+        {isSample ? (
+          <p className="mt-2 text-[12px] text-[#777180]">This is a sample event, so saving and RSVP are turned off.</p>
+        ) : (
+          <MapEventActions event={event} returnTo={`/map?place=${event.venueId ?? event.mapId}&event=${event.id}`} />
+        )}
       </section>
 
       <div className="mt-4 flex flex-wrap gap-2">
@@ -171,15 +212,6 @@ export default function MapEventDetail({
             View full event page
             <ArrowRight size={15} aria-hidden="true" />
           </Link>
-        )}
-        {event.contactEmail && (
-          <a
-            href={`mailto:${event.contactEmail}`}
-            className="inline-flex items-center gap-1.5 rounded-full border border-[#ebe7f0] bg-white px-4 py-2 text-[13px] font-medium text-[#262332] hover:border-[#d9cfe8] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#604398]"
-          >
-            <Mail size={15} aria-hidden="true" />
-            Contact organizer
-          </a>
         )}
       </div>
     </article>

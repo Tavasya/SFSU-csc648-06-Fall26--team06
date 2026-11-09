@@ -2,13 +2,16 @@ import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { options } from "@/lib/events/page-data";
 import EventDetails from "@/components/gatoraid/EventDetails";
-import { loadRoomScans } from "@/lib/map/page-data";
+import { loadHostNames, loadRoomScans } from "@/lib/map/page-data";
 import { buildLocationLookup, placeForLocation } from "@/lib/map/events";
 import { toCampusPlaces } from "@/lib/map/places";
 export default async function Page({ params, searchParams }) {
   // ?from=assistant: opened from Allison's answers, so "Back" returns to the chat
   const from = (await searchParams)?.from === "assistant" ? "assistant" : null;
   const db = await createClient();
+  const {
+    data: { user },
+  } = await db.auth.getUser();
   const { data: event, error } = await db
     .from("events")
     .select("*")
@@ -22,7 +25,10 @@ export default async function Page({ params, searchParams }) {
   // scanned 3D rooms in the event's building, for the Location section preview
   const places = toCampusPlaces(locations);
   const lookup = buildLocationLookup(places);
-  const scans = await loadRoomScans(db, lookup);
+  const [scans, hostNames] = await Promise.all([
+    loadRoomScans(db, lookup),
+    loadHostNames(db, [event]),
+  ]);
   const place = placeForLocation(location?.building_name, lookup);
   const rooms = (place && scans[place.mapId]) || [];
   let coverUrl = null;
@@ -38,6 +44,8 @@ export default async function Page({ params, searchParams }) {
       categories={categories}
       location={location}
       coverUrl={coverUrl}
+      hostName={hostNames.get(event.host_id)}
+      isHost={Boolean(user) && user.id === event.host_id}
       rooms={rooms}
       places={places}
       from={from}

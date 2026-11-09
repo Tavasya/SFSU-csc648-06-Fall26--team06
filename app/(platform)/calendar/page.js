@@ -1,7 +1,7 @@
 import CalendarView from "@/components/calendar/CalendarView";
 
 export const metadata = {
-    title: "My calendar | GatorAid",
+    title: "Your calendar | GatorAid",
 };
 
 export default function Page(){

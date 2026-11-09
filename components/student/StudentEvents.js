@@ -69,10 +69,12 @@ export default function StudentEvents({ saved = false }) {
     {state.loading || state.error ? <DataState {...state} /> :
       state.data.events.length ?
         <EventSearch
-          events={state.data.events}
+          events={[...state.data.events, ...(state.data.own_events ?? [])]}
           categories={state.data.categories}
           schedule={schedule}
           scheduleStatus={scheduleStatus}
+          signedIn={!saved}
+          interestIds={saved ? null : state.data.category_ids}
         />
         :
         <section className="ga-card ga-empty">

@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { studentRequest } from "./useStudentData";
 import { canAttend, RSVP_STATUSES } from "@/lib/student/validation";
+import { useScheduleConflict } from "./ScheduleConflict";
 
 const labels = { attending: "Attending", interested: "Interested", not_attending: "Not Attending" };
 export default function EventActions({ event }) {
@@ -11,6 +12,7 @@ export default function EventActions({ event }) {
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
   const [attempt, setAttempt] = useState(0);
+  const { confirmGoing, dialog } = useScheduleConflict();
   const base = `/api/events/${event.id}`;
   useEffect(() => {
     const controller = new AbortController();
@@ -40,6 +42,8 @@ export default function EventActions({ event }) {
     {error ? <><p role="alert">{error.message}</p><button className="ga-button secondary" onClick={() => setAttempt(attempt + 1)}>Try again</button></> :
       <p role="status">Loading saved and RSVP status…</p>}</div>;
   const available = canAttend(event);
+  // Full: every spot is taken and this student isn't one of them.
+  const full = Boolean(data.full) && data.rsvp?.status !== "attending";
   return <div className="student-event-actions">
     <button className="ga-button secondary" disabled={busy} aria-pressed={data.saved}
       onClick={() => change(`${base}/saved`, data.saved ? "DELETE" : "PUT")}>
@@ -58,10 +62,12 @@ export default function EventActions({ event }) {
                 : "border-[#D8CDE9] bg-white text-[#65449B] hover:bg-[#F3EEFA]"
               }`}
             aria-pressed={data.rsvp?.status === status}
-            disabled={busy || (status === "attending" && !available)}
-            onClick={() =>
-              change(`${base}/rsvps/me`, "PUT", { status })
-            }
+            disabled={busy || (status === "attending" && (!available || full))}
+            onClick={async () => {
+              // Attending during a class: remind them, but let them decide.
+              if (status === "attending" && data.rsvp?.status !== "attending" && !(await confirmGoing(event))) return;
+              change(`${base}/rsvps/me`, "PUT", { status });
+            }}
           >
             {labels[status]}
           </button>
@@ -69,9 +75,11 @@ export default function EventActions({ event }) {
       </div>
     </fieldset>
     {!available && <p>This event is cancelled or completed. New attending RSVPs are closed.</p>}
+    {available && full && <p role="status">RSVP capacity has been reached. You can still save the event or mark yourself interested.</p>}
     <p className="ga-muted ga-small">Saving and RSVPing are separate. An RSVP does not complete any external registration required by the organizer.</p>
     {busy && <p role="status">Saving…</p>}
     {message && <p role="status">{message}</p>}
     {error && <p role="alert">{error.message}</p>}
+    {dialog}
   </div>;
 }
