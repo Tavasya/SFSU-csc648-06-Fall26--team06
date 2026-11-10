@@ -43,7 +43,7 @@ For Milestone 3, our team built a vertical prototype of GatorAid in which each f
 | **RSVP** | RSVP to an event as Attending, Interested or Not Attending. Saving and RSVPing are separate, so a student can do one without the other. |
 | **Interests** | Choose the event categories you are interested in, such as Technology or Career. Interests are saved to your account. |
 | **For You Recommendations** | See upcoming events that match your interests, with an explanation of why each event was recommended. Results can be filtered by date, location, category and keyword. |
-| **AI Schedule Scanner** | Users can upload there schedule and discover events that cater to their availability in order to prevent schedule conflicts. |
+| **AI Schedule Scanner** | Users can upload their schedule and discover events that cater to their availability and interests in order to prevent schedule conflicts. |
 | **AI Chatbot** | Users can ask the AI chatbot Allison any questions regarding campus events, location information, general FAQs, etc. |
 
 ## Host Features
