@@ -29,9 +29,9 @@
 | **Team Website URL (Vercel)** | https://sfsu-csc648-06-fall26-team06-three.vercel.app/events |
 | **Supabase Database**         | Access was provided through an email invitation              |
 
-# M2 Features
+# M3 Features
 
-For Milestone 2, our team built a vertical prototype of GatorAid in which each feature runs end to end: the user interface, the Next.js API routes or server pages, and the Supabase database. All data comes from Supabase, and row-level security (RLS) protects each user's information.
+For Milestone 3, our team built a vertical prototype of GatorAid in which each feature runs end to end: the user interface, the Next.js API routes or server pages, and the Supabase database. All data comes from Supabase, and row-level security (RLS) protects each user's information. The AI Schedule Scanner and AI Chatbot features were incorporated using Gemini.
 
 ## Student Features
 
@@ -43,6 +43,8 @@ For Milestone 2, our team built a vertical prototype of GatorAid in which each f
 | **RSVP** | RSVP to an event as Attending, Interested or Not Attending. Saving and RSVPing are separate, so a student can do one without the other. |
 | **Interests** | Choose the event categories you are interested in, such as Technology or Career. Interests are saved to your account. |
 | **For You Recommendations** | See upcoming events that match your interests, with an explanation of why each event was recommended. Results can be filtered by date, location, category and keyword. |
+| **AI Schedule Scanner** | Users can upload there schedule and discover events that cater to their availability in order to prevent schedule conflicts. |
+| **AI Chatbot** | Users can ask the AI chatbot Allison any questions regarding campus events, location information, general FAQs, etc. |
 
 ## Host Features
 
