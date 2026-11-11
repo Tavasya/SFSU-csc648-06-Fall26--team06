@@ -3,6 +3,10 @@ import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { CalendarDays } from "lucide-react";
+import { validatePassword } from "@/lib/password/password-validation";
+import PasswordStrength from "@/components/password/password-strength";
+import Link from "next/link";
+
 // useSearchParams needs a Suspense boundary in Next.js.
 export default function Login() {
   return (
@@ -21,54 +25,6 @@ function LoginForm() {
     [message, setMessage] = useState("");
   const [password, setPassword] = useState("");
 
-  // Password validation strength for signup
-  function validatePassword(password) {
-    const allowedSymbols = "!@#$%^&*()_+-=[]{};:'\"|<>?,./`~";
-
-    const requirements = {
-      length: password.length >= 8,
-      uppercase: /[A-Z]/.test(password),
-      lowercase: /[a-z]/.test(password),
-      number: /[0-9]/.test(password),
-      special: [...allowedSymbols].some((symbol) =>
-        password.includes(symbol)
-      ),
-    };
-
-    return requirements;
-  }
-
-  // Calculate password strength
-  const requirements = validatePassword(password);
-  const strength = Object.values(requirements).filter(Boolean).length;
-
-  const strengthLabel = !password
-    ? "Not entered"
-    : strength <= 2
-      ? "Weak"
-      : strength === 3
-        ? "Fair"
-        : strength === 4
-          ? "Strong"
-          : "Very strong";
-
-  const strengthColor =
-    strength <= 2
-      ? "#DC2626"
-      : strength === 3
-        ? "#D97706"
-        : strength === 4
-          ? "#2563EB"
-          : "#16A34A";
-
-  const requirementLabels = [
-    ["length", "At least 8 characters"],
-    ["uppercase", "At least one uppercase letter"],
-    ["lowercase", "At least one lowercase letter"],
-    ["number", "At least one number"],
-    ["special", "At least one special character"],
-  ];
-
   async function submit(e) {
     e.preventDefault();
     setBusy(true);
@@ -76,7 +32,7 @@ function LoginForm() {
     const values = new FormData(e.currentTarget),
       db = createClient();
     const credentials = {
-      email: values.get("email"),
+      email: String(values.get("email")).trim(),
       password: values.get("password"),
     };
 
@@ -109,7 +65,7 @@ function LoginForm() {
       router.refresh();
     } else
       setMessage(
-        "Check your email to confirm your account. Then come back and sign in.",
+        "If an account can be created with this email, you'll receive a confirmation email. Please check your inbox.",
       );
   }
   return (
@@ -150,75 +106,7 @@ function LoginForm() {
 
         {/* Live password strength indicator */}
         {signup && (
-          <div className="ga-muted ga-small">
-            <div style={{ marginTop: "8px", marginBottom: "12px" }}>
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  marginBottom: "6px",
-                }}
-              >
-                <strong>Password strength</strong>
-
-                <span
-                  style={{
-                    color: password ? strengthColor : "inherit",
-                    fontWeight: "600",
-                  }}
-                >
-                  {strengthLabel}
-                </span>
-              </div>
-
-              {/* Strength progress bar */}
-              <div
-                role="progressbar"
-                aria-label="Password strength"
-                aria-valuemin={0}
-                aria-valuemax={5}
-                aria-valuenow={strength}
-                style={{
-                  display: "flex",
-                  gap: "5px",
-                  width: "100%",
-                }}
-              >
-                {[1, 2, 3, 4, 5].map((level) => (
-                  <div
-                    key={level}
-                    style={{
-                      height: "6px",
-                      flex: 1,
-                      borderRadius: "4px",
-                      backgroundColor:
-                        strength >= level
-                          ? strengthColor
-                          : "#D1D5DB",
-                      transition: "background-color 0.2s ease",
-                    }}
-                  />
-                ))}
-              </div>
-            </div>
-
-            <p>Your password must contain:</p>
-
-            <ul style={{ listStyle: "none", padding: 0 }}>
-              {requirementLabels.map(([key, label]) => (
-                <li
-                  key={key}
-                  style={{
-                    color: requirements[key] ? "#16A34A" : "inherit",
-                    marginBottom: "4px",
-                  }}
-                >
-                  {requirements[key] ? "✓" : "○"} {label}
-                </li>
-              ))}
-            </ul>
-          </div>
+          <PasswordStrength password={password} />
         )}
 
         {message && (
@@ -231,6 +119,7 @@ function LoginForm() {
         </button>
       </form>
       <button
+        type="button"
         className="ga-text-button"
         onClick={() => {
           setSignup(!signup);
@@ -242,6 +131,17 @@ function LoginForm() {
           ? "Already have an account? Sign in"
           : "New here? Create an account"}
       </button>
+      <br></br>
+      <button className="ga-text-button">
+        {!signup && (
+          <div>
+            <Link href="/forgot-password">
+              Forgot password?
+            </Link>
+          </div>
+        )}
+      </button>
+
       <p className="ga-muted ga-small">
         Anyone with an account can create events and manage the events they own.
       </p>
