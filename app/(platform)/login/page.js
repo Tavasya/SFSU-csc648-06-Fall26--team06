@@ -2,7 +2,7 @@
 import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { CalendarDays } from "lucide-react";
+import { CalendarDays, Eye, EyeOff } from "lucide-react";
 import { validatePassword } from "@/lib/password/password-validation";
 import PasswordStrength from "@/components/password/password-strength";
 import Link from "next/link";
@@ -24,6 +24,7 @@ function LoginForm() {
     [busy, setBusy] = useState(false),
     [message, setMessage] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
   async function submit(e) {
     e.preventDefault();
@@ -92,16 +93,43 @@ function LoginForm() {
         </label>
         <label>
           Password
-          <input
-            name="password"
-            type="password"
-            autoComplete={signup ? "new-password" : "current-password"}
-            minLength={signup ? 8 : undefined}
-            required
-            placeholder="At least 8 characters"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
+
+          <div style={{ position: "relative" }}>
+            <input
+              name="password"
+              type={showPassword ? "text" : "password"}
+              autoComplete={signup ? "new-password" : "current-password"}
+              minLength={signup ? 8 : undefined}
+              required
+              placeholder="At least 8 characters"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              style={{ paddingRight: "45px" }}
+            />
+
+            <button
+              type="button"
+              onClick={() => setShowPassword((previous) => !previous)}
+              aria-label={showPassword ? "Hide password" : "Show password"}
+              aria-pressed={showPassword}
+              title={showPassword ? "Hide password" : "Show password"}
+              style={{
+                position: "absolute",
+                right: "12px",
+                top: "50%",
+                transform: "translateY(-50%)",
+                background: "transparent",
+                border: "none",
+                cursor: "pointer",
+                padding: "4px",
+                display: "flex",
+                alignItems: "center",
+                color: "#6B7280",
+              }}
+            >
+              {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+            </button>
+          </div>
         </label>
 
         {/* Live password strength indicator */}
@@ -125,6 +153,7 @@ function LoginForm() {
           setSignup(!signup);
           setMessage("");
           setPassword("");
+          setShowPassword(false);
         }}
       >
         {signup
