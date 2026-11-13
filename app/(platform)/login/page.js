@@ -2,7 +2,11 @@
 import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { CalendarDays } from "lucide-react";
+import { CalendarDays, Eye, EyeOff } from "lucide-react";
+import { validatePassword } from "@/lib/password/password-validation";
+import PasswordStrength from "@/components/password/password-strength";
+import Link from "next/link";
+
 // useSearchParams needs a Suspense boundary in Next.js.
 export default function Login() {
   return (
@@ -19,6 +23,9 @@ function LoginForm() {
   const [signup, setSignup] = useState(params.get("mode") === "signup"),
     [busy, setBusy] = useState(false),
     [message, setMessage] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+
   async function submit(e) {
     e.preventDefault();
     setBusy(true);
@@ -26,9 +33,26 @@ function LoginForm() {
     const values = new FormData(e.currentTarget),
       db = createClient();
     const credentials = {
-      email: values.get("email"),
+      email: String(values.get("email")).trim(),
       password: values.get("password"),
     };
+
+    // Validate password when creating an account
+    if (signup) {
+      const passwordRequirements = validatePassword(credentials.password);
+
+      if (
+        Object.values(passwordRequirements).some(
+          (valid) => !valid
+        )
+      ) {
+        setBusy(false);
+        return setMessage(
+          "Password must be at least 8 characters and contain uppercase, lowercase, number, and special characters."
+        );
+      }
+    }
+
     const { data, error } = signup
       ? await db.auth.signUp(credentials)
       : await db.auth.signInWithPassword(credentials);
@@ -42,7 +66,7 @@ function LoginForm() {
       router.refresh();
     } else
       setMessage(
-        "Check your email to confirm your account. Then come back and sign in.",
+        "If an account can be created with this email, you'll receive a confirmation email. Please check your inbox.",
       );
   }
   return (
@@ -69,15 +93,50 @@ function LoginForm() {
         </label>
         <label>
           Password
-          <input
-            name="password"
-            type="password"
-            autoComplete={signup ? "new-password" : "current-password"}
-            minLength={8}
-            required
-            placeholder="At least 8 characters"
-          />
+
+          <div style={{ position: "relative" }}>
+            <input
+              name="password"
+              type={showPassword ? "text" : "password"}
+              autoComplete={signup ? "new-password" : "current-password"}
+              minLength={signup ? 8 : undefined}
+              required
+              placeholder="At least 8 characters"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              style={{ paddingRight: "45px" }}
+            />
+
+            <button
+              type="button"
+              onClick={() => setShowPassword((previous) => !previous)}
+              aria-label={showPassword ? "Hide password" : "Show password"}
+              aria-pressed={showPassword}
+              title={showPassword ? "Hide password" : "Show password"}
+              style={{
+                position: "absolute",
+                right: "12px",
+                top: "50%",
+                transform: "translateY(-50%)",
+                background: "transparent",
+                border: "none",
+                cursor: "pointer",
+                padding: "4px",
+                display: "flex",
+                alignItems: "center",
+                color: "#6B7280",
+              }}
+            >
+              {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+            </button>
+          </div>
         </label>
+
+        {/* Live password strength indicator */}
+        {signup && (
+          <PasswordStrength password={password} />
+        )}
+
         {message && (
           <p role="status" className="ga-notice">
             {message}
@@ -88,16 +147,30 @@ function LoginForm() {
         </button>
       </form>
       <button
+        type="button"
         className="ga-text-button"
         onClick={() => {
           setSignup(!signup);
           setMessage("");
+          setPassword("");
+          setShowPassword(false);
         }}
       >
         {signup
           ? "Already have an account? Sign in"
           : "New here? Create an account"}
       </button>
+      <br></br>
+      <button className="ga-text-button">
+        {!signup && (
+          <div>
+            <Link href="/forgot-password">
+              Forgot password?
+            </Link>
+          </div>
+        )}
+      </button>
+
       <p className="ga-muted ga-small">
         Anyone with an account can create events and manage the events they own.
       </p>
