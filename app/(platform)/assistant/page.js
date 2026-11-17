@@ -266,6 +266,17 @@ export default function AssistantPage() {
                     comparison: Array.isArray(data.comparison)
                         ? data.comparison
                         : null,
+
+                    links: Array.isArray(data.links)
+                        ? data.links.filter(
+                            (link) =>
+                                typeof link.label === "string" &&
+                                typeof link.href === "string" &&
+                                link.href.startsWith("/") &&
+                                !link.href.startsWith("//")
+                        )
+                        : [],
+
                 },
             ]);
         } catch (error) {
@@ -411,6 +422,22 @@ export default function AssistantPage() {
                                             <p className="whitespace-pre-line leading-relaxed">
                                                 {message.content}
                                             </p>
+
+                                            {message.links?.length > 0 && (
+                                                <div className="mt-3 flex flex-wrap gap-2">
+                                                    {message.links.map((link) => (
+                                                        <Link
+                                                            key={`${link.href}-${link.label}`}
+                                                            href={link.href}
+                                                            className="inline-flex items-center gap-2 rounded-full border border-[#D8CDE9] bg-[#F5F1FA] px-4 py-2 text-xs font-semibold text-[#65449B] transition hover:bg-[#EAE2F5]"
+                                                        >
+                                                            {link.label}
+                                                            <ArrowRight size={14} />
+                                                        </Link>
+                                                    ))}
+                                                </div>
+                                            )}
+
 
                                             {/* Comparison results */}
                                             <ComparisonCards
