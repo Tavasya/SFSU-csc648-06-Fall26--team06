@@ -23,6 +23,7 @@ const COLUMNS = [
   {
     title: "Your account",
     links: [
+      { href: "/profile", label: "Profile & settings" },
       { href: "/saved", label: "Your plans" },
       { href: "/calendar", label: "Your calendar" },
       { href: "/interests", label: "Your interests" },
