@@ -29,6 +29,7 @@ const MAIN = [
 
 // Personal links, shown in the account menu.
 const ACCOUNT = [
+  { href: "/profile", label: "Your profile & settings" },
   { href: "/saved", label: "Your plans" },
   { href: "/interests", label: "Your interests" },
   { href: "/schedule", label: "Upload schedule" },
