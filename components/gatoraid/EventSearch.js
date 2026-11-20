@@ -513,7 +513,17 @@ export default function EventSearch({
                     Matches your interests: {event.recommendation_reasons.join(", ")}
                   </p>
                 )}
-                {event.status !== "active" && <span className="ga-badge">{event.status}</span>}
+                {event.status === "cancelled" && (
+                  <div className="ga-cancelled-notice">
+                    <span className="ga-badge cancelled">Cancelled</span>
+
+                    {event.cancellation_message && (
+                      <p className="ga-cancellation-message">
+                        {event.cancellation_message}
+                      </p>
+                    )}
+                  </div>
+                )}
 
                 <p className="ga-muted">
                   {new Date(

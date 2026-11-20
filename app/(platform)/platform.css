@@ -269,6 +269,25 @@
   color: var(--accent);
   font-size: 10px;
 }
+.ga-badge.cancelled {
+  background: #fce8e8;
+  color: #a33b3b;
+  font-weight: 600;
+}
+.ga-cancelled-notice {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  margin: 8px 20px 12px;
+}
+.ga-cancellation-message {
+  margin: 0 !important;
+  color: #a33b3b;
+  font-size: 12px;
+  line-height: 1.5;
+  white-space: normal;
+}
 .ga-badge.plan {
   background: var(--brand);
   color: var(--on-brand);
@@ -775,6 +794,41 @@
   position: absolute;
   right: 12px;
   top: 12px;
+}
+.ga-cancellation-message {
+  display: block;
+  margin-top: 6px;
+  color: #a33b3b;
+  white-space: normal;
+  line-height: 1.4;
+}
+.ga-dialog textarea {
+  width: 100%;
+  box-sizing: border-box;
+  margin-top: 8px;
+  padding: 12px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font: inherit;
+  resize: vertical;
+}
+.ga-dialog textarea:focus {
+  outline: 2px solid #46779f;
+  border-color: #46779f;
+}
+.ga-dialog label {
+  display: block;
+  margin-top: 16px;
+  font-weight: 600;
+}
+.ga-dialog textarea + small {
+  display: block;
+  margin-top: 6px;
+  color: #777;
+}
+.ga-badge.cancelled {
+  background: #fce8e8;
+  color: #a33b3b;
 }
 .ga-danger {
   color: #bb4646;
