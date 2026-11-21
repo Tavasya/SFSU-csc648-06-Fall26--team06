@@ -27,14 +27,33 @@ export const PATCH = respond(async (request, { params }) => {
 export const DELETE = respond(async (request, { params }) => {
   const { db, user } = await hostContext(request);
   const { eventId } = await params;
+
   const event = await ownedEvent(db, user, eventId);
+
+  // Published events will be cancelled, not permanently deleted
+  if (event.publication_status !== "draft") {
+    throw new ApiError(
+      "Published events cannot be deleted. Cancel the event instead.",
+      409
+    );
+  }
+
   const { error } = await db
     .from("events")
     .delete()
     .eq("id", eventId)
-    .eq("host_id", user.id);
-  if (error) throw new ApiError("Could not delete the event.", 503);
-  if (event.cover_path)
-    await db.storage.from("event-covers").remove([event.cover_path]);
+    .eq("host_id", user.id)
+    .eq("publication_status", "draft");
+
+  if (error) {
+    throw new ApiError("Could not delete the event.", 503);
+  }
+
+  if (event.cover_path) {
+    await db.storage
+      .from("event-covers")
+      .remove([event.cover_path]);
+  }
+
   return { deleted: true };
 });
