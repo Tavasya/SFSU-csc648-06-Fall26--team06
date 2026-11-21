@@ -1,3 +1,7 @@
+/**
+ * Public interfaces supporting R6.2.
+ * @module components/map/MapQuickActions
+ */
 /*
  * components/map/MapQuickActions.js
  *
@@ -24,6 +28,13 @@ import { canAttend } from "@/lib/student/validation";
 
 // { signedIn, statuses: { [eventId]: { saved, rsvp } }, update(eventId, change), reload() }
 // signedIn is null while loading.
+/**
+ * Load saved/RSVP statuses for map quick actions and expose a refresh function.
+ * @function useEventStatuses
+ * @memberof module:components/map/MapQuickActions
+ * @static
+ * @returns {Object} The saved and RSVP status cache with a refresh callback.
+ */
 export function useEventStatuses() {
   const [state, setState] = useState({ signedIn: null, statuses: {} });
   const [version, setVersion] = useState(0);
@@ -65,6 +76,17 @@ const buttonClass =
 const on = "border-[#604398] bg-[#604398] text-white";
 const off = "border-[#ebe7f0] bg-white text-[#51475f] hover:border-[#d9cfe8] hover:bg-[#F5F1FA]";
 
+/**
+ * Render compact map-event Save/RSVP actions using the supplied status cache.
+ * @function MapQuickActions
+ * @memberof module:components/map/MapQuickActions
+ * @static
+ * @param {Object} props - Component properties.
+ * @param {*} props.event - Event record to display.
+ * @param {*} props.statuses - The statuses setting or callback.
+ * @param {*} props.returnTo - Same-site return path after authentication.
+ * @returns {React.ReactElement} Rendered component tree.
+ */
 export default function MapQuickActions({ event, statuses, returnTo }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");

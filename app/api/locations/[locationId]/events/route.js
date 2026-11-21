@@ -1,3 +1,7 @@
+/**
+ * Public interfaces supporting R6.2.
+ * @module app/api/locations/locationId/events/route
+ */
 /*
  * app/api/locations/[locationId]/events/route.js  —  GET /api/locations/:locationId/events
  *
@@ -14,6 +18,16 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { upcomingEvents } from "@/lib/map/page-data";
+/**
+ * Return published, active, unended events for the selected location and related locations.
+ * @function GET
+ * @memberof module:app/api/locations/locationId/events/route
+ * @static
+ * @param {Request} request - Incoming HTTP request.
+ * @param {Object} options - Grouped function options.
+ * @param {Promise<Object>} options.params - Promise resolving the dynamic route parameters.
+ * @returns {Promise<Response>} HTTP response containing the result or an error.
+ */
 export async function GET(request, { params }) {
   const db = await createClient();
   const { locationId } = await params;

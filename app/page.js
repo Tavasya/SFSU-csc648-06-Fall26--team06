@@ -1,3 +1,7 @@
+/**
+ * Public interfaces supporting R1.1, R1.2, R1.3.
+ * @module app/page
+ */
 /*
  * app/page.js
  *
@@ -209,6 +213,13 @@ async function loadMap() {
   }
 }
 
+/**
+ * Load homepage events and campus data, then render navigation, upcoming events and feature previews.
+ * @function Home
+ * @memberof module:app/page
+ * @static
+ * @returns {Promise<React.ReactElement>} Rendered component tree.
+ */
 export default async function Home() {
   const [{ events, isThisWeek, categories }, map] = await Promise.all([
     loadEvents(),

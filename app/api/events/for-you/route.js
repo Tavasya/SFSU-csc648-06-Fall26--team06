@@ -1,5 +1,17 @@
+/**
+ * Public interfaces supporting R5.6.
+ * @module app/api/events/for-you/route
+ */
 import { respond } from "@/lib/events/api";
 import { studentContext, recommendations, checked } from "@/lib/student/api";
+/**
+ * Return interest-based recommendations and schedule-fit information for the current student.
+ * @function GET
+ * @memberof module:app/api/events/for-you/route
+ * @static
+ * @param {Request} request - Incoming HTTP request.
+ * @returns {Promise<Response>} HTTP response containing the result or an error.
+ */
 export const GET = respond(async (request) => {
   const { db, user } = await studentContext(request);
   const result = await recommendations(db, user);

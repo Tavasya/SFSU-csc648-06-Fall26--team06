@@ -1,3 +1,7 @@
+/**
+ * Public interfaces supporting R6.3, R6.5.
+ * @module components/map/Map
+ */
 /*
 * components/map/Map.js
 *
@@ -47,6 +51,14 @@ const SHAPES = new Map(
 
 // The lookups the map components use (see createCampus in lib/map/places.js),
 // for the places loaded from the "locations" table.
+/**
+ * Combine campus places with the prepared map geometry to create the map's lookup model.
+ * @function campusFrom
+ * @memberof module:components/map/Map
+ * @static
+ * @param {Object} [places] - Campus buildings, outdoor places and venues.
+ * @returns {Object} The campus lookup model used by MapView.
+ */
 export const campusFrom = (places = NO_PLACES) => createCampus(places, SHAPES);
 const EMPTY_CAMPUS = campusFrom();
 
@@ -68,6 +80,22 @@ function clampView(v, aspect) {
   return { w, h, x: clampAxis(v.x, w, W), y: clampAxis(v.y, h, H) };
 }
 
+/**
+ * Render the campus SVG map with selection, pins, constrained pan/zoom and imperative focus controls.
+ * @function MapView
+ * @memberof module:components/map/Map
+ * @static
+ * @param {Object} props - Component properties.
+ * @param {*} props.ref - The ref setting or callback.
+ * @param {*} props.selectedId - The selected id setting or callback.
+ * @param {function} props.onSelect - Callback invoked when a place is selected.
+ * @param {*} [props.pins] - The pins setting or callback.
+ * @param {*} [props.initialFocusId] - The initial focus id setting or callback.
+ * @param {*} [props.compact] - The compact setting or callback.
+ * @param {*} [props.quiet] - The quiet setting or callback.
+ * @param {*} [props.campus] - The campus setting or callback.
+ * @returns {React.ReactElement} Rendered component tree.
+ */
 export default function MapView({
   ref,
   selectedId,

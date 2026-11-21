@@ -13,6 +13,9 @@
 # testing
 /coverage
 
+# Regenerate from source for the M4 documentation submission.
+/docs/generated/
+
 # next.js
 /.next/
 /out/

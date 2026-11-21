@@ -1,3 +1,7 @@
+/**
+ * Public interfaces supporting R4.1, R4.2.
+ * @module components/gatoraid/EventForm
+ */
 "use client";
 import Image from "next/image";
 import { useState, useEffect, useRef } from "react";
@@ -21,6 +25,20 @@ import {
   bannerStyle,
   orderedCategoryNames,
 } from "@/lib/events/banner";
+/**
+ * Render the organizer create/edit form, validate inputs and submit event data with an optional cover upload.
+ * @function EventForm
+ * @memberof module:components/gatoraid/EventForm
+ * @static
+ * @param {Object} props - Component properties.
+ * @param {*} props.event - Event record to display.
+ * @param {*} props.categories - Available event categories.
+ * @param {*} props.locations - The locations setting or callback.
+ * @param {*} props.userId - Current viewer ID for identifying self-hosted events.
+ * @param {*} props.hostName - The host name setting or callback.
+ * @param {*} props.email - The email setting or callback.
+ * @returns {React.ReactElement} Rendered component tree.
+ */
 export default function EventForm({
   event,
   categories,

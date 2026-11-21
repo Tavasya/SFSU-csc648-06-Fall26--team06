@@ -1,3 +1,7 @@
+/**
+ * Public interfaces supporting R1.3, R2.1, R2.2.
+ * @module components/gatoraid/EventSearch
+ */
 "use client";
 
 import { getScheduleAvailability } from "@/lib/schedule/conflicts";
@@ -35,6 +39,20 @@ function dateInPacificTime(value) {
   return `${part("year")}-${part("month")}-${part("day")}`;
 }
 
+/**
+ * Render searchable, filterable event cards with sorting, schedule-fit and host visibility controls.
+ * @function EventSearch
+ * @memberof module:components/gatoraid/EventSearch
+ * @static
+ * @param {Object} props - Component properties.
+ * @param {*} props.events - Event records to display.
+ * @param {*} props.categories - Available event categories.
+ * @param {*} [props.schedule] - Saved commitments used to check availability.
+ * @param {*} [props.scheduleStatus] - The schedule status setting or callback.
+ * @param {*} [props.signedIn] - Whether the current viewer is authenticated.
+ * @param {*} [props.interestIds] - Selected interest category IDs.
+ * @returns {React.ReactElement} Rendered component tree.
+ */
 export default function EventSearch({
   events,
   categories,

@@ -1,3 +1,7 @@
+/**
+ * Public interfaces supporting R4.3.
+ * @module app/api/host/events/eventId/route
+ */
 import {
   hostContext,
   payload,
@@ -5,10 +9,30 @@ import {
   respond,
   ApiError,
 } from "@/lib/events/api";
+/**
+ * Return an event only when it belongs to the authenticated organizer.
+ * @function GET
+ * @memberof module:app/api/host/events/eventId/route
+ * @static
+ * @param {Request} request - Incoming HTTP request.
+ * @param {Object} options - Grouped function options.
+ * @param {Promise<Object>} options.params - Promise resolving the dynamic route parameters.
+ * @returns {Promise<Response>} HTTP response containing the result or an error.
+ */
 export const GET = respond(async (request, { params }) => {
   const { db, user } = await hostContext(request);
   return { event: await ownedEvent(db, user, (await params).eventId) };
 });
+/**
+ * Validate and update an event owned by the authenticated organizer.
+ * @function PATCH
+ * @memberof module:app/api/host/events/eventId/route
+ * @static
+ * @param {Request} request - Incoming HTTP request.
+ * @param {Object} options - Grouped function options.
+ * @param {Promise<Object>} options.params - Promise resolving the dynamic route parameters.
+ * @returns {Promise<Response>} HTTP response containing the result or an error.
+ */
 export const PATCH = respond(async (request, { params }) => {
   const { db, user } = await hostContext(request);
   const { eventId } = await params;
@@ -24,6 +48,16 @@ export const PATCH = respond(async (request, { params }) => {
   if (error) throw new ApiError("Could not save your changes.", 503);
   return { event: data };
 });
+/**
+ * Delete an event owned by the authenticated organizer.
+ * @function DELETE
+ * @memberof module:app/api/host/events/eventId/route
+ * @static
+ * @param {Request} request - Incoming HTTP request.
+ * @param {Object} options - Grouped function options.
+ * @param {Promise<Object>} options.params - Promise resolving the dynamic route parameters.
+ * @returns {Promise<Response>} HTTP response containing the result or an error.
+ */
 export const DELETE = respond(async (request, { params }) => {
   const { db, user } = await hostContext(request);
   const { eventId } = await params;

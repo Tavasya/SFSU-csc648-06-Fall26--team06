@@ -1,3 +1,7 @@
+/**
+ * Public interfaces supporting R5.6.
+ * @module components/student/StudentEvents
+ */
 "use client";
 
 import { useEffect, useState } from "react";
@@ -6,6 +10,15 @@ import EventSearch from "@/components/gatoraid/EventSearch";
 import DataState from "./DataState";
 import { useStudentData } from "./useStudentData";
 
+/**
+ * Render saved or personalized events with sign-in, loading, error and empty states.
+ * @function StudentEvents
+ * @memberof module:components/student/StudentEvents
+ * @static
+ * @param {Object} props - Component properties.
+ * @param {*} [props.saved] - The saved setting or callback.
+ * @returns {React.ReactElement} Rendered component tree.
+ */
 export default function StudentEvents({ saved = false }) {
   const state = useStudentData(saved ? "/api/users/me/saved-events" : "/api/events/for-you");
 

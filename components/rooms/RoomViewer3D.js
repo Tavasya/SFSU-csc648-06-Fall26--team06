@@ -1,3 +1,7 @@
+/**
+ * Public interfaces supporting R3.3, R7.1, R7.2, R7.3.
+ * @module components/rooms/RoomViewer3D
+ */
 /*
  * components/rooms/RoomViewer3D.js
  *
@@ -121,6 +125,18 @@ function UnityCanvas({ roomId }) {
   );
 }
 
+/**
+ * Render an on-demand room preview, choosing Unity for meshes or Spark for splats.
+ * @function RoomViewer3D
+ * @memberof module:components/rooms/RoomViewer3D
+ * @static
+ * @param {Object} props - Component properties.
+ * @param {*} props.room - Room metadata including ID, model path and scan date.
+ * @param {*} [props.className] - Additional CSS classes.
+ * @param {*} [props.autoStart] - The auto start setting or callback.
+ * @param {*} props.fullViewTarget - The full view target setting or callback.
+ * @returns {React.ReactElement} Rendered component tree.
+ */
 export default function RoomViewer3D({
   room, // { id, name, scanDate, modelPath } — id null means no real scan (sample data)
   className = "h-48",

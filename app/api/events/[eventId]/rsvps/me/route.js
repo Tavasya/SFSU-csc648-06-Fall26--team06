@@ -1,3 +1,7 @@
+/**
+ * Public interfaces supporting R3.4.
+ * @module app/api/events/eventId/rsvps/me/route
+ */
 import { respond, ApiError } from "@/lib/events/api";
 import { studentContext, publishedEvent, checked, body, assertNotOwner } from "@/lib/student/api";
 import { RSVP_STATUSES, canAttend } from "@/lib/student/validation";
@@ -8,6 +12,15 @@ async function capacityInfo(db, event) {
   const attending = (await loadAttendance(db, [event.id])).get(event.id) ?? null;
   return { attending, capacity: event.capacity ?? null, full: isFull(event.capacity, attending) };
 }
+/**
+ * Return the current student's RSVP and attendance information for the event.
+ * @function GET
+ * @memberof module:app/api/events/eventId/rsvps/me/route
+ * @static
+ * @param {Request} request - Incoming HTTP request.
+ * @param {Object} context - Next.js route context with asynchronous params.
+ * @returns {Promise<Response>} HTTP response containing the result or an error.
+ */
 export const GET = respond(async (request, context) => {
   const { db, user } = await studentContext(request);
   const event = await publishedEvent(db, context);
@@ -15,6 +28,15 @@ export const GET = respond(async (request, context) => {
     .eq("user_id", user.id).eq("event_id", event.id).maybeSingle());
   return { rsvp, ...(await capacityInfo(db, event)) };
 });
+/**
+ * Validate and update the current student's RSVP, enforcing ownership, capacity and event availability rules.
+ * @function PUT
+ * @memberof module:app/api/events/eventId/rsvps/me/route
+ * @static
+ * @param {Request} request - Incoming HTTP request.
+ * @param {Object} context - Next.js route context with asynchronous params.
+ * @returns {Promise<Response>} HTTP response containing the result or an error.
+ */
 export const PUT = respond(async (request, context) => {
   const { db, user } = await studentContext(request);
   const event = await publishedEvent(db, context);
