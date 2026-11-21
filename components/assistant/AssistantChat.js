@@ -85,12 +85,12 @@ export default function AssistantChat({ compare = null }) {
   const summary = SUGGESTIONS.find((s) => s.icon === Sparkles);
   const suggestions = compare
     ? SUGGESTIONS.map((s) =>
-        s.icon === Sunset
-          ? summary
-          : s === summary
-            ? { icon: ArrowLeftRight, text: `Compare ${compare[0]} and ${compare[1]}`, hint: "Compare" }
-            : s,
-      )
+      s.icon === Sunset
+        ? summary
+        : s === summary
+          ? { icon: ArrowLeftRight, text: `Compare ${compare[0]} and ${compare[1]}`, hint: "Compare" }
+          : s,
+    )
     : SUGGESTIONS;
   const [storageKey, setStorageKey] = useState(null);
   const [chat, setChat] = useState([]); // [{ role: "user" | "assistant", text, events, categories, total }]
@@ -147,7 +147,21 @@ export default function AssistantChat({ compare = null }) {
       });
       const data = await response.json();
       setChat((c) => [...c, response.ok
-        ? { role: "assistant", text: data.reply, events: data.events ?? [], categories: data.categories ?? [], total: data.total ?? 0 }
+        ? {
+          role: "assistant",
+          text: data.reply,
+          events: data.events ?? [],
+          categories: data.categories ?? [],
+          total: data.total ?? 0,
+          links: Array.isArray(data.links)
+            ? data.links.filter(
+              (link) =>
+                typeof link.label === "string" &&
+                typeof link.href === "string" &&
+                /^\/(?!\/)[a-z0-9/-]*$/i.test(link.href)
+            )
+            : [],
+        }
         : { role: "assistant", text: data.error || "Something went wrong. Please try again." }]);
     } catch {
       setChat((c) => [...c, { role: "assistant", text: "I couldn't reach the server. Please try again." }]);
@@ -210,6 +224,22 @@ export default function AssistantChat({ compare = null }) {
                 <div className="ga-assistant-bubble">
                   <small>{NAME}</small>
                   <p>{m.text}</p>
+
+                  {m.links?.length > 0 && (
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      {m.links.map((link) => (
+                        <Link
+                          key={`${link.href}-${link.label}`}
+                          href={link.href}
+                          className="ga-chip"
+                        >
+                          {link.label}
+                          <ArrowRight size={14} />
+                        </Link>
+                      ))}
+                    </div>
+                  )}
+
                 </div>
               </div>
               {m.events?.length > 0 && (

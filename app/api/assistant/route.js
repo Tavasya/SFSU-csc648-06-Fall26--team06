@@ -17,6 +17,8 @@
  *  - total:      how many events matched (can be more than the cards shown)
  */
 
+import { recommendations } from "@/lib/student/api";
+import { getApplicationGuidance } from "@/lib/assistant/guidance";
 import { NextResponse } from "next/server";
 import { GoogleGenAI } from "@google/genai";
 import { createClient } from "@/lib/supabase/server";
@@ -191,6 +193,25 @@ async function attachRooms(db, events) {
   }
 }
 
+
+
+function isPersonalRecommendationQuestion(question) {
+  const text = normalize(question);
+
+  const personal =
+    /\b(me|my|mine|my interests?|my preferences|personalized|for me)\b/.test(text);
+
+  const recommendation =
+    /\b(recommend|recommends|recommended|recommendation|recommendations|suggest|suggestions|suggested|personalized)\b/.test(text);
+
+  const interestMatch =
+    /\b(based on|match|matches|matching)\b/.test(text) &&
+    /\b(my interests?|my preferences)\b/.test(text);
+
+  return (personal && recommendation) || interestMatch;
+}
+
+
 export async function POST(request) {
   try {
     const body = await request.json().catch(() => null);
@@ -198,8 +219,107 @@ export async function POST(request) {
     if (!question || question.length > 500) {
       return NextResponse.json({ error: "Ask a question under 500 characters." }, { status: 400 });
     }
+    const guidance = getApplicationGuidance(question);
+
+    if (guidance) {
+      return NextResponse.json(guidance);
+    }
 
     const db = await createClient();
+
+
+    if (isPersonalRecommendationQuestion(question)) {
+      const {
+        data: { user },
+        error: authError,
+      } = await db.auth.getUser();
+
+      if (authError || !user) {
+        return NextResponse.json({
+          reply:
+            "Sign in to get recommendations based on your interests. " +
+            "You can still search campus events without an account.",
+          links: [
+            { label: "Sign in", href: "/login" },
+            { label: "Explore Events", href: "/events" },
+          ],
+          events: [],
+          categories: [],
+          total: 0,
+        });
+      }
+
+      try {
+        const result = await recommendations(db, user);
+
+        if (!result.category_ids.length) {
+          return NextResponse.json({
+            reply:
+              "You haven't selected any interests yet. " +
+              "Choose the categories you enjoy, and I can recommend matching campus events.",
+            links: [
+              { label: "Choose Interests", href: "/interests" },
+            ],
+            events: [],
+            categories: result.categories,
+            total: 0,
+          });
+        }
+
+        if (!result.events.length) {
+          return NextResponse.json({
+            reply:
+              "I couldn't find any upcoming events matching your selected interests right now. " +
+              "You can update your interests or explore all campus events.",
+            links: [
+              { label: "Edit Interests", href: "/interests" },
+              { label: "Explore Events", href: "/events" },
+            ],
+            events: [],
+            categories: result.categories,
+            total: 0,
+          });
+        }
+
+        const recommendedEvents = result.events.slice(0, MAX_CARDS);
+
+        const explanation = recommendedEvents
+          .slice(0, 3)
+          .map((event) => {
+            const reasons = event.recommendation_reasons || [];
+
+            return reasons.length
+              ? `${event.title} matches your interest in ${reasons.join(", ")}.`
+              : `${event.title} matches your selected interests.`;
+          })
+          .join("\n");
+
+        return NextResponse.json({
+          reply:
+            `I found ${result.events.length} upcoming event(s) matching your interests!\n\n` +
+            explanation +
+            "\n\nYou can explore the recommended events below.",
+          links: [
+            { label: "Edit Interests", href: "/interests" },
+            { label: "View For You", href: "/events/for-you" },
+          ],
+          events: await attachRooms(db, recommendedEvents),
+          categories: result.categories,
+          total: result.events.length,
+        });
+      } catch (error) {
+        console.error("Assistant recommendations failed:", error);
+
+        return NextResponse.json(
+          {
+            error:
+              "I couldn't load your recommendations right now. Please try again.",
+          },
+          { status: 503 }
+        );
+      }
+    }
+
 
     const now = new Date();
     const [locationsResult, categoriesResult] = await Promise.all([
@@ -274,7 +394,7 @@ export async function POST(request) {
     const missedTopic = !ignoredTerms.length ? ""
       : usedCategories.length
         ? `No event mentions "${ignoredTerms.join(" ")}" exactly, so here ${matches.length === 1 ? "is a related" : "are related"} ` +
-          `${usedCategories.map((c) => c.toLowerCase()).join(" or ")} `
+        `${usedCategories.map((c) => c.toLowerCase()).join(" or ")} `
         : `I couldn't find events about "${ignoredTerms.join(" ")}", so here ${matches.length === 1 ? "is" : "are"} other `;
 
     if (!matches.length) {
@@ -292,7 +412,7 @@ export async function POST(request) {
     const intro = missedTopic
       ? `${missedTopic}${described}.`
       : `I found ${matches.length} ${matches.length === 1 ? described.replace(/\bevents\b/, "event") : described}` +
-        `${q.dates.past ? ", most recent first" : ", soonest first"}.`;
+      `${q.dates.past ? ", most recent first" : ", soonest first"}.`;
     return reply(intro + more, cards, matches.length);
   } catch (error) {
     console.error("Assistant API error:", error);
