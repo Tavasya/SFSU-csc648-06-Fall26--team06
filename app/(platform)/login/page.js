@@ -1,3 +1,7 @@
+/**
+ * Public interfaces supporting R12.1, R12.3, R12.4.
+ * @module app/platform/login/page
+ */
 "use client";
 import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -8,6 +12,13 @@ import PasswordStrength from "@/components/password/password-strength";
 import Link from "next/link";
 
 // useSearchParams needs a Suspense boundary in Next.js.
+/**
+ * Render the login/sign-up screen inside the Suspense boundary required by search-parameter access.
+ * @function Login
+ * @memberof module:app/platform/login/page
+ * @static
+ * @returns {React.ReactElement} Rendered component tree.
+ */
 export default function Login() {
   return (
     <Suspense fallback={null}>

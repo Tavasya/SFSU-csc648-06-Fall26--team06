@@ -1,3 +1,7 @@
+/**
+ * Public interfaces supporting R6.5.
+ * @module app/api/locations/locationId/route
+ */
 /*
  * app/api/locations/[locationId]/route.js  —  GET /api/locations/:locationId
  *
@@ -12,6 +16,16 @@
  */
 
 import { createClient } from "@/lib/supabase/server";
+/**
+ * Return the selected campus location and its available room scans.
+ * @function GET
+ * @memberof module:app/api/locations/locationId/route
+ * @static
+ * @param {Request} request - Incoming HTTP request.
+ * @param {Object} options - Grouped function options.
+ * @param {Promise<Object>} options.params - Promise resolving the dynamic route parameters.
+ * @returns {Promise<Response>} HTTP response containing the result or an error.
+ */
 export async function GET(request, { params }) {
   const db = await createClient();
   const { locationId } = await params;

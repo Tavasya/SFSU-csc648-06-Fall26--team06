@@ -1,3 +1,7 @@
+/**
+ * Public interfaces supporting R1.2.
+ * @module components/home/RoomPreview
+ */
 /*
  * components/home/RoomPreview.js
  *
@@ -87,6 +91,13 @@ function Table({ project, deg, x, y, w, d, h, gold }) {
   );
 }
 
+/**
+ * Render the homepage interactive room-scan preview.
+ * @function RoomPreview
+ * @memberof module:components/home/RoomPreview
+ * @static
+ * @returns {React.ReactElement} Rendered component tree.
+ */
 export default function RoomPreview() {
   const [deg, setDeg] = useState(0);
   const [you, setYou] = useState({ x: 8.6, y: 7 });

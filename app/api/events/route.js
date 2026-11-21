@@ -1,4 +1,15 @@
+/**
+ * Public interfaces supporting R2.1.
+ * @module app/api/events/route
+ */
 import { createClient } from "@/lib/supabase/server";
+/**
+ * Return published active events ordered by start time; return 503 on a database error.
+ * @function GET
+ * @memberof module:app/api/events/route
+ * @static
+ * @returns {Promise<Response>} HTTP response containing the result or an error.
+ */
 export async function GET() {
   const db = await createClient();
   const { data, error } = await db

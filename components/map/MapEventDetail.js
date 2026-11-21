@@ -1,3 +1,7 @@
+/**
+ * Public interfaces supporting R6.2.
+ * @module components/map/MapEventDetail
+ */
 /*
  * components/map/MapEventDetail.js
  *
@@ -33,6 +37,14 @@ import { bannerFor, bannerStyle } from "@/lib/events/banner";
 
 // Banner for an event without an uploaded cover: its first tag picks the colors
 // and icon, using the same rule as Explore events (lib/events/banner.js).
+/**
+ * Choose a category-based cover palette for the map event detail card.
+ * @function coverFor
+ * @memberof module:components/map/MapEventDetail
+ * @static
+ * @param {Object} event - Event record or display model used by this function.
+ * @returns {Object} The category cover palette for the event.
+ */
 export function coverFor(event) {
   const banner = bannerFor(event.tags?.[0]);
   return { Icon: banner.Icon, style: bannerStyle(banner) };
@@ -47,6 +59,19 @@ function dateTile(date) {
   };
 }
 
+/**
+ * Render the selected map event's details, actions and related venue information.
+ * @function MapEventDetail
+ * @memberof module:components/map/MapEventDetail
+ * @static
+ * @param {Object} props - Component properties.
+ * @param {*} props.event - Event record to display.
+ * @param {*} props.placeName - The place name setting or callback.
+ * @param {*} props.backLabel - The back label setting or callback.
+ * @param {*} [props.isSample] - The is sample setting or callback.
+ * @param {function} props.onBack - The on back setting or callback.
+ * @returns {React.ReactElement} Rendered component tree.
+ */
 export default function MapEventDetail({
   event,
   placeName, // where the event is, e.g. "Jack Adams Hall" or "Burk Hall"

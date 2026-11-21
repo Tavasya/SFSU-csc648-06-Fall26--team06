@@ -1,3 +1,7 @@
+/**
+ * Public interfaces supporting R4.3.
+ * @module app/api/host/events/eventId/publish/route
+ */
 import {
   hostContext,
   payload,
@@ -5,6 +9,16 @@ import {
   respond,
   ApiError,
 } from "@/lib/events/api";
+/**
+ * Validate an owned draft and publish it for student discovery.
+ * @function POST
+ * @memberof module:app/api/host/events/eventId/publish/route
+ * @static
+ * @param {Request} request - Incoming HTTP request.
+ * @param {Object} options - Grouped function options.
+ * @param {Promise<Object>} options.params - Promise resolving the dynamic route parameters.
+ * @returns {Promise<Response>} HTTP response containing the result or an error.
+ */
 export const POST = respond(async (request, { params }) => {
   const { db, user } = await hostContext(request);
   const { eventId } = await params;

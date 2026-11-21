@@ -1,3 +1,7 @@
+/**
+ * Public interfaces supporting R3.3, R6.6.
+ * @module components/rooms/RoomScansCard
+ */
 /*
  * components/rooms/RoomScansCard.js
  *
@@ -17,6 +21,16 @@ import { useState } from "react";
 import { Box } from "lucide-react";
 import RoomViewer3D from "@/components/rooms/RoomViewer3D";
 
+/**
+ * List available room scans with inline previews and links to their full viewers.
+ * @function RoomScansCard
+ * @memberof module:components/rooms/RoomScansCard
+ * @static
+ * @param {Object} props - Component properties.
+ * @param {*} props.rooms - The rooms setting or callback.
+ * @param {*} props.viewerClassName - The viewer class name setting or callback.
+ * @returns {React.ReactElement} Rendered component tree.
+ */
 export default function RoomScansCard({ rooms, viewerClassName }) {
   const [index, setIndex] = useState(0);
   if (!rooms?.length) return null;

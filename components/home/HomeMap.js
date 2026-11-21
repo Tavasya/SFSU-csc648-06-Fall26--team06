@@ -1,3 +1,7 @@
+/**
+ * Public interfaces supporting R1.2.
+ * @module components/home/HomeMap
+ */
 /*
  * components/home/HomeMap.js
  *
@@ -19,6 +23,17 @@ import { ArrowRight, Box, MapPin } from "lucide-react";
 import MapView, { campusFrom } from "@/components/map/Map";
 import "@/components/map/map.css";
 
+/**
+ * Render the homepage campus-map preview with available events and room scans.
+ * @function HomeMap
+ * @memberof module:components/home/HomeMap
+ * @static
+ * @param {Object} props - Component properties.
+ * @param {*} props.places - Campus buildings, outdoor places and venues.
+ * @param {*} [props.events] - Event records to display.
+ * @param {*} [props.scans] - Available room scans indexed by location.
+ * @returns {React.ReactElement} Rendered component tree.
+ */
 export default function HomeMap({ places, events = [], scans = {} }) {
   const router = useRouter();
   const campus = useMemo(() => campusFrom(places), [places]);

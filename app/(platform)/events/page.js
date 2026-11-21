@@ -1,3 +1,7 @@
+/**
+ * Public interfaces supporting R2.1, R2.6.
+ * @module app/platform/events/page
+ */
 import Link from "next/link";
 import { CalendarDays, MapPin } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
@@ -7,6 +11,13 @@ import {
   bannerStyle,
   orderedCategoryNames,
 } from "@/lib/events/banner";
+/**
+ * Load published upcoming events and render Explore with error and empty states.
+ * @function Page
+ * @memberof module:app/platform/events/page
+ * @static
+ * @returns {Promise<React.ReactElement>} Rendered component tree.
+ */
 export default async function Page() {
   const db = await createClient();
   const {
