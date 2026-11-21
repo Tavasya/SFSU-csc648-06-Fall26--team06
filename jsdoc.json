@@ -65,6 +65,7 @@
       "lib/events/engagement.js",
       "lib/events/page-data.js",
       "lib/events/request-origin.js",
+      "lib/events/search.js",
       "lib/events/sort.js",
       "lib/events/time.js",
       "lib/events/validation.js",

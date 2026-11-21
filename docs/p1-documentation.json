@@ -5,7 +5,7 @@
     { "id": "R1.2", "title": "Upcoming Events", "files": ["app/page.js", "components/home/HomeMap.js", "components/home/RoomPreview.js"] },
     { "id": "R1.3", "title": "Event and Location Search", "files": ["app/page.js", "components/gatoraid/EventSearch.js", "components/map/MapExplorer.js"] },
     { "id": "R2.1", "title": "Explore All Events", "files": ["app/(platform)/events/page.js", "components/gatoraid/EventSearch.js", "app/api/events/route.js"] },
-    { "id": "R2.2", "title": "Search and Filter Events", "files": ["components/gatoraid/EventSearch.js", "lib/events/sort.js", "lib/events/banner.js", "lib/events/accessibility.js"] },
+    { "id": "R2.2", "title": "Search and Filter Events", "files": ["components/gatoraid/EventSearch.js", "lib/events/search.js", "lib/events/sort.js", "lib/events/banner.js", "lib/events/accessibility.js"] },
     { "id": "R2.6", "title": "Empty and Error States", "files": ["app/(platform)/events/page.js", "components/student/DataState.js", "app/(platform)/error.js", "app/(platform)/loading.js"] },
     { "id": "R3.1", "title": "Event Details", "files": ["app/(platform)/events/[eventId]/page.js", "components/gatoraid/EventDetails.js", "app/api/events/[eventId]/route.js"] },
     { "id": "R3.2", "title": "Event Location Details", "files": ["components/gatoraid/EventDetails.js", "components/map/EventPlacePreview.js", "lib/map/places.js", "lib/map/events.js"] },
