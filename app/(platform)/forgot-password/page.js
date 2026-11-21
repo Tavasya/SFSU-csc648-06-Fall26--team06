@@ -53,7 +53,7 @@ export default function ForgotPassword() {
 
       <p className="ga-muted">
         Enter the email address associated with your GatorAid account.
-        We'll send you a link to reset your password.
+        We&apos;ll send you a link to reset your password.
       </p>
 
       <form onSubmit={submit}>

@@ -3,10 +3,11 @@
 import Link from "next/link";
 import { useState, useSyncExternalStore } from "react";
 import { Moon, Sun, UserRound } from "lucide-react";
-import { ACADEMIC_YEARS, GENDERS } from "@/lib/student/profile";
+import { ACADEMIC_YEARS, GENDERS, AVATAR_COLORS } from "@/lib/student/profile";
 import { studentRequest, useStudentData } from "./useStudentData";
 import DataState from "./DataState";
 import Interests from "./Interests";
+import AvatarPreview from "./AvatarPreview";
 import "./profile.css";
 
 function subscribeTheme(callback) {
@@ -72,6 +73,18 @@ function ProfileForm({ data }) {
             <option value="">Choose an option (optional)</option>{GENDERS.map((gender) => <option key={gender}>{gender}</option>)}
           </select></label>
         </div>
+      </fieldset>
+      <fieldset disabled={busy} className="ga-card profile-avatar-settings">
+        <legend>Avatar colors</legend>
+        <p className="ga-muted">Choose colors for your avatar. Save your profile to keep them.</p>
+        <AvatarPreview skin={profile.avatar_skin_color} hair={profile.avatar_hair_color} shirt={profile.avatar_shirt_color} />
+        {[["avatar_skin_color", "Skin color", ["Light", "Medium", "Tan", "Deep"]], ["avatar_hair_color", "Hair color", ["Black", "Brown", "Light brown", "Blonde", "Red", "Gray"]], ["avatar_shirt_color", "Shirt color", ["Purple", "Blue", "Green", "Red", "Gold"]]].map(([field, label, names]) => <label className="avatar-color-field" key={field}>
+          {label}<select value={profile[field]} onChange={(e) => change(field, e.target.value)}>
+            {AVATAR_COLORS[field].map((color, index) => <option key={color} value={color}>{names[index]}</option>)}
+          </select>
+        </label>)}
+        <label className="profile-check"><span><strong>Connect with event attendees</strong><small className="ga-muted">Show your name, academic details, interests, and avatar to other opted-in attendees when you RSVP attending. They can message you about that event.</small></span>
+          <input type="checkbox" checked={profile.attendee_visible} onChange={(event) => change("attendee_visible", event.target.checked)} /></label>
       </fieldset>
       <fieldset disabled={busy} className="ga-card profile-notifications" id="notifications">
         <legend>Notifications</legend>

@@ -24,11 +24,13 @@ export default async function Page() {
     .order("start_date_time");
 
   // Category names are needed to pick each event's banner (its first category).
-  const [{ data: events, error }, { data: categories }] =
+  const [{ data: events, error }, { data: categories }, popularity] =
     await Promise.all([
       eventsQuery,
       db.from("categories").select("id, name"),
+      db.rpc("popular_events"),
     ]);
+  const scores = new Map((popularity.data || []).map((row) => [row.event_id, Number(row.score)]));
 
   return (
     <>
@@ -48,7 +50,7 @@ export default async function Page() {
       ) : events?.length > 0 ? (
         // EventSearch handles filtering and renders the event cards.
         <EventSearch
-          events={events.map((event) => ({ ...event, hosted_by_you: Boolean(user) && event.host_id === user.id }))}
+          events={events.map((event) => ({ ...event, hosted_by_you: Boolean(user) && event.host_id === user.id, popularity_score: popularity.error ? null : (scores.get(event.id) ?? 0) }))}
           categories={categories ?? []}
           signedIn={Boolean(user)}
         />

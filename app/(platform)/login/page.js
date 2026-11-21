@@ -25,6 +25,15 @@ function LoginForm() {
     [message, setMessage] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [email, setEmail] = useState("");
+
+  async function resendVerification() {
+    if (!email.trim()) return setMessage("Enter your email address first.");
+    setBusy(true);
+    const { error } = await createClient().auth.resend({ type: "signup", email: email.trim() });
+    setBusy(false);
+    setMessage(error ? error.message : "If your account needs verification, check your inbox for a confirmation email.");
+  }
 
   async function submit(e) {
     e.preventDefault();
@@ -54,7 +63,7 @@ function LoginForm() {
     }
 
     const { data, error } = signup
-      ? await db.auth.signUp(credentials)
+      ? await db.auth.signUp({ ...credentials, options: { data: { display_name: String(values.get("name")).trim() } } })
       : await db.auth.signInWithPassword(credentials);
     setBusy(false);
     if (error) return setMessage(error.message);
@@ -66,7 +75,7 @@ function LoginForm() {
       router.refresh();
     } else
       setMessage(
-        "If an account can be created with this email, you'll receive a confirmation email. Please check your inbox.",
+        "If an account can be created with this email, you'll receive a confirmation email. If you already have an account, sign in or reset your password.",
       );
   }
   return (
@@ -81,6 +90,7 @@ function LoginForm() {
           : "Sign in to manage your campus events."}
       </p>
       <form onSubmit={submit}>
+        {signup && <label>Name<input name="name" autoComplete="name" maxLength={80} required /></label>}
         <label>
           Email
           <input
@@ -88,6 +98,8 @@ function LoginForm() {
             type="email"
             autoComplete="email"
             required
+            value={email}
+            onChange={(event) => setEmail(event.target.value)}
             placeholder="you@sfsu.edu"
           />
         </label>
@@ -160,16 +172,9 @@ function LoginForm() {
           ? "Already have an account? Sign in"
           : "New here? Create an account"}
       </button>
+      <button type="button" className="ga-text-button" disabled={busy} onClick={resendVerification}>Resend verification email</button>
       <br></br>
-      <button className="ga-text-button">
-        {!signup && (
-          <div>
-            <Link href="/forgot-password">
-              Forgot password?
-            </Link>
-          </div>
-        )}
-      </button>
+      {!signup && <Link className="ga-text-button" href="/forgot-password">Forgot password?</Link>}
 
       <p className="ga-muted ga-small">
         Anyone with an account can create events and manage the events they own.

@@ -24,6 +24,7 @@ const TABS = [
   { id: "attending", label: "Going", test: (p) => p.rsvp === "attending" },
   { id: "interested", label: "Interested", test: (p) => p.rsvp === "interested" },
   { id: "saved", label: "Saved", test: (p) => p.saved },
+  { id: "history", label: "RSVP history", test: (p) => Boolean(p.rsvp) && (p.event.status === "cancelled" || new Date(p.event.end_date_time).getTime() < Date.now()) },
   { id: "not_attending", label: "Not going", test: (p) => p.rsvp === "not_attending" },
 ];
 

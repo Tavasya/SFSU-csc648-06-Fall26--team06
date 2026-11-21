@@ -5,6 +5,7 @@ import assert from "node:assert/strict";
 import {
   addDays,
   classBlocks,
+  calendarEventVisible,
   eventBlocks,
   formatMinutes,
   layoutDay,
@@ -30,6 +31,14 @@ function event(id, start, end, extra = {}) {
   };
 }
 const careerFair = event("e1", "2026-10-29T18:00:00Z", "2026-10-29T21:00:00Z"); // Thu 11 AM – 2 PM Pacific
+
+test("calendar filters support cancelled-only and overlapping saved RSVPs", () => {
+  const both = { saved: true, kind: "rsvp", cancelled: false };
+  assert.equal(calendarEventVisible(both, { saved: true, rsvp: false, cancelled: false }), true);
+  assert.equal(calendarEventVisible(both, { saved: false, rsvp: true, cancelled: false }), true);
+  assert.equal(calendarEventVisible({ ...both, cancelled: true }, { saved: false, rsvp: false, cancelled: true }), true);
+  assert.equal(calendarEventVisible({ ...both, cancelled: true }, { saved: true, rsvp: true, cancelled: false }), false);
+});
 
 test("toPacific converts to campus time on both sides of the DST change", () => {
   assert.deepEqual(toPacific("2026-10-30T21:30:00Z"), { day: "2026-10-30", minutes: 14 * 60 + 30 }); // PDT, UTC-7
@@ -71,6 +80,8 @@ test("mergeStudentEvents shows a saved and RSVP'd event once, as RSVP'd", () => 
   assert.equal(merged.length, 1);
   assert.equal(merged[0].kind, "rsvp");
   assert.equal(merged[0].rsvpStatus, "attending");
+  assert.equal(merged[0].saved, true);
+  assert.equal(eventBlocks(merged)[0].saved, true);
 });
 
 test("mergeStudentEvents hides Not Attending RSVPs unless the event is saved", () => {

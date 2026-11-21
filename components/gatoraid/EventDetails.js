@@ -100,7 +100,7 @@ export default function EventDetails({
             ))}
           </div>
           <h1>{event.title}</h1>
-          <p className="ga-muted">Hosted by {host}</p>
+          <p className="ga-muted">Hosted by {preview ? host : <Link href={`/organizers/${event.host_id}`}>{host}</Link>}</p>
           <div className="ga-detail-facts">
             {[
               [

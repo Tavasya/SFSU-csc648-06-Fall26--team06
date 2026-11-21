@@ -75,6 +75,7 @@ export default function EventActions({ event }) {
       </div>
     </fieldset>
     {!available && <p>This event is cancelled or completed. New attending RSVPs are closed.</p>}
+    {data.rsvp?.status === "attending" && available && <Link href={`/events/${event.id}/connections`} className="ga-button secondary">Connect with attendees</Link>}
     {available && full && <p role="status">RSVP capacity has been reached. You can still save the event or mark yourself interested.</p>}
     <p className="ga-muted ga-small">Saving and RSVPing are separate. An RSVP does not complete any external registration required by the organizer.</p>
     {busy && <p role="status">Saving…</p>}

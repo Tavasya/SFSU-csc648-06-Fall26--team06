@@ -29,7 +29,7 @@ export const metadata = {
 
 const AT_A_GLANCE = [
   [BadgeCheck, "No ads, no selling", "We collect only what the app needs to work."],
-  [Lock, "Your plans are yours", "Only you see your interests, saves, RSVPs and schedule."],
+  [Lock, "Your plans are yours", "Your saves and schedule stay private. You choose whether to share your interests with fellow attendees."],
   [EyeOff, "Hosts see counts, not names", "Organizers know how many, never who."],
   [ShieldCheck, "Enforced by the database", "Privacy rules live in the database, not just the app."],
 ];
@@ -37,8 +37,8 @@ const AT_A_GLANCE = [
 // What GatorAid stores, and who can see it: [label, detail, you, organizers, everyone]
 const DATA = [
   ["Your account", "Your email address. Passwords are handled by Supabase and never visible to us.", true, false, false],
-  ["Your interests", "The topics you choose for recommendations.", true, false, false],
-  ["Saved events and RSVPs", "Organizers see only the totals for their events.", true, "Totals only", false],
+  ["Your interests", "Used for recommendations and shared with opted-in attendees only if you enable connections.", true, false, false],
+  ["Saved events and RSVPs", "Organizers see only totals. If you opt in, other opted-in attendees can see that you are attending the same event.", true, "Totals only", false],
   ["Your schedule", "The classes, work shifts and other commitments you confirm, with their days and times.", true, false, false],
   ["Events you host", "Published events, including the contact email you chose to share. Drafts stay private.", true, "When published", "When published"],
 ];
@@ -118,6 +118,7 @@ export default function Page() {
         <p className="ga-doc-note">
           Cover images are stored privately and shown through links that expire after an hour.
         </p>
+        <p className="ga-doc-note">Attendee connections are off by default. If you enable them in your profile and RSVP attending, other opted-in attendees can see your name, academic details, interests and avatar colors and exchange event messages with you. Your email is not shared. You can turn connections off at any time.</p>
       </section>
 
       <section>

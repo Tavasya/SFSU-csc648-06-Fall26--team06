@@ -30,6 +30,10 @@ test("recently added puts the newest event first", () => {
   assert.equal(ids(sortEvents(events, "newest")), "abc");
 });
 
+test("popularity sorts by activity and breaks ties by event date", () => {
+  assert.equal(ids(sortEvents(events.map((event) => ({ ...event, popularity_score: event.id === "a" ? 2 : 1 })), "popular")), "acb");
+});
+
 test("best match puts events sharing the most interests first", () => {
   assert.equal(ids(sortEvents(events, "match", { interestIds: ["art", "social", "career"] })), "acb");
 });

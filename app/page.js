@@ -138,7 +138,7 @@ const VALUES = [
   {
     Icon: Lock,
     title: "Private by default",
-    text: "Your saves and RSVPs are yours. Hosts see counts, never names.",
+    text: "Your plans stay private. You choose whether to connect with other attendees.",
   },
   {
     Icon: Megaphone,
@@ -174,15 +174,16 @@ async function loadEvents() {
       .eq("publication_status", "published")
       .eq("status", "active")
       .gte("end_date_time", now.toISOString())
-      .order("start_date_time")
-      .limit(24);
+      .order("start_date_time");
     if (user) eventsQuery = eventsQuery.neq("host_id", user.id);
-    const [{ data: events, error }, { data: categories }] =
+    const [{ data: events, error }, { data: categories }, popularity] =
       await Promise.all([
         eventsQuery,
         db.from("categories").select("id, name"),
+        db.rpc("popular_events"),
       ]);
     if (error) throw error;
+    const scores = new Map((popularity.data || []).map((row) => [row.event_id, Number(row.score)]));
 
     const weekEnd = now.getTime() + WEEK_MS;
     const thisWeek = events.filter(
@@ -192,6 +193,9 @@ async function loadEvents() {
       events: (thisWeek.length ? thisWeek : events).slice(0, SHOWN),
       isThisWeek: thisWeek.length > 0,
       categories: categories ?? [],
+      popular: popularity.error ? [] : [...events].sort((a, b) => {
+        return (scores.get(b.id) ?? 0) - (scores.get(a.id) ?? 0);
+      }).slice(0, SHOWN),
     };
   } catch (error) {
     console.warn("Homepage events unavailable:", error.message);
@@ -210,7 +214,7 @@ async function loadMap() {
 }
 
 export default async function Home() {
-  const [{ events, isThisWeek, categories }, map] = await Promise.all([
+  const [{ events, isThisWeek, categories, popular = [] }, map] = await Promise.all([
     loadEvents(),
     loadMap(),
   ]);
@@ -369,6 +373,11 @@ export default async function Home() {
         </section>
 
         {/* Real events */}
+        {popular.length > 0 && <section className="home-section"><div className="site-wrap">
+          <div className="home-events-head"><div><p className="home-eyebrow">Discover campus</p><h2>Popular on campus</h2>
+            <p>Ranked by saves and RSVPs.</p></div><Link className="home-link" href="/events">Explore and sort events <ArrowRight size={15} /></Link></div>
+          <div className="home-events">{popular.map((event) => <EventCard key={event.id} event={event} categories={categories} />)}</div>
+        </div></section>}
         <section className="home-section">
           <div className="site-wrap">
             <div className="home-events-head">

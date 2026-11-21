@@ -13,6 +13,9 @@
 .profile-check small { display: block; margin-top: 5px; }
 .ga .profile-check input { width: 20px; height: 20px; flex-shrink: 0; accent-color: var(--brand); }
 .profile-save { grid-column: 1 / -1; }
+.profile-avatar-settings { grid-column: 1 / -1; }
+.avatar-preview { overflow: hidden; width: 200px; height: 200px; margin: 12px 0 20px; border-radius: 20px; background: var(--accent-soft); }
+.ga .avatar-color-field { display: inline-grid; gap: 8px; margin: 0 16px 12px 0; font-weight: 600; }
 .profile-columns { display: grid; grid-template-columns: 1.4fr 1fr; gap: 24px; align-items: start; }
 .profile-columns h2 { margin-top: 0; }
 .profile-sections { display: grid; gap: 24px; }

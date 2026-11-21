@@ -8,6 +8,7 @@ export default async function Page() {
   const { db, user, host } = await pageContext();
   let events = [],
     error = null;
+  let demographics = [];
   if (host) {
     const result = await db
       .from("events")
@@ -17,6 +18,8 @@ export default async function Page() {
     // Each event gets its saves and RSVP counts (counts only, never who).
     events = await withEngagement(db, result.data || []);
     error = result.error;
+    const breakdown = await db.rpc("host_demographics");
+    demographics = breakdown.data || [];
   }
   // The organizer's own plans as a student (their saves and RSVPs), linking to Your plans.
   let plans = null;
@@ -119,6 +122,15 @@ export default async function Page() {
           </span>
         </Link>
       )}
+      {host && <section className="ga-card" style={{ marginTop: 24 }}>
+        <h2>Attendee demographics</h2>
+        <p className="ga-muted">Based on attending RSVPs and optional profile details. Small groups are hidden to protect privacy.</p>
+        {demographics.length ? ["Academic year", "Major"].map((dimension) => {
+          const rows = demographics.filter((row) => row.dimension === dimension);
+          const total = rows.reduce((sum, row) => sum + Number(row.count), 0);
+          return rows.length ? <div key={dimension}><h3>{dimension}</h3><ul>{rows.map((row) => <li key={row.label}>{row.label}: {Math.round(Number(row.count) / total * 100)}% of shown responses</li>)}</ul></div> : null;
+        }) : <p>No demographic groups are available yet.</p>}
+      </section>}
     </>
   );
 }

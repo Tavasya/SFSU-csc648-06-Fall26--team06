@@ -100,17 +100,18 @@ test("profiles persist only validated fields for the authenticated account", asy
   const db = database();
   const input = {
     display_name: " Alex Rivera ", academic_year: "Junior", major: " Computer Science ", gender: "",
-    notify_cancellations: true, notify_updates: false, notify_reminders: true,
+    notify_cancellations: true, notify_updates: false, notify_reminders: true, avatar_hair_color: "#a3422e",
     user_id: "student-two", email: "other@example.com", role: "admin",
   };
   assert.equal((await profile.PUT(request("PUT", input))).status, 200);
   assert.equal(db.tables.student_profiles[0].user_id, "student-one");
   assert.equal(db.tables.student_profiles[0].display_name, "Alex Rivera");
   assert.equal(db.tables.student_profiles[0].major, "Computer Science");
+  assert.equal(db.tables.student_profiles[0].avatar_hair_color, "#a3422e");
   assert.equal(db.tables.student_profiles[0].email, undefined);
   assert.equal(db.tables.student_profiles[0].role, undefined);
   assert.equal((await (await profile.GET(request())).json()).profile.notify_reminders, true);
-  for (const invalid of [{ display_name: " " }, { major: "x".repeat(121) }, { academic_year: "invalid" }, { gender: "invalid" }, { notify_updates: "false" }]) {
+  for (const invalid of [{ display_name: " " }, { major: "x".repeat(121) }, { academic_year: "invalid" }, { gender: "invalid" }, { notify_updates: "false" }, { avatar_hair_color: "invalid" }, { attendee_visible: "true" }]) {
     assert.equal((await profile.PUT(request("PUT", { ...input, ...invalid }))).status, 422);
   }
   assert.equal(db.tables.student_profiles[0].major, "Computer Science");

@@ -54,7 +54,7 @@ const SECTIONS = [
       ],
       [
         "Who can see my saved events and RSVPs?",
-        "Only you. Organizers see how many people saved or RSVP'd to their events, never who.",
+        "Your saves and RSVPs are private. Organizers see aggregate counts. If you opt in to attendee connections and RSVP attending, other opted-in attendees can see your shared profile and message you for that event.",
       ],
       [
         "How do recommendations work?",

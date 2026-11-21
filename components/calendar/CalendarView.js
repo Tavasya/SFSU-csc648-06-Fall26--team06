@@ -29,6 +29,7 @@ import { useStudentData } from "@/components/student/useStudentData";
 import { scheduleKindLabel } from "@/lib/schedule/kinds";
 import {
   classBlocks,
+  calendarEventVisible,
   eventBlocks,
   formatMinutes,
   layoutDay,
@@ -68,6 +69,7 @@ export default function CalendarView() {
   const [today] = useState(() => toPacific(Date.now()));
   const [start, setStart] = useState(() => weekStart(today.day));
   const [selectedDay, setSelectedDay] = useState(today.day);
+  const [filters, setFilters] = useState({ saved: true, rsvp: true, cancelled: true });
 
   const loading = saved.loading || rsvps.loading;
   const error = saved.error || rsvps.error;
@@ -84,11 +86,13 @@ export default function CalendarView() {
     [loading, error, saved.data, rsvps.data],
   );
 
+  // A saved RSVP belongs to both categories but is rendered only once.
+  const visibleEvents = useMemo(() => allEvents.filter((block) => calendarEventVisible(block, filters)), [allEvents, filters]);
   const days = useMemo(() => weekDays(start), [start]);
   const weekBlocks = useMemo(() => {
-    const inWeek = allEvents.filter((b) => b.day >= start && b.day <= days[6].key);
+    const inWeek = visibleEvents.filter((b) => b.day >= start && b.day <= days[6].key);
     return [...inWeek, ...classBlocks(classes, days)];
-  }, [allEvents, classes, days, start]);
+  }, [visibleEvents, classes, days, start]);
 
   // Open the grid near the current time (this week) or the first block.
   const gridRef = useRef(null);
@@ -99,7 +103,7 @@ export default function CalendarView() {
   }, [openHour, start, loading]);
 
   // The next week with an event, for the "nothing this week" message.
-  const nextEventDay = allEvents
+  const nextEventDay = visibleEvents
     .map((b) => b.day)
     .filter((day) => day > days[6].key)
     .sort()[0];
@@ -154,6 +158,14 @@ export default function CalendarView() {
               <li><span className="ga-calendar-swatch is-rsvp" />RSVP&apos;d / registered</li>
             </ul>
           </div>
+
+          <fieldset className="ga-calendar-filters">
+            <legend>Show on calendar</legend>
+            {[["saved", "Saved events"], ["rsvp", "RSVP’d events"], ["cancelled", "Cancelled events"]].map(([key, label]) => (
+              <label key={key}><input type="checkbox" checked={filters[key]} onChange={(event) => setFilters({ ...filters, [key]: event.target.checked })} /> {label}</label>
+            ))}
+            <button type="button" className="ga-button secondary" onClick={() => setFilters({ saved: true, rsvp: true, cancelled: true })}>Clear filters</button>
+          </fieldset>
 
           {/* Phones show one day at a time. This strip picks the day. */}
           <div className="ga-calendar-daystrip" role="tablist" aria-label="Day">
@@ -230,7 +242,7 @@ export default function CalendarView() {
                   </>
                 ) : (
                   <>
-                    <h2>Nothing this week</h2>
+                    <h2>Nothing matches this week</h2>
                     {nextEventDay && (
                       <button className="ga-button secondary" onClick={() => goToWeek(weekStart(nextEventDay))}>
                         Jump to your next event

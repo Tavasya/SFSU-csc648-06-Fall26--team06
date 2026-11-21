@@ -10,6 +10,7 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    "public/unity/Build/**", // Generated Unity output is not application source.
   ]),
 ]);
 

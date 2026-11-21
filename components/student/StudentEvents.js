@@ -14,7 +14,6 @@ export default function StudentEvents({ saved = false }) {
 
   useEffect(() => {
     if (saved) {
-      setScheduleStatus("unused");
       return;
     }
 
@@ -72,7 +71,7 @@ export default function StudentEvents({ saved = false }) {
           events={[...state.data.events, ...(state.data.own_events ?? [])]}
           categories={state.data.categories}
           schedule={schedule}
-          scheduleStatus={scheduleStatus}
+          scheduleStatus={saved ? "unused" : scheduleStatus}
           signedIn={!saved}
           interestIds={saved ? null : state.data.category_ids}
         />

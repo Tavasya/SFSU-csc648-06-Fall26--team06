@@ -76,7 +76,8 @@ export default function EventSearch({
     (option) =>
       !option.needs ||
       (option.needs === "interests" && interestIds?.length) ||
-      (option.needs === "schedule" && hasSchedule)
+      (option.needs === "schedule" && hasSchedule) ||
+      (option.needs === "popularity" && events.some((event) => event.popularity_score != null))
   );
   const activeSort = sortOptions.some((option) => option.id === sort) ? sort : "soonest";
   const { sortedEvents, note } = useMemo(() => {
@@ -445,7 +446,8 @@ export default function EventSearch({
                 )}
 
                 {event.recommendation_reasons?.length > 0 && (
-                  <p className="ga-muted student-match">
+                  <p className="ga-muted student-match" title={`Based on your selected interests: ${event.recommendation_reasons.join(", ")}`}>
+                    {interestIds?.length > 0 && <strong>{Math.round(event.recommendation_reasons.length / interestIds.length * 100)}% of your interests match · </strong>}
                     Matches your interests: {event.recommendation_reasons.join(", ")}
                   </p>
                 )}
