@@ -101,6 +101,14 @@ export default function EventDetails({
           </div>
           <h1>{event.title}</h1>
           <p className="ga-muted">Hosted by {host}</p>
+          {event.status === "cancelled" && (
+            <div className="ga-detail-cancelled-notice">
+              <span className="ga-badge cancelled">Cancelled</span>
+              {event.cancellation_message && (
+                <p>{event.cancellation_message}</p>
+              )}
+            </div>
+          )}
           <div className="ga-detail-facts">
             {[
               [
@@ -118,17 +126,17 @@ export default function EventDetails({
                   hour: "numeric",
                   minute: "2-digit",
                 }) +
-                  " – " +
-                  fmt(event.end_date_time, {
-                    hour: "numeric",
-                    minute: "2-digit",
-                  }) +
-                  " PT",
+                " – " +
+                fmt(event.end_date_time, {
+                  hour: "numeric",
+                  minute: "2-digit",
+                }) +
+                " PT",
               ],
               [
                 MapPin,
                 (location?.building_name || "Campus location") +
-                  (event.room_number ? ", " + event.room_number : ""),
+                (event.room_number ? ", " + event.room_number : ""),
               ],
               [Users, event.audience],
               [
