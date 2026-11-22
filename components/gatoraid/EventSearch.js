@@ -20,20 +20,12 @@ import {
   orderedCategoryNames,
 } from "@/lib/events/banner";
 import { SORT_OPTIONS, sortEvents, sortNote } from "@/lib/events/sort";
-
-function dateInPacificTime(value) {
-  const parts = new Intl.DateTimeFormat("en-CA", {
-    timeZone: "America/Los_Angeles",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).formatToParts(new Date(value));
-
-  const part = (type) =>
-    parts.find((item) => item.type === type)?.value;
-
-  return `${part("year")}-${part("month")}-${part("day")}`;
-}
+import {
+  availabilityFor,
+  eventLocations,
+  filterEvents,
+  hasActiveFilters,
+} from "@/lib/events/search";
 
 export default function EventSearch({
   events,
@@ -54,92 +46,30 @@ export default function EventSearch({
   const [sort, setSort] = useState(interestIds?.length ? "match" : "soonest");
   const myEventCount = events.filter((event) => event.hosted_by_you).length;
 
-  const locations = useMemo(
+  const locations = useMemo(() => eventLocations(events), [events]);
+
+  const filteredEvents = useMemo(
     () =>
-      [
-        ...new Set(
-          events
-            .map((event) => event.locations?.building_name)
-            .filter(Boolean)
-        ),
-      ].sort((a, b) => a.localeCompare(b)),
-    [events]
+      filterEvents(
+        events,
+        categories,
+        { query, category, date, location, access, scheduleFilter, showMine },
+        { schedule, scheduleStatus }
+      ),
+    [
+      events,
+      categories,
+      query,
+      category,
+      date,
+      location,
+      access,
+      schedule,
+      scheduleStatus,
+      scheduleFilter,
+      showMine,
+    ]
   );
-
-  const filteredEvents = useMemo(() => {
-    const normalizedQuery = query.trim().toLowerCase();
-
-    return events.filter((event) => {
-      if (event.hosted_by_you && !showMine) return false;
-
-      const categoryNames = orderedCategoryNames(
-        event.category_ids,
-        categories
-      );
-
-      const searchableText = [
-        event.title,
-        event.description,
-        event.locations?.building_name,
-        ...categoryNames,
-      ]
-        .filter(Boolean)
-        .join(" ")
-        .toLowerCase();
-
-      const matchesQuery =
-        !normalizedQuery ||
-        searchableText.includes(normalizedQuery);
-
-      const matchesCategory =
-        !category || categoryNames.includes(category);
-
-      const matchesDate =
-        !date ||
-        dateInPacificTime(event.start_date_time) === date;
-
-      const matchesLocation =
-        !location ||
-        event.locations?.building_name === location;
-
-      const matchesAccess =
-        !access ||
-        ((access === "asl" || event.wheelchair_accessible) &&
-          (access === "wheelchair" || event.asl_available));
-
-
-      const availability =
-        scheduleStatus === "ready"
-          ? getScheduleAvailability(event, schedule)
-          : { status: "unknown", conflicts: [] };
-
-      const matchesSchedule =
-        scheduleFilter === "all" ||
-        availability.status === "available";
-
-
-      return (
-        matchesQuery &&
-        matchesCategory &&
-        matchesDate &&
-        matchesLocation &&
-        matchesAccess &&
-        matchesSchedule
-      );
-    });
-  }, [
-    events,
-    categories,
-    query,
-    category,
-    date,
-    location,
-    access,
-    schedule,
-    scheduleStatus,
-    scheduleFilter,
-    showMine,
-  ]);
 
   const hasSchedule = scheduleStatus === "ready" && schedule.length > 0;
   const sortOptions = SORT_OPTIONS.filter(
@@ -171,9 +101,14 @@ export default function EventSearch({
     setScheduleFilter("all");
   }
 
-  const hasFilters = Boolean(
-    query || category || date || location || access || scheduleFilter !== "all"
-  );
+  const hasFilters = hasActiveFilters({
+    query,
+    category,
+    date,
+    location,
+    access,
+    scheduleFilter,
+  });
 
   return (
     <section
@@ -440,10 +375,11 @@ export default function EventSearch({
             );
 
             const banner = bannerFor(categoryNames[0]);
-            const availability =
-              scheduleStatus === "ready"
-                ? getScheduleAvailability(event, schedule)
-                : { status: "unknown", conflicts: [] };
+            const availability = availabilityFor(
+              event,
+              schedule,
+              scheduleStatus
+            );
 
             return (
               <Link
