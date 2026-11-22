@@ -624,6 +624,20 @@
   font-size: 25px;
   line-height: 1.2;
 }
+.ga-detail-cancelled-notice {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: 12px;
+}
+.ga-detail-cancelled-notice p {
+  margin: 0;
+  color: #a33b3b;
+  font-size: 13px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
 .ga-detail-facts {
   display: grid;
   grid-template-columns: 1fr 1fr;
