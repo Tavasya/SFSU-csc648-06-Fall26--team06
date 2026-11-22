@@ -1,0 +1,5 @@
+<ui:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" noNamespaceSchemaLocation="../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <ui:VisualElement name="Panel" style="flex-grow: 1; align-items: center; justify-content: center;">
+        <ui:Image source="project://database/Resources/unity_builtin_extra?fileID=10913&amp;guid=0000000000000000f000000000000000&amp;type=0#Knob" name="Crosshair" style="aspect-ratio: 1; height: 3%;"/>
+    </ui:VisualElement>
+</ui:UXML>

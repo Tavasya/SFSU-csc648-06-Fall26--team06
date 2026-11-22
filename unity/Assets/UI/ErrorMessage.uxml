@@ -1,0 +1,6 @@
+<ui:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" noNamespaceSchemaLocation="../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <ui:VisualElement name="Panel" style="flex-grow: 1; background-color: rgba(0, 0, 0, 0.68); width: 90%; height: 90%; max-height: 90%; max-width: 90%; position: absolute; top: 50%; left: 50%; translate: -50% -50%; border-top-width: 12px; border-right-width: 12px; border-bottom-width: 12px; border-left-width: 12px; border-top-left-radius: 49px; border-top-right-radius: 49px; border-bottom-right-radius: 49px; border-bottom-left-radius: 49px; color: rgb(255, 255, 255); -unity-text-align: middle-center; align-items: stretch; justify-content: center; align-content: auto; font-size: 97%;">
+        <ui:Label text="title" name="Title" style="font-size: 71%; margin-bottom: 2%;"/>
+        <ui:Label text="you should see this on startup" name="Description" style="font-size: 33%;"/>
+    </ui:VisualElement>
+</ui:UXML>
