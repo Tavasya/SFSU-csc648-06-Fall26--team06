@@ -44,11 +44,8 @@ import SiteFooter from "@/components/gatoraid/SiteFooter";
 import HomeMap from "@/components/home/HomeMap";
 import RoomPreview from "@/components/home/RoomPreview";
 import { loadMapEvents } from "@/lib/map/page-data";
-import {
-  bannerFor,
-  bannerStyle,
-  orderedCategoryNames,
-} from "@/lib/events/banner";
+import { QUICK_LINKS, homeEventCard, pickHomeEvents } from "@/lib/home/home";
+import { bannerFor, bannerStyle } from "@/lib/events/banner";
 import "./home.css";
 
 export const metadata = {
@@ -57,8 +54,6 @@ export const metadata = {
     "Find San Francisco State events that fit around your classes and work, see where they are on campus, and ask Allison what's happening.",
 };
 
-const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
-const SHOWN = 6;
 
 const PROBLEMS = [
   {
@@ -151,19 +146,9 @@ const VALUES = [
   },
 ];
 
-const dayFormat = new Intl.DateTimeFormat("en-US", {
-  weekday: "short",
-  month: "short",
-  day: "numeric",
-  timeZone: "America/Los_Angeles",
-});
-const timeFormat = new Intl.DateTimeFormat("en-US", {
-  hour: "numeric",
-  minute: "2-digit",
-  timeZone: "America/Los_Angeles",
-});
 
-// This week's events, or the next ones coming up when this week is empty.
+// This week's events, or the next ones coming up when this week is empty
+// (pickHomeEvents in lib/home/home.js).
 async function loadEvents() {
   try {
     const db = await createClient();
@@ -188,15 +173,7 @@ async function loadEvents() {
       ]);
     if (error) throw error;
 
-    const weekEnd = now.getTime() + WEEK_MS;
-    const thisWeek = events.filter(
-      (event) => new Date(event.start_date_time).getTime() <= weekEnd,
-    );
-    return {
-      events: (thisWeek.length ? thisWeek : events).slice(0, SHOWN),
-      isThisWeek: thisWeek.length > 0,
-      categories: categories ?? [],
-    };
+    return { ...pickHomeEvents(events, now), categories: categories ?? [] };
   } catch (error) {
     console.warn("Homepage events unavailable:", error.message);
     return { events: [], isThisWeek: true, categories: [] };
@@ -250,7 +227,7 @@ export default async function Home() {
                 they are on campus, right down to a 3D view of the room.
               </p>
               <div className="home-ctas">
-                <Link className="home-button" href="/events">
+                <Link className="home-button" href={QUICK_LINKS.explore}>
                   Browse events <ArrowRight size={16} />
                 </Link>
                 <Link className="home-button ghost" href="/host/events/new">
@@ -327,7 +304,7 @@ export default async function Home() {
               label="For you"
               title="Recommendations that match your interests and your schedule"
               text="Pick what you're into, like tech, art, careers or wellness, then add your schedule: scan your classes and add work shifts or anything else you're committed to. GatorAid recommends events that match, tells you why, and marks the ones that fit around your week."
-              href="/events/for-you"
+              href={QUICK_LINKS.forYou}
               cta="See events for you"
               visual={<ScheduleVisual />}
             />
@@ -337,7 +314,7 @@ export default async function Home() {
               label="Campus map"
               title="Know where it is before you go"
               text="See every building with something happening, filter by today or this week, and tap a building to see its events."
-              href="/map"
+              href={QUICK_LINKS.map}
               cta="Open the campus map"
               visual={
                 map ? (
@@ -350,7 +327,7 @@ export default async function Home() {
               label="3D exploration"
               title="Walk through the room before you get there"
               text="Rooms on campus are captured as 3D scans you can explore right in your browser. Drag to look around and use W A S D to walk, so you know the space, the seating and the way in before you arrive."
-              href="/map"
+              href={QUICK_LINKS.map}
               cta="Find a 3D room on the map"
               visual={<RoomPreview />}
             />
@@ -360,7 +337,7 @@ export default async function Home() {
               label="Allison, AI assistant"
               title="Just ask what's happening"
               text="Ask Allison in plain English, like “anything free on Thursday after 3?”, and get real events from GatorAid back, never made-up ones."
-              href="/assistant"
+              href={QUICK_LINKS.assistant}
               cta="Ask Allison"
               visual={<AssistantVisual />}
             />
@@ -391,7 +368,7 @@ export default async function Home() {
                   {isThisWeek ? "Happening this week" : "Next on campus"}
                 </h2>
               </div>
-              <Link className="home-link" href="/events">
+              <Link className="home-link" href={QUICK_LINKS.explore}>
                 See all events <ArrowRight size={15} />
               </Link>
             </div>
@@ -529,27 +506,26 @@ function Feature({ Icon, label, title, text, href, cta, visual, reverse }) {
 }
 
 function EventCard({ event, categories }) {
-  const names = orderedCategoryNames(event.category_ids, categories);
-  const banner = bannerFor(names[0]);
-  const start = new Date(event.start_date_time);
+  const card = homeEventCard(event, categories);
+  const banner = bannerFor(card.category);
   return (
-    <Link className="home-event" href={`/events/${event.id}`}>
+    <Link className="home-event" href={card.href}>
       <div className="home-event-cover" style={bannerStyle(banner)}>
         <banner.Icon size={30} />
       </div>
       <div className="home-event-body">
         <span className="home-event-date">
-          {dayFormat.format(start)} · {timeFormat.format(start)}
+          {card.date} · {card.time}
         </span>
-        <h3>{event.title}</h3>
+        <h3>{card.title}</h3>
         <p>
           <MapPin size={14} />
-          {event.locations?.building_name ?? "Location TBA"}
+          {card.location}
         </p>
         <div className="home-event-tags">
-          {names[0] && <span>{names[0]}</span>}
-          <span className={event.admission_type === "free" ? "free" : ""}>
-            {event.admission_type === "free" ? "Free" : "Paid"}
+          {card.category && <span>{card.category}</span>}
+          <span className={card.admission === "Free" ? "free" : ""}>
+            {card.admission}
           </span>
         </div>
       </div>

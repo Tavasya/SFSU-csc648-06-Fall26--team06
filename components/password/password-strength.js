@@ -5,6 +5,7 @@
 "use client";
 
 import { validatePassword, requirementLabels } from "@/lib/password/password-validation";
+import { passwordStrength } from "@/lib/auth/auth";
 
 /**
  * Render password-strength feedback from the shared validation checks.
@@ -18,17 +19,7 @@ import { validatePassword, requirementLabels } from "@/lib/password/password-val
 export default function PasswordStrength({ password }) {
   const requirements = validatePassword(password);
 
-  const strength = Object.values(requirements).filter(Boolean).length;
-
-  const strengthLabel = !password
-    ? "Not entered"
-    : strength <= 2
-      ? "Weak"
-      : strength === 3
-        ? "Fair"
-        : strength === 4
-          ? "Strong"
-          : "Very strong";
+  const { score: strength, label: strengthLabel } = passwordStrength(password);
 
   const strengthColor =
     strength <= 2

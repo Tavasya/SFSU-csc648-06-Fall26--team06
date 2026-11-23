@@ -35,109 +35,18 @@ import {
     FileImage,
 } from "lucide-react";
 import { SCHEDULE_KINDS, scheduleKind, scheduleKindLabel } from "@/lib/schedule/kinds";
-
-const MAX_SIZE = 5 * 1024 * 1024;
-const ALLOWED_TYPES = ["image/png", "image/jpeg", "image/webp"];
-
-const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-
-function formatClassName(value) {
-    const cleaned = value.trim().replace(/\s+/g, " ");
-
-    // csc648, csc 648, CSC-648 -> CSC 648
-    const match = cleaned.match(/^([a-zA-Z]+)[\s-]*(\d+[a-zA-Z]?)$/);
-
-    if (match) {
-        return `${match[1].toUpperCase()} ${match[2].toUpperCase()}`;
-    }
-
-    // Other course names become uppercase
-    return cleaned.toUpperCase();
-}
-
-// Course codes are formatted (CSC 648); other entries keep the student's wording.
-function formatName(value, kind) {
-    if (scheduleKind(kind) === "class") return formatClassName(value);
-    return value.trim().replace(/\s+/g, " ");
-}
-
-function formatDays(value) {
-    const dayMap = {
-        mon: "Mon",
-        monday: "Mon",
-        tue: "Tue",
-        tues: "Tue",
-        tuesday: "Tue",
-        wed: "Wed",
-        wednesday: "Wed",
-        thu: "Thu",
-        thur: "Thu",
-        thurs: "Thu",
-        thursday: "Thu",
-        fri: "Fri",
-        friday: "Fri",
-        sat: "Sat",
-        saturday: "Sat",
-        sun: "Sun",
-        sunday: "Sun",
-    };
-
-    return [...new Set(
-        value
-            .split(/[,;/]+/)
-            .map((day) => day.trim().toLowerCase())
-            .filter(Boolean)
-            .map((day) => dayMap[day] || day)
-    )].join(", ");
-}
-
-// Week order: entries that start earlier in the week (Monday) come first,
-// then by start time. Entries without a valid day go last.
-function sortByWeek(classes) {
-    const firstDay = (course) => {
-        const indexes = formatDays(course.days || "")
-            .split(",")
-            .map((day) => DAYS.indexOf(day.trim()))
-            .filter((index) => index >= 0);
-        return indexes.length ? Math.min(...indexes) : DAYS.length;
-    };
-
-    return [...classes].sort(
-        (a, b) =>
-            firstDay(a) - firstDay(b) ||
-            (a.startTime || "").localeCompare(b.startTime || "") ||
-            a.name.localeCompare(b.name)
-    );
-}
-
-function formatTime12Hour(value) {
-    if (!value) return "";
-
-    const match = value.match(/^(\d{1,2}):(\d{2})(?::\d{2})?$/);
-    if (!match) return value;
-
-    const hours = Number(match[1]);
-    const minutes = match[2];
-
-    if (hours > 23 || Number(minutes) > 59) return value;
-
-    const period = hours >= 12 ? "PM" : "AM";
-    const displayHour = hours % 12 || 12;
-
-    return `${displayHour}:${minutes} ${period}`;
-}
-
-
-function emptyClass() {
-    return {
-        id: crypto.randomUUID(),
-        name: "",
-        kind: "other",
-        days: "",
-        startTime: "",
-        endTime: "",
-    };
-}
+import {
+    emptyClass,
+    entryError,
+    formatClassName,
+    formatDays,
+    formatName,
+    formatTime12Hour,
+    imageFileError,
+    scheduleError,
+    sortByWeek,
+    tidySchedule,
+} from "@/lib/schedule/entries";
 
 function StepIndicator({ step }) {
     const steps = ["Upload", "Review", "Confirm"];
@@ -323,15 +232,9 @@ export default function ScheduleUploader() {
         cancelScan();
         setError("");
 
-        if (!ALLOWED_TYPES.includes(file.type)) {
-            setError(
-                "Unsupported file. Please upload a PNG, JPG, or WebP image."
-            );
-            return;
-        }
-
-        if (file.size === 0 || file.size > MAX_SIZE) {
-            setError("Please upload an image smaller than 5 MB.");
+        const fileError = imageFileError(file);
+        if (fileError) {
+            setError(fileError);
             return;
         }
 
@@ -533,72 +436,19 @@ export default function ScheduleUploader() {
 
 
     function validSchedule() {
-        if (classes.length === 0) return false;
-
-        return classes.every((course) => {
-            const days = formatDays(course.days)
-                .split(",")
-                .map((day) => day.trim());
-
-            return (
-                formatName(course.name, course.kind).length > 0 &&
-                days.length > 0 &&
-                days.every((day) => DAYS.includes(day)) &&
-                course.startTime &&
-                course.endTime &&
-                course.startTime < course.endTime
-            );
-        });
+        return classes.length > 0 && classes.every((course, index) => !entryError(course, index));
     }
 
 
 
     function proceedToConfirm() {
-        if (classes.length === 0) {
-            setError("Please add at least one class or commitment.");
+        const problem = scheduleError(classes);
+        if (problem) {
+            setError(problem);
             return;
         }
 
-        for (let index = 0; index < classes.length; index++) {
-            const course = classes[index];
-
-            const name = formatName(course.name, course.kind);
-            const days = formatDays(course.days)
-                .split(",")
-                .map((day) => day.trim());
-
-            if (!name) {
-                setError(`Commitment ${index + 1}: Please enter a name.`);
-                return;
-            }
-
-            if (!days.length || !days.every((day) => DAYS.includes(day))) {
-                setError(`Commitment ${index + 1}: Please enter valid days.`);
-                return;
-            }
-
-            if (!course.startTime || !course.endTime) {
-                setError(`Commitment ${index + 1}: Please enter both times.`);
-                return;
-            }
-
-            if (course.startTime >= course.endTime) {
-                setError(
-                    `Commitment ${index + 1} (${name}): End time must be later than start time. Check AM and PM.`
-                );
-                return;
-            }
-        }
-
-        setClasses((previous) =>
-            sortByWeek(
-                previous.map((course) => ({
-                    ...course,
-                    name: formatName(course.name, course.kind),
-                    days: formatDays(course.days),
-                }))
-            )
-        );
+        setClasses((previous) => tidySchedule(previous));
 
         setError("");
         setStep(3);
