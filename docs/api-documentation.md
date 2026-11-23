@@ -25,12 +25,17 @@ JavaScript reference; the JavaScript viewer and model-download boundary are.
 
 ## Requirement coverage
 
-`docs/p1-documentation.json` maps each explicitly Priority-1 requirement in the
-team M4 document's **all features** tab to source files. There are 34 such
-requirements: 31 have source mappings and three authentication requirements are
-explicitly uncounted. That is **31 / 34 = 91.2%**, above the requested 85%.
-R5.3 is marked Priority 1-2 in the team document and is not in this strict-P1
-denominator. Even if counted as P1 but left uncredited, the ratio is 31/35 = 88.6%.
+`docs/p1-documentation.json` uses the team's updated **45-P1 requirement list**
+from the M4 document's **all features** tab, confirmed in the review of PR #49.
+It includes R8.1-R8.5 (Allison), R9.1-R9.5 (AI Schedule Scanner), and R5.3
+(Personalized Recommendations). Of these, 42 have source mappings and three
+authentication requirements remain explicitly uncounted. That is
+**42 / 45 = 93.3%**, above the requested 85%.
+
+The Allison inputs include its API route, question parsing/ranking helpers,
+answer-card grid helper and chat component. The scanner inputs include its scan
+and persistence API routes, upload/review component and Pacific-time schedule
+conflict helper. R5.3 explicitly maps the For You API and student API helpers.
 
 This is **documentation coverage**, not a functional test pass rate or statement
 coverage. A source mapping identifies the implementation area; it does not prove
@@ -73,8 +78,9 @@ export function validateEvent(input) {
   in GatorAid's JavaScript and React source files.
 - **Comment format:** Public functions/classes describe their purpose, parameters
   and return values, including important error and fallback behavior.
-- **Scope:** The requirement-to-source mapping covers 31 of 34 explicitly P1
-  requirements (91.2%). This measures documentation scope, not test results.
+- **Scope:** The requirement-to-source mapping covers 42 of the team's updated
+  45 P1 requirements (93.3%), including R8, R9 and R5.3. This measures
+  documentation scope, not test results.
 - **Generation:** Run `npm run docs:check` and `npm run docs:build`; the entry page
   is `docs/generated/api/index.html`.
 - **Evidence:** Include the source/configuration links, the generated

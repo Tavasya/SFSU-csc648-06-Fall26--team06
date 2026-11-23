@@ -1,11 +1,11 @@
 /**
- * Public interfaces supporting R5.6.
+ * Public interfaces supporting R5.3, R5.6.
  * @module app/api/events/for-you/route
  */
 import { respond } from "@/lib/events/api";
 import { studentContext, recommendations, checked } from "@/lib/student/api";
 /**
- * Return interest-based recommendations and schedule-fit information for the current student.
+ * Return interest-based recommendations and matching self-hosted events for the current student.
  * @function GET
  * @memberof module:app/api/events/for-you/route
  * @static
