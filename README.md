@@ -83,7 +83,7 @@ Next, we're making those spaces social: students who RSVP will appear as customi
 | **M1** | Sep 29, 2026 | [M1 report](milestones/m1/CSC%20648-848%20M1%20Section%206%20Team%206.doc) | Defined GatorAid: executive summary, personas, use cases, functional and non-functional requirements, and the 2D map → 3D room concept. |
 | **M2** | Oct 20, 2026 | [M2 report](milestones/m2/CSC%20648-848%20M2%20Section%206%20Team%206.docx) | Data definitions v2, prioritized requirements, UI mockups and storyboards, high-level architecture and database design, the first end-to-end features (host events, interests, saving, RSVP), 2D interactive map, Explore Events page, For You page, and 3D scans. |
 | **M3** | Nov 4, 2026 | [M3 report](milestones/m3/CSC%20648-848%20M3%20Section%206%20Team%206.docx) | Vertical prototype demo: every feature runs UI → API → Supabase with RLS. Added more 3D rooms, AI Schedule Scanner, Calendar, schedule-aware recommendations, and the Allison chatbot, plus an action plan from instructor feedback. |
-| **M4** | Nov 22, 2026 | [M4 report](milestones/m4/CSC%20648-848%20M4%20Section%206%20Team%206.docx) | Testing & QA: 224 unit tests with CI, integration testing with GitHub Issues, coding style, and generated API documentation. |
+| **M4** | Nov 22, 2026 | [M4 report](milestones/m4/CSC648-848%20Section%206%20Milestone4%20Team%206.pdf) | Testing & QA: 228 unit tests with CI, integration testing with GitHub Issues, coding style, and generated API documentation. |
 | **M5** | — | *Coming soon* | Final product and demo. |
 
 ---
@@ -364,31 +364,64 @@ Never commit `.env.local` or paste keys into issues, PRs or chat.
 | `npm run dev` | Start the dev server |
 | `npm run build` / `npm start` | Production build / serve it |
 | `npm test` | Run all unit tests |
+| `npm run test:coverage` | Unit tests with coverage (same as CI) |
 | `npm run lint` | ESLint |
+| `npm run docs:check` / `npm run docs:build` | Check / generate the HTML API documentation |
 
 ---
 
 ## Testing
 
-`npm test` runs the suites in `tests/` with Node's built-in runner, with no extra dependencies. They cover:
+Testing and code quality for GatorAid were completed in **Milestone 4**. Full details, test tables and results are in the [M4 report](milestones/m4/CSC648-848%20Section%206%20Milestone4%20Team%206.pdf).
 
-- event validation, sorting and engagement counts
-- student APIs, using an in-memory Supabase mock (saves, RSVPs, capacity, self-RSVP guard)
-- calendar and schedule logic
-- map data and room models
-- the assistant's query parsing
-- same-origin checks
+| Area | What we did | Where |
+| --- | --- | --- |
+| **Unit testing** | 228 tests covering all 10 Priority-1 feature groups (45 P1 requirements), plus email notifications | [`tests/`](tests) |
+| **Coverage** | Functions ~97%, statements (lines) ~99%, branches ~91% | `npm run test:coverage` |
+| **Continuous integration** | GitHub Actions runs every test with coverage on each pull request and push to `develop` / `main` | [`.github/workflows/unit-tests.yml`](.github/workflows/unit-tests.yml) |
+| **Integration testing** | End-to-end test cases for the P1 features, run in the browser; failures logged and fixed through GitHub Issues | [M4 report](milestones/m4/CSC648-848%20Section%206%20Milestone4%20Team%206.pdf), [Issues](https://github.com/Tavasya/SFSU-csc648-06-Fall26--team06/issues?q=is%3Aissue) |
+| **Coding style** | Next.js ESLint rules (`eslint-config-next`), enforced with `npm run lint` | [`eslint.config.mjs`](eslint.config.mjs) |
+| **Documentation** | JSDoc comments on public functions and components, generated into an HTML reference | [`docs/api-documentation.md`](docs/api-documentation.md), [M4 HTML docs](milestones/m4/m4-documentation/api/index.html) |
 
-Database rules (RLS, triggers) are checked manually with two test accounts, as described in `docs/student-features.md`.
+### Unit tests
 
----
+Unit tests use **Node's built-in test runner** (`node:test`) with `node:assert`, so there are no extra test dependencies. They test the shared logic in `lib/`, the API route handlers in `app/api/`, and the session proxy (`proxy.js`).
 
-### M4 source-code documentation
+- **Offline by design:** [`tests/helpers/harness.mjs`](tests/helpers/harness.mjs) replaces Supabase, Gemini and Next.js with in-memory fakes, so tests never touch real data or API keys.
+- **What they cover:** home dashboard, event search and filters, event details and status, event management (create, validate, edit, publish, cancel, analytics), saved events, RSVPs and recommendations, the 2D campus map (including pan and zoom), 3D rooms, the AI assistant (Allison), the AI schedule scanner, and authentication.
+- **Coverage gate:** `npm run test:coverage` fails if function coverage drops below 90% or line coverage below 50%. CI uses the same command.
 
-For the documentation-generation deliverable, see the
-[source-code documentation instructions](docs/api-documentation.md).
-Run `npm run docs:check` and `npm run docs:build` to verify coverage and generate
-the HTML reference at `docs/generated/api/index.html`.
+```bash
+npm test                # run all unit tests
+npm run test:coverage   # tests + coverage report (same as CI)
+```
+
+### Continuous integration
+
+Every pull request into `develop` or `main`, and every push to them, runs the **Unit tests** workflow: `npm ci` → `npm run test:coverage`. The result shows as a ✅ / ❌ check on the pull request, and each run's summary page lists the pass/fail counts and the coverage table. See the [Actions tab](https://github.com/Tavasya/SFSU-csc648-06-Fall26--team06/actions).
+
+### Integration testing and bug tracking
+
+QA testers ran integration test cases for the P1 features against the running app. Each case records an ID, description, prerequisites, test data, steps, expected result, date and PASS/FAIL result. Failed cases are logged as **GitHub Issues** with an assignee, then closed with a link to the fixing commit or pull request. For example, [#53](https://github.com/Tavasya/SFSU-csc648-06-Fall26--team06/issues/53) (test case DCV_005, unclickable registration links) was fixed in [`7a9e05d`](https://github.com/Tavasya/SFSU-csc648-06-Fall26--team06/commit/7a9e05d46be857885dfb6975783ad7dd7ef59b9d).
+
+Database rules (RLS, triggers) are also checked manually with two test accounts, as described in [`docs/student-features.md`](docs/student-features.md).
+
+### Coding style
+
+- **Linting:** ESLint 9 with Next.js's recommended rules (`eslint-config-next/core-web-vitals`). Run `npm run lint`.
+- **Conventions:** JavaScript ES modules, 2-space indentation, double quotes and semicolons; `camelCase` for variables and functions, `PascalCase` for React components, `UPPER_SNAKE_CASE` for constants, and kebab-case for `lib/` file names.
+- **Comments:** modules start with a short `PURPOSE:` header, and public functions use JSDoc (`/** ... */`).
+
+### Source-code documentation
+
+Public functions and components for the P1 features are documented with JSDoc and generated into an HTML reference. See the [documentation instructions](docs/api-documentation.md).
+
+```bash
+npm run docs:check   # verify every mapped P1 file is documented
+npm run docs:build   # generate HTML in docs/generated/api/
+```
+
+A copy generated for the M4 submission is in [`milestones/m4/m4-documentation/`](milestones/m4/m4-documentation/).
 
 ## Git Workflow
 
