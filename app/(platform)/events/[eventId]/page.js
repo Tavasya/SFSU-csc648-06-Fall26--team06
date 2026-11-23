@@ -1,3 +1,7 @@
+/**
+ * Public interfaces supporting R3.1.
+ * @module app/platform/events/eventId/page
+ */
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { options } from "@/lib/events/page-data";
@@ -5,6 +9,16 @@ import EventDetails from "@/components/gatoraid/EventDetails";
 import { loadHostNames, loadRoomScans } from "@/lib/map/page-data";
 import { buildLocationLookup, placeForLocation } from "@/lib/map/events";
 import { toCampusPlaces } from "@/lib/map/places";
+/**
+ * Load a published event, map location and scans; render not-found for unavailable events.
+ * @function Page
+ * @memberof module:app/platform/events/eventId/page
+ * @static
+ * @param {Object} props - Component properties.
+ * @param {Promise<Object>} props.params - Promise resolving the dynamic route parameters.
+ * @param {Promise<Object>} props.searchParams - Promise resolving the URL query parameters.
+ * @returns {Promise<React.ReactElement>} Rendered component tree.
+ */
 export default async function Page({ params, searchParams }) {
   // ?from=assistant: opened from Allison's answers, so "Back" returns to the chat
   const from = (await searchParams)?.from === "assistant" ? "assistant" : null;

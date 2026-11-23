@@ -1,9 +1,20 @@
+/**
+ * Public interfaces supporting R4.5.
+ * @module app/platform/host/events/page
+ */
 import Link from "next/link";
 import { Plus, CalendarDays, FileText, Users, Bookmark, ArrowRight, Check, Star } from "lucide-react";
 import { pageContext } from "@/lib/events/page-data";
 import { engagementTotals, withEngagement } from "@/lib/events/engagement";
 import Access from "@/components/gatoraid/Access";
 import EventTable from "@/components/gatoraid/EventTable";
+/**
+ * Load the current organizer's events and engagement summary, or prompt for sign-in.
+ * @function Page
+ * @memberof module:app/platform/host/events/page
+ * @static
+ * @returns {Promise<React.ReactElement>} Rendered component tree.
+ */
 export default async function Page() {
   const { db, user, host } = await pageContext();
   let events = [],

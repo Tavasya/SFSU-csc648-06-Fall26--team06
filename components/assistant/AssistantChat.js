@@ -1,3 +1,7 @@
+/**
+ * Public interfaces supporting R8.1, R8.2, R8.3, R8.4, R8.5.
+ * @module components/assistant/AssistantChat
+ */
 /*
  * components/assistant/AssistantChat.js
  *
@@ -81,6 +85,15 @@ async function loadStatuses() {
 // so the compare prompt always names real events. With them, the summary prompt
 // moves up to the time-of-day slot and the compare prompt takes the last slot.
 // Without them, the time-of-day prompt stays.
+/**
+ * Render Allison text chat, event cards, Save/RSVP actions and 3D previews; retain recent messages locally per user.
+ * @function AssistantChat
+ * @memberof module:components/assistant/AssistantChat
+ * @static
+ * @param {Object} props - Component properties.
+ * @param {?Array<string>} [props.compare] - Optional pair of real event titles for the Compare suggestion.
+ * @returns {React.ReactElement} The interactive assistant chat interface.
+ */
 export default function AssistantChat({ compare = null }) {
   const summary = SUGGESTIONS.find((s) => s.icon === Sparkles);
   const suggestions = compare

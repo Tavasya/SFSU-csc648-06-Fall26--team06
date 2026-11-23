@@ -1,6 +1,19 @@
+/**
+ * Public interfaces supporting R3.4.
+ * @module components/student/useStudentData
+ */
 "use client";
 import { useCallback, useEffect, useState } from "react";
 
+/**
+ * Fetch a student API response as JSON and throw the API error message for unsuccessful responses.
+ * @function studentRequest
+ * @memberof module:components/student/useStudentData
+ * @static
+ * @param {string} url - Student API endpoint URL.
+ * @param {Object} options - Fetch options or function configuration.
+ * @returns {Promise<Object>} The parsed JSON response payload.
+ */
 export async function studentRequest(url, options) {
   const response = await fetch(url, { cache: "no-store", ...options });
   const data = await response.json();
@@ -12,6 +25,14 @@ export async function studentRequest(url, options) {
   return data;
 }
 
+/**
+ * Load student API data in a React hook and expose loading, error and refresh state.
+ * @function useStudentData
+ * @memberof module:components/student/useStudentData
+ * @static
+ * @param {string} url - Student API endpoint URL.
+ * @returns {Object} The { data, error, loading, retry } state and reload callback.
+ */
 export function useStudentData(url) {
   const [state, setState] = useState({ data: null, error: null, loading: true });
   const [version, setVersion] = useState(0);

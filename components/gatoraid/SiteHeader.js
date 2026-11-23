@@ -1,3 +1,7 @@
+/**
+ * Public interfaces supporting R1.1, R12.5, R12.10.
+ * @module components/gatoraid/SiteHeader
+ */
 "use client";
 /*
  * components/gatoraid/SiteHeader.js
@@ -58,6 +62,13 @@ function ThemeToggle() {
   );
 }
 
+/**
+ * Render public navigation and session-aware account actions, including signing out.
+ * @function SiteHeader
+ * @memberof module:components/gatoraid/SiteHeader
+ * @static
+ * @returns {React.ReactElement} Rendered component tree.
+ */
 export default function SiteHeader() {
   const path = usePathname();
   const router = useRouter();

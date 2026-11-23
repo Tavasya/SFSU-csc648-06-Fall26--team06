@@ -1,3 +1,7 @@
+/**
+ * Public interfaces supporting R7.2, R7.4.
+ * @module components/rooms/SplatCanvas
+ */
 /*
  * components/rooms/SplatCanvas.js
  *
@@ -150,6 +154,16 @@ function createWalkControls(camera, canvas) {
   return controls;
 }
 
+/**
+ * Load a Gaussian-splat scan with three.js/Spark and expose camera controls and loading/error states.
+ * @function SplatCanvas
+ * @memberof module:components/rooms/SplatCanvas
+ * @static
+ * @param {Object} props - Component properties.
+ * @param {*} props.url - Public URL of the scan to load.
+ * @param {*} [props.label] - The label setting or callback.
+ * @returns {React.ReactElement} Rendered component tree.
+ */
 export default function SplatCanvas({
   url, // public link to the .spz file (roomModelUrl in lib/rooms/model.js)
   label = "3D room scan",

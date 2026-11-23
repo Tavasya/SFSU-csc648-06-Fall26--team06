@@ -1,3 +1,7 @@
+/**
+ * Public interfaces supporting R6.1, R6.5.
+ * @module components/map/MapSidePanel
+ */
 /*
  * components/map/MapSidePanel.js
  *
@@ -69,6 +73,24 @@ function EventRow({ event, onOpen }) {
   );
 }
 
+/**
+ * Render the map's location picker, filters and selected-location/event information.
+ * @function MapSidePanel
+ * @memberof module:components/map/MapSidePanel
+ * @static
+ * @param {Object} props - Component properties.
+ * @param {*} props.campus - The campus setting or callback.
+ * @param {*} props.selection - The selection setting or callback.
+ * @param {*} props.buildings - Campus building records.
+ * @param {*} props.rangeText - The range text setting or callback.
+ * @param {*} [props.isSample] - The is sample setting or callback.
+ * @param {function} props.onSelect - Callback invoked when a place is selected.
+ * @param {function} props.onBack - The on back setting or callback.
+ * @param {*} [props.openEvent] - The open event setting or callback.
+ * @param {function} props.onOpenEvent - The on open event setting or callback.
+ * @param {function} props.onCloseEvent - The on close event setting or callback.
+ * @returns {React.ReactElement} Rendered component tree.
+ */
 export default function MapSidePanel({
   campus, // from campusFrom() in components/map/Map.js
   selection, // null, or { id, name, venue, parent, events, scannedRooms }
