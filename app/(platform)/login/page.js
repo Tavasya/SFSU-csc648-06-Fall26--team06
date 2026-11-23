@@ -4,6 +4,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { CalendarDays, Eye, EyeOff } from "lucide-react";
 import { validatePassword } from "@/lib/password/password-validation";
+import { CHECK_EMAIL_MESSAGE, PASSWORD_RULES_MESSAGE, safeNextPath } from "@/lib/auth/auth";
 import PasswordStrength from "@/components/password/password-strength";
 import Link from "next/link";
 
@@ -47,9 +48,7 @@ function LoginForm() {
         )
       ) {
         setBusy(false);
-        return setMessage(
-          "Password must be at least 8 characters and contain uppercase, lowercase, number, and special characters."
-        );
+        return setMessage(PASSWORD_RULES_MESSAGE);
       }
     }
 
@@ -62,12 +61,10 @@ function LoginForm() {
       // ?next=/schedule sends students back to the page that asked them to
       // sign in. Only paths on this site are allowed ("/x", not "//other.site").
       const next = new URLSearchParams(window.location.search).get("next");
-      router.push(next?.startsWith("/") && !next.startsWith("//") ? next : "/host/events");
+      router.push(safeNextPath(next));
       router.refresh();
     } else
-      setMessage(
-        "If an account can be created with this email, you'll receive a confirmation email. Please check your inbox.",
-      );
+      setMessage(CHECK_EMAIL_MESSAGE);
   }
   return (
     <div className="ga-auth ga-card">

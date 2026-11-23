@@ -19,6 +19,7 @@ import {
   bannerStyle,
   orderedCategoryNames,
 } from "@/lib/events/banner";
+import { backLink, capacityText, contactHref, hostLabel } from "@/lib/events/details";
 export default function EventDetails({
   event,
   categories,
@@ -40,19 +41,18 @@ export default function EventDetails({
       ...opts,
     }).format(new Date(v));
   // We don't verify SFSU clubs yet, so events show the host's own name.
-  const host = hostName || "GatorAid organizer";
+  const host = hostLabel(hostName);
   // Opens a new email to the host, with the event in the subject.
-  const mailto =
-    event.contact_email &&
-    "mailto:" + event.contact_email + "?subject=" + encodeURIComponent("Question about " + event.title);
+  const mailto = contactHref(event);
+  const back = backLink({ preview, from });
   return (
     <>
       <Link
         className="ga-back"
-        href={preview ? "/host/events" : from === "assistant" ? "/assistant" : "/events"}
+        href={back.href}
       >
         <ArrowLeft size={16} />
-        {preview ? "Back to your events" : from === "assistant" ? "Back to chat with Allison" : "Back to events"}
+        {back.label}
       </Link>
       {/* The host sees their own event as theirs, with links to manage it. */}
       {isHost && !preview && (
@@ -185,9 +185,7 @@ export default function EventDetails({
         <aside className="ga-card ga-registration">
           <h2>{event.admission_type === "free" ? "Free" : "Paid admission"}</h2>
           <p className="ga-muted">
-            {event.capacity
-              ? event.capacity + " attendee capacity"
-              : "Open capacity"}
+            {capacityText(event.capacity)}
           </p>
           <span className="ga-badge">
             {event.rsvp_required ? "RSVP required" : "No RSVP required"}

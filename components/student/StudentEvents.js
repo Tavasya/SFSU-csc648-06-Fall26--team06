@@ -5,6 +5,7 @@ import Link from "next/link";
 import EventSearch from "@/components/gatoraid/EventSearch";
 import DataState from "./DataState";
 import { useStudentData } from "./useStudentData";
+import { studentEmptyState } from "@/lib/student/empty-state";
 
 export default function StudentEvents({ saved = false }) {
   const state = useStudentData(saved ? "/api/users/me/saved-events" : "/api/events/for-you");
@@ -77,13 +78,23 @@ export default function StudentEvents({ saved = false }) {
           interestIds={saved ? null : state.data.category_ids}
         />
         :
-        <section className="ga-card ga-empty">
-          <h2>{saved ? "No saved events yet" : state.data.category_ids.length ? "No matching recommendations yet" : "Start with your interests"}</h2>
-          <p className="ga-muted">{saved ? "Open an event and choose Save event to add it here." : "Choose or update your interests, or explore all campus events while you wait for a match."}</p>
-          <div className="student-actions">
-            {!saved && <Link className="ga-button" href="/interests">Choose interests</Link>}
-            <Link className="ga-button secondary" href="/events">Explore all events</Link>
-          </div>
-        </section>}
+        <EmptyState {...studentEmptyState({ saved, hasInterests: Boolean(state.data.category_ids?.length) })} />}
   </>;
+}
+
+// R5.6: an empty list explains why and links to interests and all events.
+function EmptyState({ title, text, links }) {
+  return (
+    <section className="ga-card ga-empty">
+      <h2>{title}</h2>
+      <p className="ga-muted">{text}</p>
+      <div className="student-actions">
+        {links.map((link, index) => (
+          <Link className={index === 0 && links.length > 1 ? "ga-button" : "ga-button secondary"} href={link.href} key={link.href}>
+            {link.label}
+          </Link>
+        ))}
+      </div>
+    </section>
+  );
 }

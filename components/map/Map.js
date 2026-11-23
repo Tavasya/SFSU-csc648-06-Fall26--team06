@@ -15,10 +15,16 @@ import { useCallback, useEffect, useImperativeHandle, useRef, useState } from "r
 import { Box, MapPin, Maximize2, Minus, Navigation2, Plus } from "lucide-react";
 import geometry from "@/lib/map/geometry";
 import { createCampus, NO_PLACES } from "@/lib/map/places";
+import {
+  MAX_ZOOM,
+  clampView as clampCampusView,
+  fullView as fullCampusView,
+  keyPan,
+  zoomAround,
+} from "@/lib/map/view";
 
 const W = geometry.width;
 const H = geometry.height;
-const MAX_ZOOM = 6;
 const LABEL_ZOOM = 1.8; // plain building names appear from this zoom level
 const PIN_NAME_ZOOM = 1.5; // pins show their names from this zoom level
 
@@ -50,23 +56,9 @@ const SHAPES = new Map(
 export const campusFrom = (places = NO_PLACES) => createCampus(places, SHAPES);
 const EMPTY_CAMPUS = campusFrom();
 
-// Calculates the viewport needed to show the entire campus.
-function fullView(aspect) {
-  const w = Math.max(W, H / aspect);
-  const h = w * aspect;
-  return { x: (W - w) / 2, y: (H - h) / 2, w, h };
-}
-
-// Limits zooming and panning so users cannot zoom beyond the allowed range 
-// or move the campus completely out of view.
-function clampView(v, aspect) {
-  const maxW = fullView(aspect).w;
-  const w = Math.min(maxW, Math.max(W / MAX_ZOOM, v.w));
-  const h = w * aspect;
-  const clampAxis = (pos, size, total) =>
-    size >= total ? (total - size) / 2 : Math.min(total - size, Math.max(0, pos));
-  return { w, h, x: clampAxis(v.x, w, W), y: clampAxis(v.y, h, H) };
-}
+// The whole campus, and the pan/zoom limits (lib/map/view.js).
+const fullView = (aspect) => fullCampusView(aspect, W, H);
+const clampView = (v, aspect) => clampCampusView(v, aspect, W, H, MAX_ZOOM);
 
 export default function MapView({
   ref,
@@ -170,11 +162,7 @@ export default function MapView({
   const zoomAt = useCallback(
     (factor, mx, my) => {
       cancelAnimationFrame(animation.current);
-      setView((v) => {
-        const target = clamp({ ...v, w: v.w * factor });
-        const k = target.w / v.w;
-        return clamp({ w: target.w, x: mx - (mx - v.x) * k, y: my - (my - v.y) * k });
-      });
+      setView((v) => zoomAround(v, factor, mx, my, clamp));
     },
     [clamp],
   );
@@ -296,8 +284,7 @@ export default function MapView({
   // Arrow keys pan, +/- zoom, 0 resets (when the map has keyboard focus).
   const onMapKey = (e) => {
     if (e.target !== e.currentTarget) return;
-    const step = viewRef.current.w * 0.1;
-    const pan = { ArrowLeft: [-step, 0], ArrowRight: [step, 0], ArrowUp: [0, -step], ArrowDown: [0, step] }[e.key];
+    const pan = keyPan(e.key, viewRef.current.w);
     if (pan) {
       e.preventDefault();
       setView((v) => clamp({ ...v, x: v.x + pan[0], y: v.y + pan[1] }));
