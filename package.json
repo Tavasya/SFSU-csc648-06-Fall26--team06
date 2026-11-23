@@ -13,12 +13,16 @@
     "test:coverage": "node --test --experimental-test-coverage --test-coverage-include='lib/**' --test-coverage-include='app/api/**' --test-coverage-functions=90 --test-coverage-lines=50 tests/*.test.mjs"
   },
   "dependencies": {
+    "@emnapi/core": "^1.11.3",
+    "@emnapi/runtime": "^1.11.3",
     "@google/genai": "^2.30.0",
     "@sparkjsdev/spark": "0.1.10",
     "@supabase/ssr": "^0.12.7",
     "@supabase/supabase-js": "^2.117.3",
     "lucide-react": "1.55.0",
     "next": "^16.4.6",
+    "node-cron": "^4.6.0",
+    "nodemailer": "^10.6.1",
     "openai": "^7.39.0",
     "react": "19.3.1",
     "react-dom": "19.3.1",
