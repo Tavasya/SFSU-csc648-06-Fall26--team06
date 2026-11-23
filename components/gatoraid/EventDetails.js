@@ -17,6 +17,7 @@ import {
 import Link from "next/link";
 import EventPlacePreview from "@/components/map/EventPlacePreview";
 import EventActions from "@/components/student/EventActions";
+import DescriptionLinks from "@/components/gatoraid/DescriptionLinks";
 import { accessibilityText } from "@/lib/events/accessibility";
 import {
   bannerFor,
@@ -184,7 +185,7 @@ export default function EventDetails({
           </div>
           <section className="ga-detail-section">
             <h2>About this event</h2>
-            <p>{event.description}</p>
+            <p><DescriptionLinks text={event.description} /></p>
           </section>
           <section className="ga-detail-section">
             <h2>Location</h2>

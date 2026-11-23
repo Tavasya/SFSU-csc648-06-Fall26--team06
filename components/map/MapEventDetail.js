@@ -32,6 +32,7 @@ import {
 } from "lucide-react";
 import { formatLongDate } from "@/lib/map/events";
 import MapEventActions from "@/components/map/MapEventActions";
+import DescriptionLinks from "@/components/gatoraid/DescriptionLinks";
 import { accessibilityText } from "@/lib/events/accessibility";
 import { bannerFor, bannerStyle } from "@/lib/events/banner";
 
@@ -201,7 +202,7 @@ export default function MapEventDetail({
 
       <section className="mt-5">
         <h4 className="text-[14px] font-semibold text-[#262332]">About this event</h4>
-        <p className="mt-1.5 whitespace-pre-line text-[13px] text-[#51475f]">{event.description}</p>
+        <p className="mt-1.5 whitespace-pre-line text-[13px] text-[#51475f]"><DescriptionLinks text={event.description} /></p>
       </section>
 
       {/* Admission, capacity and the Save / Interested / Going buttons */}
