@@ -75,7 +75,7 @@ function ProfileForm({ data }) {
       </fieldset>
       <fieldset disabled={busy} className="ga-card profile-notifications" id="notifications">
         <legend>Notifications</legend>
-        <p className="ga-muted" id="notification-help">Save your email preferences now. Email delivery is a future enhancement.</p>
+        <p className="ga-muted" id="notification-help">Save your email preferences now.</p>
         {[
           ["notify_cancellations", "Event cancellations", "When a saved or RSVP’d event is cancelled."],
           ["notify_updates", "Event updates", "Changes to the time, location, or details of your events."],
