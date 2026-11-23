@@ -1,0 +1,13 @@
+<ui:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" noNamespaceSchemaLocation="../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <Style src="project://database/Assets/loadingbar.uss?fileID=7433441132597879392&amp;guid=4296af61764342a46abd2882d9272e22&amp;type=3#loadingbar"/>
+    <ui:VisualElement name="Panel" style="flex-grow: 1; background-color: rgb(27, 25, 37); align-items: center; justify-content: center; color: rgb(255, 255, 255); -unity-text-align: middle-center;">
+        <ui:VisualElement name="Pad" style="flex-grow: 1; align-items: center; justify-content: center;">
+            <ui:VisualElement name="Logo" style="flex-grow: 1; aspect-ratio: 1; background-color: rgb(94, 64, 160); border-top-left-radius: 370px; border-top-right-radius: 370px; border-bottom-right-radius: 370px; border-bottom-left-radius: 370px; height: 20%; max-height: 12%;"/>
+            <ui:Label text="Loading 3D room..." name="Title" style="-unity-font-style: bold; font-size: 22%;"/>
+            <ui:Label text="Entering from the 2D map. Large scans&#10; may take a few seconds on campus Wi-Fi." name="Explanation" style="font-size: 14%;"/>
+            <ui:VisualElement name="LoadingContainer" style="flex-grow: 0; flex-direction: row; max-width: 100%; width: 100%; max-height: 2%; height: 2%; background-color: rgb(217, 217, 217); border-top-left-radius: 7px; border-top-right-radius: 7px; border-bottom-right-radius: 7px; border-bottom-left-radius: 7px;">
+                <ui:VisualElement name="LoadingBar" style="flex-grow: 0; flex-direction: row; background-color: rgb(247, 193, 46); border-top-left-radius: 7px; border-top-right-radius: 7px; border-bottom-right-radius: 7px; border-bottom-left-radius: 7px; max-width: 100%;"/>
+            </ui:VisualElement>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

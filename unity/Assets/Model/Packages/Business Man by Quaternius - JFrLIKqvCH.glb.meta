@@ -1,0 +1,150 @@
+fileFormatVersion: 2
+guid: 536ba3eb9e4a11743a05d3b95d42f484
+ScriptedImporter:
+  internalIDToNameTable: []
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Skin
+    second: {fileID: 2100000, guid: 85c3d0240fed7844a97328c7eb7700ac, type: 2}
+  serializedVersion: 2
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+  script: {fileID: 11500000, guid: 804e1ce4c496647cfa3f1a1134187c71, type: 3}
+  _removeEmptyRootObjects: 1
+  _scaleFactor: 1
+  _deduplicateResources: 0
+  _deduplicatedStatistics:
+    meshCountBefore: 0
+    meshCountAfter: 0
+    textureCountBefore: 0
+    textureCountAfter: 0
+  _maximumLod: 300
+  _readWriteEnabled: 1
+  _generateColliders: 0
+  _addColliders: 0
+  _swapUvs: 0
+  _generateLightmapUVs: 0
+  _importBlendShapeNames: 1
+  _blendShapeFrameWeight:
+    _option: 0
+    _multiplier: 1
+  _importNormals: 0
+  _importTangents: 0
+  _importCamera: 2
+  _importAnimations: 2
+  _mecanimHumanoidFlip: 0
+  _addAnimatorComponent: 0
+  _animationLoopTime: 1
+  _animationLoopPose: 0
+  _animationLoopSettingsPerClip: 0
+  _importMaterials: 1
+  _enableGpuInstancing: 0
+  _texturesReadWriteEnabled: 1
+  _generateMipMaps: 1
+  _useSceneNameIdentifier: 1
+  _textureCompression: -50
+  _gltfAsset: '<b>Generator: </b>FBX2glTF v0.9.7
+
+    <b>Version: </b>2.0
+
+    
+
+    <b>Extras:
+    </b>
+
+'
+  optimizeGameObjects: 0
+  materials:
+  - {fileID: 2740491068722401411, guid: 536ba3eb9e4a11743a05d3b95d42f484, type: 3}
+  - {fileID: -1580535799172915004, guid: 536ba3eb9e4a11743a05d3b95d42f484, type: 3}
+  - {fileID: -8848810374240701247, guid: 536ba3eb9e4a11743a05d3b95d42f484, type: 3}
+  - {fileID: 8194571427525936509, guid: 536ba3eb9e4a11743a05d3b95d42f484, type: 3}
+  - {fileID: 4835078630258379571, guid: 536ba3eb9e4a11743a05d3b95d42f484, type: 3}
+  - {fileID: -4288583467269203127, guid: 536ba3eb9e4a11743a05d3b95d42f484, type: 3}
+  - {fileID: -5319564673281973831, guid: 536ba3eb9e4a11743a05d3b95d42f484, type: 3}
+  - {fileID: 3511325375820423461, guid: 536ba3eb9e4a11743a05d3b95d42f484, type: 3}
+  textures: []
+  hasSceneData: 1
+  hasAnimationData: 1
+  hasMaterialData: 1
+  hasTextureData: 0
+  animations:
+  - name: CharacterArmature|Death
+    loopTime: 1
+    loopPose: 0
+  - name: CharacterArmature|Gun_Shoot
+    loopTime: 1
+    loopPose: 0
+  - name: CharacterArmature|HitRecieve
+    loopTime: 1
+    loopPose: 0
+  - name: CharacterArmature|HitRecieve_2
+    loopTime: 1
+    loopPose: 0
+  - name: CharacterArmature|Idle
+    loopTime: 1
+    loopPose: 0
+  - name: CharacterArmature|Idle_Gun
+    loopTime: 1
+    loopPose: 0
+  - name: CharacterArmature|Idle_Gun_Pointing
+    loopTime: 1
+    loopPose: 0
+  - name: CharacterArmature|Idle_Gun_Shoot
+    loopTime: 1
+    loopPose: 0
+  - name: CharacterArmature|Idle_Neutral
+    loopTime: 1
+    loopPose: 0
+  - name: CharacterArmature|Idle_Sword
+    loopTime: 1
+    loopPose: 0
+  - name: CharacterArmature|Interact
+    loopTime: 1
+    loopPose: 0
+  - name: CharacterArmature|Kick_Left
+    loopTime: 1
+    loopPose: 0
+  - name: CharacterArmature|Kick_Right
+    loopTime: 1
+    loopPose: 0
+  - name: CharacterArmature|Punch_Left
+    loopTime: 1
+    loopPose: 0
+  - name: CharacterArmature|Punch_Right
+    loopTime: 1
+    loopPose: 0
+  - name: CharacterArmature|Roll
+    loopTime: 1
+    loopPose: 0
+  - name: CharacterArmature|Run
+    loopTime: 1
+    loopPose: 0
+  - name: CharacterArmature|Run_Back
+    loopTime: 1
+    loopPose: 0
+  - name: CharacterArmature|Run_Left
+    loopTime: 1
+    loopPose: 0
+  - name: CharacterArmature|Run_Right
+    loopTime: 1
+    loopPose: 0
+  - name: CharacterArmature|Run_Shoot
+    loopTime: 1
+    loopPose: 0
+  - name: CharacterArmature|Sword_Slash
+    loopTime: 1
+    loopPose: 0
+  - name: CharacterArmature|Walk
+    loopTime: 1
+    loopPose: 0
+  - name: CharacterArmature|Wave
+    loopTime: 1
+    loopPose: 0
+  _extensions: []
+  _textures: []
+  _mainAssetIdentifier: scenes/Root Scene
+  _importPlugins: []

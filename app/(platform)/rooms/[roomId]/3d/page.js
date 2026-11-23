@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useSearchParams } from 'next/navigation';
+
 
 export default function Page() {
 
@@ -10,7 +11,8 @@ export default function Page() {
     const [roomInfo, setRoomInfo] = useState(null);
 
     const params = useParams();
-    console.log("params are ", params);
+    const searchParams = useSearchParams();
+    const eventId = searchParams.get('eventId');
 
     // Load Room Info
     useEffect(() => {
@@ -30,7 +32,6 @@ export default function Page() {
 
         fetchRoomInfo();
     }, [params.roomId]);
-    console.log("roomInfo is ", roomInfo);
 
     // Load Unity WebGL build
     useEffect(() => {
@@ -86,6 +87,7 @@ export default function Page() {
         }
     }, [params.roomId])
 
+
     // UnityPlayer component
     const UnityPlayer = () => (
         <canvas
@@ -95,12 +97,56 @@ export default function Page() {
         />
     );
 
+    
+    // expose global functions to be called by Unity
+    useEffect(() => {
+
+        // called when user clicks on avatar
+        window.openUserProfile = function(userId) {
+            console.log("Browser received id: ", userId);
+            // TODO: Implement navigation to the user's profile page
+        }
+
+        // called when unity finishes rendering 3d room scan
+        window.onRSVPReady = function() {
+            console.log("ready to send rsvp data")
+            SendRSVPToUnity()
+        }
+
+        return () => {
+            // clean up the global function when the component unmounts
+            delete window.openUserProfile;
+            delete window.onRSVPReady;
+        }
+    }, []);
+
+
+    // Sends RSVP data to Unity
+    async function SendRSVPToUnity() {
+        if (!unityInstanceRef.current) {
+            console.error('Unity instance is not ready yet')
+            return;
+        }
+
+        // Get RSVP data from the API
+        const response = await fetch(`/api/rooms/${params.roomId}/${eventId}`);
+        if (!response.ok) {
+            console.error('Failed to fetch RSVP data:', response.statusText);
+            return;
+        }
+        
+        // Send RSVP data to Unity
+        const data = await response.json();
+        unityInstanceRef.current.SendMessage("RSVP Spawner", "SpawnRSVPs", JSON.stringify(data.body));
+    }
+
+
     return (
         <main style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center'}}>
             <h1>{roomInfo?.room_name || "Room"}</h1>
             <p>3D scan · One featured room per building · Scanned {roomInfo?.scan_date || "N/A"}</p>
             <p>Use the W, A, S, and D keys to navigate the room</p>
-            <div style={{ width: '80%', height: '60%', backgroundColor: 'black', aspectRatio: '3/2', borderRadius: '20px' }}>
+            <div style={{ width: '100%', height: '60%', backgroundColor: 'black', aspectRatio: '3/2', borderRadius: '20px' }}>
                 {UnityPlayer()}
             </div>
         </main>

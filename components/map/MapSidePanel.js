@@ -80,6 +80,7 @@ export default function MapSidePanel({
   openEvent = null, // the event shown in the detail view, or null for the list
   onOpenEvent,
   onCloseEvent,
+  eventId, // optional, for the RoomScansCard to pass to the 3D viewer
 }) {
   const { getCampusFeature, venueMap } = campus;
   // Where the open event is: its Supabase location name, or the room / building on the map.

@@ -126,6 +126,7 @@ export default function RoomViewer3D({
   className = "h-48",
   autoStart = false, // skip the "Load 3D preview" button (the AI Assistant's previews)
   fullViewTarget, // "_top" inside the embed page, so "Full 3D view" opens in the whole tab
+  eventId, // optional, for Unity to fetch RSVPs for the event
 }) {
   const [started, setStarted] = useState(autoStart);
   const splat = isSplatModel(room.modelPath);
@@ -174,7 +175,7 @@ export default function RoomViewer3D({
         </span>
         {room.id != null && (
           <Link
-            href={roomViewHref(room)}
+            href={roomViewHref(room, eventId)}
             target={fullViewTarget}
             className="inline-flex items-center gap-1 font-medium text-[#604398] hover:text-[#503581] hover:underline"
           >

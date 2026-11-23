@@ -272,6 +272,7 @@ export default function MapExplorer({
           openEvent={openEvent}
           onOpenEvent={setOpenEventId}
           onCloseEvent={() => setOpenEventId(null)}
+          eventId={openEventId}
         />
       </div>
 

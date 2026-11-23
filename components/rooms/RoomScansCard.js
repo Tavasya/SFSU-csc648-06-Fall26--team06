@@ -17,7 +17,7 @@ import { useState } from "react";
 import { Box } from "lucide-react";
 import RoomViewer3D from "@/components/rooms/RoomViewer3D";
 
-export default function RoomScansCard({ rooms, viewerClassName }) {
+export default function RoomScansCard({ rooms, viewerClassName, eventId }) {
   const [index, setIndex] = useState(0);
   if (!rooms?.length) return null;
   const room = rooms[Math.min(index, rooms.length - 1)];
@@ -52,7 +52,7 @@ export default function RoomScansCard({ rooms, viewerClassName }) {
 
       <div className="mt-3">
         {/* key: switching rooms closes the previous viewer before opening the next */}
-        <RoomViewer3D key={room.id ?? room.name} room={room} className={viewerClassName} />
+        <RoomViewer3D key={room.id ?? room.name} room={room} className={viewerClassName} eventId={eventId} />
       </div>
     </div>
   );
