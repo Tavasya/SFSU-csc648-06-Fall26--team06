@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: components/gatoraid/EventForm.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: components/gatoraid/EventForm.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/**
+ * Public interfaces supporting R4.1, R4.2.
+ * @module components/gatoraid/EventForm
+ */
+"use client";
+import Image from "next/image";
+import { useState, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import {
+  CalendarDays,
+  MapPin,
+  Users,
+  ImagePlus,
+  CheckCircle2,
+  ArrowLeft,
+  Eye,
+  Save,
+} from "lucide-react";
+import { createClient } from "@/lib/supabase/client";
+import { validateEvent } from "@/lib/events/validation";
+import { localTime, pacificISO } from "@/lib/events/time";
+import {
+  bannerFor,
+  bannerStyle,
+  orderedCategoryNames,
+} from "@/lib/events/banner";
+/**
+ * Render the organizer create/edit form, validate inputs and submit event data with an optional cover upload.
+ * @function EventForm
+ * @memberof module:components/gatoraid/EventForm
+ * @static
+ * @param {Object} props - Component properties.
+ * @param {*} props.event - Event record to display.
+ * @param {*} props.categories - Available event categories.
+ * @param {*} props.locations - The locations setting or callback.
+ * @param {*} props.userId - Current viewer ID for identifying self-hosted events.
+ * @param {*} props.hostName - The host name setting or callback.
+ * @param {*} props.email - The email setting or callback.
+ * @returns {React.ReactElement} Rendered component tree.
+ */
+export default function EventForm({
+  event,
+  categories,
+  locations,
+  userId,
+  hostName,
+  email,
+}) {
+  const router = useRouter();
+  const [locationSearch, setLocationSearch] = useState("");
+  const [savedId, setSavedId] = useState(event?.id || null);
+  const [values, setValues] = useState(() => ({
+    ...{
+      title: "",
+      description: "",
+      start_date_time: "",
+      end_date_time: "",
+      location_id: "",
+      room_number: "",
+      category_ids: [],
+      contact_email: email,
+      capacity: "",
+      audience: "All students",
+      admission_type: "free",
+      rsvp_required: true,
+      wheelchair_accessible: false,
+      asl_available: false,
+      cover_path: null,
+    },
+    ...event,
+    start_date_time: localTime(event?.start_date_time),
+    end_date_time: localTime(event?.end_date_time),
+    capacity: event?.capacity ?? "",
+  }));
+  const [errors, setErrors] = useState({}),
+    [notice, setNotice] = useState(""),
+    [busy, setBusy] = useState(false),
+    [image, setImage] = useState(null),
+    [uploading, setUploading] = useState(false),
+    [dirty, setDirty] = useState(false);
+  const file = useRef(null),
+    form = useRef(null);
+  useEffect(() => {
+    if (values.cover_path)
+      createClient()
+        .storage.from("event-covers")
+        .createSignedUrl(values.cover_path, 3600)
+        .then(({ data }) => setImage(data?.signedUrl || null));
+  }, [values.cover_path]);
+  useEffect(() => {
+    const warn = (e) => {
+      if (dirty) {
+        e.preventDefault();
+        e.returnValue = "";
+      }
+    };
+    window.addEventListener("beforeunload", warn);
+    return () => window.removeEventListener("beforeunload", warn);
+  }, [dirty]);
+  const set = (key, value) => {
+    setValues((v) => ({ ...v, [key]: value }));
+    if (key === "cover_path" &amp;&amp; !value) setImage(null);
+    setDirty(true);
+    setErrors((e) => ({ ...e, [key]: null }));
+  };
+  const toggle = (id) =>
+    set(
+      "category_ids",
+      values.category_ids.includes(id)
+        ? values.category_ids.filter((x) => x !== id)
+        : [...values.category_ids, id],
+    );
+  async function upload(e) {
+    const selected = e.target.files?.[0];
+    if (!selected) return;
+    if (
+      !["image/jpeg", "image/png"].includes(selected.type) ||
+      selected.size > 5 * 1024 * 1024
+    ) {
+      setNotice("Choose a JPG or PNG image smaller than 5 MB.");
+      return;
+    }
+    setUploading(true);
+    setNotice("");
+    const path =
+      userId +
+      "/" +
+      crypto.randomUUID() +
+      "." +
+      (selected.type === "image/png" ? "png" : "jpg");
+    const { error } = await createClient()
+      .storage.from("event-covers")
+      .upload(path, selected, { contentType: selected.type, upsert: false });
+    setUploading(false);
+    if (error) setNotice(error.message);
+    else set("cover_path", path);
+  }
+  async function save(action) {
+    setNotice("");
+    const body = {
+      ...values,
+      start_date_time: pacificISO(values.start_date_time),
+      end_date_time: pacificISO(values.end_date_time),
+    };
+    const validation = validateEvent(body);
+    if (Object.keys(validation.errors).length) {
+      setErrors(validation.errors);
+      setNotice("Please check the highlighted fields.");
+      return;
+    }
+    setBusy(true);
+    try {
+      const r = await fetch(
+          savedId ? "/api/host/events/" + savedId : "/api/host/events",
+          {
+            method: savedId ? "PATCH" : "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(body),
+          },
+        ),
+        data = await r.json();
+      if (!r.ok) {
+        setErrors(data.fields || {});
+        throw new Error(data.error);
+      }
+      setSavedId(data.event.id);
+      setDirty(false);
+      if (action === "publish") {
+        const published = await fetch(
+          "/api/host/events/" + data.event.id + "/publish",
+          { method: "POST" },
+        );
+        const result = await published.json();
+        if (!published.ok)
+          throw new Error(
+            result.error ||
+              "Could not publish. Your draft has been saved; try again.",
+          );
+      }
+      router.push(
+        action === "draft"
+          ? "/host/events"
+          : "/host/events/" + data.event.id + "/preview",
+      );
+      router.refresh();
+    } catch (e) {
+      setNotice(e.message);
+    } finally {
+      setBusy(false);
+    }
+  }
+  const field = (name, label, type = "text", extra = {}) => (
+    &lt;label>
+      {label}
+      &lt;input
+        name={name}
+        type={type}
+        value={values[name]}
+        onChange={(e) => set(name, e.target.value)}
+        aria-invalid={!!errors[name]}
+        {...extra}
+      />
+      {errors[name] &amp;&amp; &lt;small className="ga-field-error">{errors[name]}&lt;/small>}
+    &lt;/label>
+  );
+  const location = locations.find((l) => l.id === values.location_id);
+  // Categories in the order the host picked them; the first one picks the banner.
+  const categoryNames = orderedCategoryNames(values.category_ids, categories);
+  const banner = bannerFor(categoryNames[0]);
+  const checks = [
+    [
+      "Title &amp; description",
+      values.title.length >= 3 &amp;&amp; values.description.length >= 10,
+    ],
+    ["Date &amp; time", !!values.start_date_time &amp;&amp; !!values.end_date_time],
+    ["Campus location", !!values.location_id],
+    ["Categories", values.category_ids.length > 0],
+  ];
+  return (
+    &lt;>
+      &lt;Link
+        className="ga-back"
+        href="/host/events"
+        onClick={(e) => {
+          if (
+            dirty &amp;&amp;
+            !window.confirm("Leave this page without saving your changes?")
+          )
+            e.preventDefault();
+        }}
+      >
+        &lt;ArrowLeft size={16} />
+        Back to your events
+      &lt;/Link>
+      &lt;div className="ga-heading">
+        &lt;div>
+          &lt;h1>{event ? "Edit event" : "Create event"}&lt;/h1>
+          &lt;p className="ga-muted">
+            {event
+              ? "Keep your community in the loop."
+              : "Start something worth showing up for."}
+          &lt;/p>
+        &lt;/div>
+        &lt;div className="ga-actions">
+          &lt;button
+            disabled={busy || uploading}
+            className="ga-button secondary"
+            onClick={() => save("draft")}
+          >
+            &lt;Save size={15} />
+            {event ? "Save changes" : "Save draft"}
+          &lt;/button>
+          &lt;button
+            disabled={busy || uploading}
+            className="ga-button"
+            onClick={() => save("preview")}
+          >
+            &lt;Eye size={15} />
+            Preview
+          &lt;/button>
+          &lt;button
+            type="button"
+            className="ga-button"
+            disabled={busy || uploading}
+            onClick={() => save("publish")}
+          >
+            &lt;CheckCircle2 size={16} />
+            {busy
+              ? "Saving…"
+              : event?.publication_status === "published"
+                ? "Update live event"
+                : "Publish event"}
+          &lt;/button>
+        &lt;/div>
+      &lt;/div>
+      {notice &amp;&amp; (
+        &lt;div role="alert" className="ga-notice">
+          {notice}
+        &lt;/div>
+      )}
+      &lt;div className="ga-form-grid">
+        &lt;form
+          ref={form}
+          onSubmit={(e) => {
+            e.preventDefault();
+            save("preview");
+          }}
+          className="ga-form"
+        >
+          &lt;section className="ga-card">
+            &lt;h2>
+              &lt;CalendarDays size={18} />
+              Basic
+            &lt;/h2>
+            {field("title", "Event title", "text", {
+              maxLength: 120,
+              placeholder: "e.g. Hack Night: Build with AI",
+            })}
+            &lt;div className="ga-field-row">
+              &lt;label>
+                Hosted by
+                &lt;input value={hostName} disabled />
+              &lt;/label>
+              {field("contact_email", "Contact email", "email")}
+            &lt;/div>
+            &lt;label>
+              Description
+              &lt;textarea
+                rows={5}
+                maxLength={5000}
+                value={values.description}
+                onChange={(e) => set("description", e.target.value)}
+                placeholder="What’s happening, who should come, and what makes it special?"
+                aria-invalid={!!errors.description}
+              />
+              {errors.description &amp;&amp; (
+                &lt;small className="ga-field-error">{errors.description}&lt;/small>
+              )}
+            &lt;/label>
+            &lt;label>
+              Categories
+              &lt;span className="ga-muted ga-small">
+                Choose the interests your event connects with.
+              &lt;/span>
+            &lt;/label>
+            &lt;div className="ga-chip-group">
+              {categories.map((c) => (
+                &lt;button
+                  type="button"
+                  key={c.id}
+                  className={
+                    "ga-chip " +
+                    (values.category_ids.includes(c.id) ? "selected" : "")
+                  }
+                  aria-pressed={values.category_ids.includes(c.id)}
+                  onClick={() => toggle(c.id)}
+                >
+                  {c.name}
+                &lt;/button>
+              ))}
+            &lt;/div>
+            {errors.category_ids &amp;&amp; (
+              &lt;small className="ga-field-error">{errors.category_ids}&lt;/small>
+            )}
+          &lt;/section>
+          &lt;section className="ga-card">
+            &lt;h2>
+              &lt;CalendarDays size={18} />
+              Date &amp; time
+            &lt;/h2>
+            &lt;p className="ga-muted ga-small">
+              All event times use Pacific Time (SFSU).
+            &lt;/p>
+            &lt;div className="ga-field-row">
+              {field("start_date_time", "Starts", "datetime-local")}
+              {field("end_date_time", "Ends", "datetime-local")}
+            &lt;/div>
+          &lt;/section>
+          &lt;section className="ga-card">
+            &lt;h2>
+              &lt;MapPin size={18} />
+              Location
+            &lt;/h2>
+            &lt;label>
+              Search campus locations
+              &lt;input
+                type="search"
+                value={locationSearch}
+                onChange={(e) => setLocationSearch(e.target.value)}
+                placeholder="Search by name or building code, e.g. TH or Quad"
+              />
+            &lt;/label>
+            &lt;div className="ga-field-row">
+              &lt;label>
+                Campus location
+                &lt;select
+                  value={values.location_id}
+                  onChange={(e) => {
+                    setValues((current) => ({
+                      ...current,
+                      location_id: e.target.value,
+                      room_number: "",
+                    }));
+                    setDirty(true);
+                    setErrors((current) => ({
+                      ...current,
+                      location_id: undefined,
+                    }));
+                  }}
+                  aria-invalid={!!errors.location_id}
+                >
+                  &lt;option value="">Choose a building or outdoor space&lt;/option>
+                  {locations
+                    .filter(
+                      (l) =>
+                        l.id === values.location_id ||
+                        `${l.building_name} ${l.building_code || ""}`
+                          .toLowerCase()
+                          .includes(locationSearch.trim().toLowerCase()),
+                    )
+                    .map((l) => (
+                      &lt;option key={l.id} value={l.id}>
+                        {l.building_name}
+                        {l.building_code ? ` (${l.building_code})` : ""}
+                        {l.location_kind === "outdoor" ? " · Outdoor" : ""}
+                      &lt;/option>
+                    ))}
+                &lt;/select>
+                {errors.location_id &amp;&amp; (
+                  &lt;small className="ga-field-error">{errors.location_id}&lt;/small>
+                )}
+              &lt;/label>
+              {field("room_number", "Room / meeting point", "text", {
+                placeholder:
+                  location?.location_kind === "outdoor"
+                    ? "e.g. Meet by the main entrance"
+                    : "Choose a suggestion or type a room",
+                list: "campus-room-suggestions",
+              })}
+            &lt;/div>
+            &lt;datalist id="campus-room-suggestions">
+              {(location?.room_suggestions || []).map((room) => (
+                &lt;option key={room} value={room} />
+              ))}
+            &lt;/datalist>
+            &lt;p className="ga-muted">
+              Room suggestions come from SFSU directories. You can also enter a
+              room or meeting detail. Selecting a location does not reserve the
+              space.
+            &lt;/p>
+            {location &amp;&amp; (
+              &lt;div className="ga-location-info">
+                &lt;MapPin size={22} />
+                &lt;div>
+                  &lt;strong>{location.building_name}&lt;/strong>
+                  &lt;p>{location.description}&lt;/p>
+                  {location.source_url &amp;&amp; (
+                    &lt;a
+                      href={location.source_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      Official location directory
+                    &lt;/a>
+                  )}
+                  {location.room_source_url &amp;&amp; (
+                    &lt;span>
+                      {" "}
+                      ·{" "}
+                      &lt;a
+                        href={location.room_source_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        Room information
+                      &lt;/a>
+                    &lt;/span>
+                  )}
+                &lt;/div>
+              &lt;/div>
+            )}
+          &lt;/section>
+          &lt;section className="ga-card">
+            &lt;h2>
+              &lt;Users size={18} />
+              Audience &amp; admission
+            &lt;/h2>
+            &lt;label>
+              Who’s it for?
+              &lt;select
+                value={values.audience}
+                onChange={(e) => set("audience", e.target.value)}
+              >
+                {[
+                  "All students",
+                  "Undergraduate",
+                  "Graduate",
+                  "First year",
+                  "Transfer",
+                ].map((x) => (
+                  &lt;option key={x}>{x}&lt;/option>
+                ))}
+              &lt;/select>
+            &lt;/label>
+            &lt;div className="ga-field-row">
+              &lt;label>
+                Admission
+                &lt;select
+                  value={values.admission_type}
+                  onChange={(e) => set("admission_type", e.target.value)}
+                >
+                  &lt;option value="free">Free&lt;/option>
+                  &lt;option value="paid">Paid&lt;/option>
+                &lt;/select>
+              &lt;/label>
+              {field("capacity", "Capacity (optional)", "number", {
+                min: 1,
+                max: 100000,
+                placeholder: "No limit",
+              })}
+            &lt;/div>
+            &lt;label className="ga-check">
+              &lt;input
+                type="checkbox"
+                checked={values.rsvp_required}
+                onChange={(e) => set("rsvp_required", e.target.checked)}
+              />
+              RSVP required
+            &lt;/label>
+            &lt;div className="ga-field-row">
+              &lt;label className="ga-check">
+                &lt;input
+                  type="checkbox"
+                  checked={values.wheelchair_accessible}
+                  onChange={(e) =>
+                    set("wheelchair_accessible", e.target.checked)
+                  }
+                />
+                Wheelchair accessible
+              &lt;/label>
+              &lt;label className="ga-check">
+                &lt;input
+                  type="checkbox"
+                  checked={values.asl_available}
+                  onChange={(e) => set("asl_available", e.target.checked)}
+                />
+                ASL interpretation available
+              &lt;/label>
+            &lt;/div>
+          &lt;/section>
+          &lt;section className="ga-card">
+            &lt;h2>
+              &lt;ImagePlus size={18} />
+              Cover image
+            &lt;/h2>
+            &lt;p className="ga-muted ga-small">
+              JPG or PNG, up to 5 MB. Optional.
+            &lt;/p>
+            &lt;input
+              ref={file}
+              type="file"
+              accept="image/jpeg,image/png"
+              onChange={upload}
+              hidden
+            />
+            &lt;div className="ga-upload">
+              {image ? (
+                &lt;Image
+                  unoptimized
+                  width={1440}
+                  height={800}
+                  src={image}
+                  alt="Event cover preview"
+                />
+              ) : (
+                &lt;ImagePlus size={32} />
+              )}
+              &lt;div>
+                &lt;button
+                  type="button"
+                  disabled={uploading}
+                  className="ga-button secondary"
+                  onClick={() => file.current.click()}
+                >
+                  {uploading
+                    ? "Uploading…"
+                    : image
+                      ? "Replace image"
+                      : "Choose image"}
+                &lt;/button>
+                {image &amp;&amp; (
+                  &lt;button
+                    type="button"
+                    className="ga-text-button"
+                    onClick={() => set("cover_path", null)}
+                  >
+                    Remove
+                  &lt;/button>
+                )}
+              &lt;/div>
+            &lt;/div>
+          &lt;/section>
+        &lt;/form>
+        &lt;aside className="ga-form-aside">
+          &lt;p className="ga-muted ga-small">Live preview&lt;/p>
+          &lt;div className="ga-mini-event ga-card">
+            &lt;div
+              className="ga-cover"
+              style={image ? undefined : bannerStyle(banner)}
+            >
+              {image ? (
+                &lt;Image
+                  unoptimized
+                  width={1440}
+                  height={800}
+                  src={image}
+                  alt=""
+                />
+              ) : (
+                &lt;banner.Icon size={48} />
+              )}
+            &lt;/div>
+            &lt;div className="ga-mini-body">
+              &lt;div className="ga-chip-group">
+                {categoryNames.map((name) => (
+                  &lt;span className="ga-badge" key={name}>
+                    {name}
+                  &lt;/span>
+                ))}
+              &lt;/div>
+              &lt;h2>{values.title || "Your next great event"}&lt;/h2>
+              &lt;p className="ga-muted">
+                {values.start_date_time
+                  ? new Date(values.start_date_time).toLocaleDateString(
+                      "en-US",
+                      { month: "short", day: "numeric" },
+                    )
+                  : "Choose a date"}{" "}
+                · {location?.building_name || "Choose a location"}
+              &lt;/p>
+              &lt;span className="ga-badge">
+                {values.admission_type === "free" ? "Free" : "Paid admission"}
+              &lt;/span>
+            &lt;/div>
+          &lt;/div>
+          &lt;div className="ga-card ga-checklist">
+            &lt;h3>Ready to {event ? "save" : "publish"}?&lt;/h3>
+            {checks.map(([label, done]) => (
+              &lt;div key={label} className={done ? "done" : ""}>
+                &lt;CheckCircle2 size={16} />
+                {label}
+              &lt;/div>
+            ))}
+            &lt;p className="ga-muted ga-small">
+              Save a private draft, preview it, or publish it for students to
+              discover.
+            &lt;/p>
+          &lt;/div>
+        &lt;/aside>
+      &lt;/div>
+    &lt;/>
+  );
+}
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-app_api_assistant_route.html">app/api/assistant/route</a></li><li><a href="module-app_api_events_eventId_route.html">app/api/events/eventId/route</a></li><li><a href="module-app_api_events_eventId_rsvps_me_route.html">app/api/events/eventId/rsvps/me/route</a></li><li><a href="module-app_api_events_eventId_saved_route.html">app/api/events/eventId/saved/route</a></li><li><a href="module-app_api_events_for-you_route.html">app/api/events/for-you/route</a></li><li><a href="module-app_api_events_route.html">app/api/events/route</a></li><li><a href="module-app_api_host_events_eventId_publish_route.html">app/api/host/events/eventId/publish/route</a></li><li><a href="module-app_api_host_events_eventId_route.html">app/api/host/events/eventId/route</a></li><li><a href="module-app_api_host_events_route.html">app/api/host/events/route</a></li><li><a href="module-app_api_locations_locationId_events_route.html">app/api/locations/locationId/events/route</a></li><li><a href="module-app_api_locations_locationId_route.html">app/api/locations/locationId/route</a></li><li><a href="module-app_api_locations_route.html">app/api/locations/route</a></li><li><a href="module-app_api_rooms_roomId_3d-model_route.html">app/api/rooms/roomId/3d-model/route</a></li><li><a href="module-app_api_rooms_roomId_info_route.html">app/api/rooms/roomId/info/route</a></li><li><a href="module-app_api_users_me_interests_route.html">app/api/users/me/interests/route</a></li><li><a href="module-app_api_users_me_schedule_route.html">app/api/users/me/schedule/route</a></li><li><a href="module-app_api_users_me_schedule_scan_route.html">app/api/users/me/schedule/scan/route</a></li><li><a href="module-app_page.html">app/page</a></li><li><a href="module-app_platform_error.html">app/platform/error</a></li><li><a href="module-app_platform_events_eventId_page.html">app/platform/events/eventId/page</a></li><li><a href="module-app_platform_events_for-you_page.html">app/platform/events/for-you/page</a></li><li><a href="module-app_platform_events_page.html">app/platform/events/page</a></li><li><a href="module-app_platform_host_events_eventId_edit_page.html">app/platform/host/events/eventId/edit/page</a></li><li><a href="module-app_platform_host_events_eventId_preview_page.html">app/platform/host/events/eventId/preview/page</a></li><li><a href="module-app_platform_host_events_new_page.html">app/platform/host/events/new/page</a></li><li><a href="module-app_platform_host_events_page.html">app/platform/host/events/page</a></li><li><a href="module-app_platform_interests_page.html">app/platform/interests/page</a></li><li><a href="module-app_platform_layout.html">app/platform/layout</a></li><li><a href="module-app_platform_loading.html">app/platform/loading</a></li><li><a href="module-app_platform_login_page.html">app/platform/login/page</a></li><li><a href="module-app_platform_map_page.html">app/platform/map/page</a></li><li><a href="module-app_platform_rooms_roomId_3d_page.html">app/platform/rooms/roomId/3d/page</a></li><li><a href="module-app_platform_rooms_roomId_splat_page.html">app/platform/rooms/roomId/splat/page</a></li><li><a href="module-app_rooms_roomId_embed_page.html">app/rooms/roomId/embed/page</a></li><li><a href="module-components_assistant_AssistantChat.html">components/assistant/AssistantChat</a></li><li><a href="module-components_gatoraid_EventDetails.html">components/gatoraid/EventDetails</a></li><li><a href="module-components_gatoraid_EventForm.html">components/gatoraid/EventForm</a></li><li><a href="module-components_gatoraid_EventSearch.html">components/gatoraid/EventSearch</a></li><li><a href="module-components_gatoraid_EventTable.html">components/gatoraid/EventTable</a></li><li><a href="module-components_gatoraid_PublishBar.html">components/gatoraid/PublishBar</a></li><li><a href="module-components_gatoraid_Shell.html">components/gatoraid/Shell</a></li><li><a href="module-components_gatoraid_SiteHeader.html">components/gatoraid/SiteHeader</a></li><li><a href="module-components_home_HomeMap.html">components/home/HomeMap</a></li><li><a href="module-components_home_RoomPreview.html">components/home/RoomPreview</a></li><li><a href="module-components_map_EventPlacePreview.html">components/map/EventPlacePreview</a></li><li><a href="module-components_map_Map.html">components/map/Map</a></li><li><a href="module-components_map_MapEventActions.html">components/map/MapEventActions</a></li><li><a href="module-components_map_MapEventDetail.html">components/map/MapEventDetail</a></li><li><a href="module-components_map_MapExplorer.html">components/map/MapExplorer</a></li><li><a href="module-components_map_MapQuickActions.html">components/map/MapQuickActions</a></li><li><a href="module-components_map_MapSidePanel.html">components/map/MapSidePanel</a></li><li><a href="module-components_password_password-strength.html">components/password/password-strength</a></li><li><a href="module-components_rooms_RoomScansCard.html">components/rooms/RoomScansCard</a></li><li><a href="module-components_rooms_RoomViewer3D.html">components/rooms/RoomViewer3D</a></li><li><a href="module-components_rooms_SplatCanvas.html">components/rooms/SplatCanvas</a></li><li><a href="module-components_schedule_ScheduleUploader.html">components/schedule/ScheduleUploader</a></li><li><a href="module-components_student_DataState.html">components/student/DataState</a></li><li><a href="module-components_student_EventActions.html">components/student/EventActions</a></li><li><a href="module-components_student_Interests.html">components/student/Interests</a></li><li><a href="module-components_student_ScheduleConflict.html">components/student/ScheduleConflict</a></li><li><a href="module-components_student_StudentEvents.html">components/student/StudentEvents</a></li><li><a href="module-components_student_useStudentData.html">components/student/useStudentData</a></li><li><a href="module-lib_assistant_grid.html">lib/assistant/grid</a></li><li><a href="module-lib_assistant_personalize.html">lib/assistant/personalize</a></li><li><a href="module-lib_assistant_query.html">lib/assistant/query</a></li><li><a href="module-lib_auth_auth.html">lib/auth/auth</a></li><li><a href="module-lib_events_accessibility.html">lib/events/accessibility</a></li><li><a href="module-lib_events_api.html">lib/events/api</a></li><li><a href="module-lib_events_attendance.html">lib/events/attendance</a></li><li><a href="module-lib_events_banner.html">lib/events/banner</a></li><li><a href="module-lib_events_details.html">lib/events/details</a></li><li><a href="module-lib_events_engagement.html">lib/events/engagement</a></li><li><a href="module-lib_events_page-data.html">lib/events/page-data</a></li><li><a href="module-lib_events_request-origin.html">lib/events/request-origin</a></li><li><a href="module-lib_events_search.html">lib/events/search</a></li><li><a href="module-lib_events_sort.html">lib/events/sort</a></li><li><a href="module-lib_events_time.html">lib/events/time</a></li><li><a href="module-lib_events_validation.html">lib/events/validation</a></li><li><a href="module-lib_home_home.html">lib/home/home</a></li><li><a href="module-lib_map_events.html">lib/map/events</a></li><li><a href="module-lib_map_page-data.html">lib/map/page-data</a></li><li><a href="module-lib_map_places.html">lib/map/places</a></li><li><a href="module-lib_map_view.html">lib/map/view</a></li><li><a href="module-lib_password_password-validation.html">lib/password/password-validation</a></li><li><a href="module-lib_rooms_model.html">lib/rooms/model</a></li><li><a href="module-lib_rooms_splat-view.html">lib/rooms/splat-view</a></li><li><a href="module-lib_schedule_conflicts.html">lib/schedule/conflicts</a></li><li><a href="module-lib_schedule_entries.html">lib/schedule/entries</a></li><li><a href="module-lib_student_api.html">lib/student/api</a></li><li><a href="module-lib_student_empty-state.html">lib/student/empty-state</a></li><li><a href="module-lib_student_validation.html">lib/student/validation</a></li></ul><h3>Classes</h3><ul><li><a href="module-lib_events_api.ApiError.html">ApiError</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.5</a>
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

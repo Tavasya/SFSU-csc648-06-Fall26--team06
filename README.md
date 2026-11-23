@@ -83,7 +83,7 @@ Next, we're making those spaces social: students who RSVP will appear as customi
 | **M1** | Sep 29, 2026 | [M1 report](milestones/m1/CSC%20648-848%20M1%20Section%206%20Team%206.doc) | Defined GatorAid: executive summary, personas, use cases, functional and non-functional requirements, and the 2D map → 3D room concept. |
 | **M2** | Oct 20, 2026 | [M2 report](milestones/m2/CSC%20648-848%20M2%20Section%206%20Team%206.docx) | Data definitions v2, prioritized requirements, UI mockups and storyboards, high-level architecture and database design, the first end-to-end features (host events, interests, saving, RSVP), 2D interactive map, Explore Events page, For You page, and 3D scans. |
 | **M3** | Nov 4, 2026 | [M3 report](milestones/m3/CSC%20648-848%20M3%20Section%206%20Team%206.docx) | Vertical prototype demo: every feature runs UI → API → Supabase with RLS. Added more 3D rooms, AI Schedule Scanner, Calendar, schedule-aware recommendations, and the Allison chatbot, plus an action plan from instructor feedback. |
-| **M4** | — | *Coming soon* | Beta: UI refresh, sorting, schedule types, RSVP capacity, and a usability/QA pass. |
+| **M4** | Nov 22, 2026 | [M4 report](milestones/m4/CSC%20648-848%20M4%20Section%206%20Team%206.docx) | Testing & QA: 224 unit tests with CI, integration testing with GitHub Issues, coding style, and generated API documentation. |
 | **M5** | — | *Coming soon* | Final product and demo. |
 
 ---

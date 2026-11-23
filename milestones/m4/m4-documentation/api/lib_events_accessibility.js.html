@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: lib/events/accessibility.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: lib/events/accessibility.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/**
+ * Public interfaces supporting R2.2.
+ * @module lib/events/accessibility
+ */
+/*
+ * lib/events/accessibility.js
+ *
+ * PURPOSE:
+ * What an event offers for accessibility, as one line of text, so the event
+ * page, the map and the filters all describe it the same way.
+ */
+
+// The accessibility features an event lists, e.g. ["Wheelchair accessible", "ASL interpretation"].
+/**
+ * Build the list of supported accessibility features from event flags.
+ * @function accessibilityFeatures
+ * @memberof module:lib/events/accessibility
+ * @static
+ * @param {Object} options - Grouped function options.
+ * @param {boolean} options.wheelchair - Whether the event offers wheelchair access.
+ * @param {boolean} options.asl - Whether the event offers ASL interpretation.
+ * @returns {Array&lt;string>} Display labels for enabled wheelchair and ASL features.
+ */
+export function accessibilityFeatures({ wheelchair, asl }) {
+  return [wheelchair &amp;&amp; "Wheelchair accessible", asl &amp;&amp; "ASL interpretation"].filter(Boolean);
+}
+
+// "Wheelchair accessible · ASL interpretation", or a plain note when none are listed.
+/**
+ * Format the supported accessibility flags for display.
+ * @function accessibilityText
+ * @memberof module:lib/events/accessibility
+ * @static
+ * @param {Object} flags - Wheelchair and ASL accessibility flags.
+ * @returns {string} Joined feature labels or a message that no features are listed.
+ */
+export function accessibilityText(flags) {
+  const features = accessibilityFeatures(flags);
+  return features.length ? features.join(" · ") : "No accessibility features listed";
+}
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-app_api_assistant_route.html">app/api/assistant/route</a></li><li><a href="module-app_api_events_eventId_route.html">app/api/events/eventId/route</a></li><li><a href="module-app_api_events_eventId_rsvps_me_route.html">app/api/events/eventId/rsvps/me/route</a></li><li><a href="module-app_api_events_eventId_saved_route.html">app/api/events/eventId/saved/route</a></li><li><a href="module-app_api_events_for-you_route.html">app/api/events/for-you/route</a></li><li><a href="module-app_api_events_route.html">app/api/events/route</a></li><li><a href="module-app_api_host_events_eventId_publish_route.html">app/api/host/events/eventId/publish/route</a></li><li><a href="module-app_api_host_events_eventId_route.html">app/api/host/events/eventId/route</a></li><li><a href="module-app_api_host_events_route.html">app/api/host/events/route</a></li><li><a href="module-app_api_locations_locationId_events_route.html">app/api/locations/locationId/events/route</a></li><li><a href="module-app_api_locations_locationId_route.html">app/api/locations/locationId/route</a></li><li><a href="module-app_api_locations_route.html">app/api/locations/route</a></li><li><a href="module-app_api_rooms_roomId_3d-model_route.html">app/api/rooms/roomId/3d-model/route</a></li><li><a href="module-app_api_rooms_roomId_info_route.html">app/api/rooms/roomId/info/route</a></li><li><a href="module-app_api_users_me_interests_route.html">app/api/users/me/interests/route</a></li><li><a href="module-app_api_users_me_schedule_route.html">app/api/users/me/schedule/route</a></li><li><a href="module-app_api_users_me_schedule_scan_route.html">app/api/users/me/schedule/scan/route</a></li><li><a href="module-app_page.html">app/page</a></li><li><a href="module-app_platform_error.html">app/platform/error</a></li><li><a href="module-app_platform_events_eventId_page.html">app/platform/events/eventId/page</a></li><li><a href="module-app_platform_events_for-you_page.html">app/platform/events/for-you/page</a></li><li><a href="module-app_platform_events_page.html">app/platform/events/page</a></li><li><a href="module-app_platform_host_events_eventId_edit_page.html">app/platform/host/events/eventId/edit/page</a></li><li><a href="module-app_platform_host_events_eventId_preview_page.html">app/platform/host/events/eventId/preview/page</a></li><li><a href="module-app_platform_host_events_new_page.html">app/platform/host/events/new/page</a></li><li><a href="module-app_platform_host_events_page.html">app/platform/host/events/page</a></li><li><a href="module-app_platform_interests_page.html">app/platform/interests/page</a></li><li><a href="module-app_platform_layout.html">app/platform/layout</a></li><li><a href="module-app_platform_loading.html">app/platform/loading</a></li><li><a href="module-app_platform_login_page.html">app/platform/login/page</a></li><li><a href="module-app_platform_map_page.html">app/platform/map/page</a></li><li><a href="module-app_platform_rooms_roomId_3d_page.html">app/platform/rooms/roomId/3d/page</a></li><li><a href="module-app_platform_rooms_roomId_splat_page.html">app/platform/rooms/roomId/splat/page</a></li><li><a href="module-app_rooms_roomId_embed_page.html">app/rooms/roomId/embed/page</a></li><li><a href="module-components_assistant_AssistantChat.html">components/assistant/AssistantChat</a></li><li><a href="module-components_gatoraid_EventDetails.html">components/gatoraid/EventDetails</a></li><li><a href="module-components_gatoraid_EventForm.html">components/gatoraid/EventForm</a></li><li><a href="module-components_gatoraid_EventSearch.html">components/gatoraid/EventSearch</a></li><li><a href="module-components_gatoraid_EventTable.html">components/gatoraid/EventTable</a></li><li><a href="module-components_gatoraid_PublishBar.html">components/gatoraid/PublishBar</a></li><li><a href="module-components_gatoraid_Shell.html">components/gatoraid/Shell</a></li><li><a href="module-components_gatoraid_SiteHeader.html">components/gatoraid/SiteHeader</a></li><li><a href="module-components_home_HomeMap.html">components/home/HomeMap</a></li><li><a href="module-components_home_RoomPreview.html">components/home/RoomPreview</a></li><li><a href="module-components_map_EventPlacePreview.html">components/map/EventPlacePreview</a></li><li><a href="module-components_map_Map.html">components/map/Map</a></li><li><a href="module-components_map_MapEventActions.html">components/map/MapEventActions</a></li><li><a href="module-components_map_MapEventDetail.html">components/map/MapEventDetail</a></li><li><a href="module-components_map_MapExplorer.html">components/map/MapExplorer</a></li><li><a href="module-components_map_MapQuickActions.html">components/map/MapQuickActions</a></li><li><a href="module-components_map_MapSidePanel.html">components/map/MapSidePanel</a></li><li><a href="module-components_password_password-strength.html">components/password/password-strength</a></li><li><a href="module-components_rooms_RoomScansCard.html">components/rooms/RoomScansCard</a></li><li><a href="module-components_rooms_RoomViewer3D.html">components/rooms/RoomViewer3D</a></li><li><a href="module-components_rooms_SplatCanvas.html">components/rooms/SplatCanvas</a></li><li><a href="module-components_schedule_ScheduleUploader.html">components/schedule/ScheduleUploader</a></li><li><a href="module-components_student_DataState.html">components/student/DataState</a></li><li><a href="module-components_student_EventActions.html">components/student/EventActions</a></li><li><a href="module-components_student_Interests.html">components/student/Interests</a></li><li><a href="module-components_student_ScheduleConflict.html">components/student/ScheduleConflict</a></li><li><a href="module-components_student_StudentEvents.html">components/student/StudentEvents</a></li><li><a href="module-components_student_useStudentData.html">components/student/useStudentData</a></li><li><a href="module-lib_assistant_grid.html">lib/assistant/grid</a></li><li><a href="module-lib_assistant_personalize.html">lib/assistant/personalize</a></li><li><a href="module-lib_assistant_query.html">lib/assistant/query</a></li><li><a href="module-lib_auth_auth.html">lib/auth/auth</a></li><li><a href="module-lib_events_accessibility.html">lib/events/accessibility</a></li><li><a href="module-lib_events_api.html">lib/events/api</a></li><li><a href="module-lib_events_attendance.html">lib/events/attendance</a></li><li><a href="module-lib_events_banner.html">lib/events/banner</a></li><li><a href="module-lib_events_details.html">lib/events/details</a></li><li><a href="module-lib_events_engagement.html">lib/events/engagement</a></li><li><a href="module-lib_events_page-data.html">lib/events/page-data</a></li><li><a href="module-lib_events_request-origin.html">lib/events/request-origin</a></li><li><a href="module-lib_events_search.html">lib/events/search</a></li><li><a href="module-lib_events_sort.html">lib/events/sort</a></li><li><a href="module-lib_events_time.html">lib/events/time</a></li><li><a href="module-lib_events_validation.html">lib/events/validation</a></li><li><a href="module-lib_home_home.html">lib/home/home</a></li><li><a href="module-lib_map_events.html">lib/map/events</a></li><li><a href="module-lib_map_page-data.html">lib/map/page-data</a></li><li><a href="module-lib_map_places.html">lib/map/places</a></li><li><a href="module-lib_map_view.html">lib/map/view</a></li><li><a href="module-lib_password_password-validation.html">lib/password/password-validation</a></li><li><a href="module-lib_rooms_model.html">lib/rooms/model</a></li><li><a href="module-lib_rooms_splat-view.html">lib/rooms/splat-view</a></li><li><a href="module-lib_schedule_conflicts.html">lib/schedule/conflicts</a></li><li><a href="module-lib_schedule_entries.html">lib/schedule/entries</a></li><li><a href="module-lib_student_api.html">lib/student/api</a></li><li><a href="module-lib_student_empty-state.html">lib/student/empty-state</a></li><li><a href="module-lib_student_validation.html">lib/student/validation</a></li></ul><h3>Classes</h3><ul><li><a href="module-lib_events_api.ApiError.html">ApiError</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.5</a>
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

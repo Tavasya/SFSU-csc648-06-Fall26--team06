@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: components/gatoraid/EventTable.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: components/gatoraid/EventTable.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/**
+ * Public interfaces supporting R4.5.
+ * @module components/gatoraid/EventTable
+ */
+"use client";
+
+import { useState, useRef, useEffect } from "react";
+import Link from "next/link";
+import { CalendarDays, MoreHorizontal, Plus, Trash2, X, Ban } from "lucide-react";
+/**
+ * Render the organizer event table with status tabs and per-event management actions.
+ * @function EventTable
+ * @memberof module:components/gatoraid/EventTable
+ * @static
+ * @param {Object} props - Component properties.
+ * @param {*} props.initialEvents - Initial organizer event records.
+ * @returns {React.ReactElement} Rendered component tree.
+ */
+export default function EventTable({ initialEvents }) {
+  const [events, setEvents] = useState(initialEvents),
+    [tab, setTab] = useState("Published"),
+    [menu, setMenu] = useState(null),
+    [deleting, setDeleting] = useState(null),
+    [cancelling, setCancelling] = useState(null),
+    [cancellationMessage, setCancellationMessage] = useState(""),
+    [busy, setBusy] = useState(false),
+    [notice, setNotice] = useState("");
+
+  const dialog = useRef(null);
+  const cancelDialog = useRef(null);
+
+  // Open or close the delete confirmation dialog
+  useEffect(() => {
+    if (deleting) {
+      dialog.current?.showModal();
+    } else {
+      dialog.current?.close();
+    }
+  }, [deleting]);
+
+  // Open or close the cancellation dialog
+  useEffect(() => {
+    if (cancelling) {
+      cancelDialog.current?.showModal();
+    } else {
+      cancelDialog.current?.close();
+    }
+  }, [cancelling]);
+
+  const inTab = (e, t) =>
+    t === "Drafts"
+      ? e.publication_status === "draft"
+      : t === "Cancelled"
+        ? e.status === "cancelled"
+        : t === "Past"
+          ? e.publication_status === "published" &amp;&amp;
+            e.status !== "cancelled" &amp;&amp;
+            new Date(e.end_date_time) &lt; new Date()
+          : e.publication_status === "published" &amp;&amp;
+            e.status === "active" &amp;&amp;
+            new Date(e.end_date_time) >= new Date();
+
+  async function remove() {
+    setBusy(true);
+    try {
+      const r = await fetch("/api/host/events/" + deleting.id, {
+        method: "DELETE",
+      }),
+        data = await r.json();
+      if (!r.ok) throw new Error(data.error);
+      setEvents(events.filter((e) => e.id !== deleting.id));
+      setDeleting(null);
+      setNotice("Draft deleted.");
+    } catch (e) {
+      setNotice(e.message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function cancelEvent() {
+    const message = cancellationMessage.trim();
+
+    if (message.length &lt; 10 || message.length > 1000) {
+      setNotice(
+        "The cancellation message must be between 10 and 1000 characters."
+      );
+      return;
+    }
+
+    setBusy(true);
+    setNotice("");
+
+    try {
+      const r = await fetch(
+          "/api/host/events/" + cancelling.id + "/cancel",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              confirm: true,
+              cancellation_message: message,
+            }),
+          }
+        ),
+        data = await r.json();
+
+      if (!r.ok) throw new Error(data.error);
+
+      setEvents(
+        events.map((e) =>
+          e.id === cancelling.id
+            ? {
+                ...e,
+                ...data.event,
+              }
+            : e
+        )
+      );
+
+      setCancelling(null);
+      setCancellationMessage("");
+      setTab("Cancelled");
+      setNotice("Event cancelled successfully.");
+    } catch (e) {
+      setNotice(e.message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    &lt;>
+      &lt;div className="ga-tabs" role="tablist" aria-label="Event status">
+        {["Published", "Drafts", "Past", "Cancelled"].map((t) => (
+          &lt;button
+            key={t}
+            role="tab"
+            aria-selected={tab === t}
+            className={tab === t ? "active" : ""}
+            onClick={() => setTab(t)}
+          >
+            {t}
+            &lt;span>{events.filter((e) => inTab(e, t)).length}&lt;/span>
+          &lt;/button>
+        ))}
+      &lt;/div>
+      {notice &amp;&amp; (
+        &lt;p className="ga-notice" role="status">
+          {notice}
+        &lt;/p>
+      )}
+      &lt;div className="ga-table-wrap ga-card">
+        &lt;table>
+          &lt;thead>
+            &lt;tr>
+              &lt;th>Event&lt;/th>
+              &lt;th>Date &amp; time&lt;/th>
+              &lt;th>Status&lt;/th>
+              &lt;th>RSVPs &amp; saves&lt;/th>
+              &lt;th>Actions&lt;/th>
+            &lt;/tr>
+          &lt;/thead>
+          &lt;tbody>
+            {events
+              .filter((e) => inTab(e, tab))
+              .map((e, i) => (
+                &lt;tr key={e.id}>
+                  &lt;td>
+                    &lt;div className="ga-event-name">
+                      &lt;span className={"ga-event-icon c" + (i % 4)}>
+                        &lt;CalendarDays size={22} />
+                      &lt;/span>
+                      &lt;div>
+                        &lt;Link href={"/host/events/" + e.id + "/preview"}>
+                          {e.title}
+                        &lt;/Link>
+                        &lt;small>
+                          {e.locations?.building_name}
+                          {e.room_number ? " · " + e.room_number : ""}
+                        &lt;/small>
+
+                        {e.status === "cancelled" &amp;&amp;
+                          e.cancellation_message &amp;&amp; (
+                            &lt;small className="ga-cancellation-message">
+                              Cancellation reason: {e.cancellation_message}
+                            &lt;/small>
+                          )}
+                      &lt;/div>
+                    &lt;/div>
+                  &lt;/td>
+                  &lt;td>
+                    {new Date(e.start_date_time).toLocaleDateString("en-US", {
+                      month: "short",
+                      day: "numeric",
+                      timeZone: "America/Los_Angeles",
+                    })}
+                    &lt;small>
+                      {new Date(e.start_date_time).toLocaleTimeString("en-US", {
+                        hour: "numeric",
+                        minute: "2-digit",
+                        timeZone: "America/Los_Angeles",
+                      })}{" "}
+                      PT
+                    &lt;/small>
+                  &lt;/td>
+                  &lt;td>
+                    &lt;span
+                      className={
+                        "ga-badge " +
+                        (e.status === "cancelled"
+                          ? "cancelled"
+                          : e.status === "completed"
+                            ? "completed"
+                            : e.publication_status)
+                      }
+                    >
+                      {e.status === "cancelled"
+                        ? "Cancelled"
+                        : e.status === "completed"
+                          ? "Completed"
+                          : e.publication_status === "published"
+                            ? "Published"
+                            : "Draft"}
+                    &lt;/span>
+                  &lt;/td>
+                  &lt;td>
+                    {e.engagement ? (
+                      &lt;>
+                        {e.engagement.attending} attending
+                        &lt;small>
+                          {e.engagement.interested} interested ·{" "}
+                          {e.engagement.saves}{" "}
+                          {e.engagement.saves === 1 ? "save" : "saves"}
+                        &lt;/small>
+                      &lt;/>
+                    ) : (
+                      "—"
+                    )}
+                  &lt;/td>
+                  &lt;td>
+                    &lt;div className="ga-actions">
+                    {e.status !== "cancelled" &amp;&amp;
+                        e.status !== "completed" &amp;&amp;
+                        (tab === "Published" || tab === "Drafts") &amp;&amp; (
+                          &lt;Link href={"/host/events/" + e.id + "/edit"}>Edit&lt;/Link>
+                        )}
+                      &lt;div className="ga-menu-wrap">
+                        &lt;button
+                          aria-label={"More actions for " + e.title}
+                          aria-expanded={menu === e.id}
+                          className="ga-icon-button"
+                          onClick={() => setMenu(menu === e.id ? null : e.id)}
+                        >
+                          &lt;MoreHorizontal size={19} />
+                        &lt;/button>
+                        {menu === e.id &amp;&amp; (
+                          &lt;div className="ga-menu">
+                            &lt;Link href={"/host/events/" + e.id + "/preview"}>
+                              Preview event
+                            &lt;/Link>
+                            {e.publication_status === "published" &amp;&amp;
+                              e.status === "active" &amp;&amp; (
+                                &lt;button
+                                  onClick={() => {
+                                    setCancelling(e);
+                                    setCancellationMessage("");
+                                    setMenu(null);
+                                    setNotice("");
+                                  }}
+                                >
+                                  &lt;Ban size={15} />
+                                  Cancel event
+                                &lt;/button>
+                              )}
+                            {e.publication_status === "draft" &amp;&amp; (
+                              &lt;button
+                                onClick={() => {
+                                  setDeleting(e);
+                                  setMenu(null);
+                                }}
+                              >
+                                &lt;Trash2 size={15} />
+                                Delete draft
+                              &lt;/button>
+                            )}
+                          &lt;/div>
+                        )}
+                      &lt;/div>
+                    &lt;/div>
+                  &lt;/td>
+                &lt;/tr>
+              ))}
+          &lt;/tbody>
+        &lt;/table>
+        {!events.some((e) => inTab(e, tab)) &amp;&amp; (
+          &lt;div className="ga-empty">
+            &lt;CalendarDays size={35} />
+            &lt;h2>
+              {tab === "Drafts"
+                ? "Room for your next idea"
+                : tab === "Past"
+                  ? "Your event history starts here"
+                  : tab === "Cancelled"
+                    ? "No cancelled events"
+                    : "Bring your campus together"}
+            &lt;/h2>
+            &lt;p className="ga-muted">
+              {tab === "Published"
+                ? "Create an event, preview it, and publish when you’re ready."
+                : "No " + tab.toLowerCase() + " events yet."}
+            &lt;/p>
+            {tab !== "Cancelled" &amp;&amp; (
+              &lt;Link className="ga-button" href="/host/events/new">
+                &lt;Plus size={16} />
+                Create your first event
+              &lt;/Link>
+            )}
+          &lt;/div>
+        )}
+      &lt;/div>
+      &lt;dialog
+        ref={dialog}
+        className="ga-dialog"
+        onCancel={(e) => {
+          if (busy) e.preventDefault();
+          else setDeleting(null);
+        }}
+        onClose={() => {
+          if (!busy) setDeleting(null);
+        }}
+      >
+        &lt;button
+          className="ga-dialog-close ga-icon-button"
+          aria-label="Close delete confirmation"
+          disabled={busy}
+          onClick={() => setDeleting(null)}
+        >
+          &lt;X size={18} />
+        &lt;/button>
+        &lt;Trash2 className="ga-danger" />
+        &lt;h2>Delete “{deleting?.title}”?&lt;/h2>
+        &lt;p>
+          This removes your draft from GatorAid. This action cannot be undone.
+        &lt;/p>
+        &lt;div className="ga-actions">
+          &lt;button
+            className="ga-button secondary"
+            disabled={busy}
+            onClick={() => setDeleting(null)}
+          >
+            Cancel
+          &lt;/button>
+          &lt;button className="ga-button danger" disabled={busy} onClick={remove}>
+            {busy ? "Deleting…" : "Delete draft"}
+          &lt;/button>
+        &lt;/div>
+      &lt;/dialog>
+      &lt;dialog
+        ref={cancelDialog}
+        className="ga-dialog"
+        onCancel={(e) => {
+          if (busy) e.preventDefault();
+          else setCancelling(null);
+        }}
+        onClose={() => {
+          if (!busy) setCancelling(null);
+        }}
+      >
+        &lt;button
+          className="ga-dialog-close ga-icon-button"
+          aria-label="Close cancellation confirmation"
+          disabled={busy}
+          onClick={() => setCancelling(null)}
+        >
+          &lt;X size={18} />
+        &lt;/button>
+
+        &lt;Ban className="ga-danger" />
+
+        &lt;h2>Cancel “{cancelling?.title}”?&lt;/h2>
+
+        &lt;p>
+          This event will be marked as cancelled and no longer be visible. 
+          Students who RSVP'd can still view the event details.
+        &lt;/p>
+
+        &lt;label htmlFor="cancellation-message">
+          Cancellation message
+        &lt;/label>
+
+        &lt;textarea
+          id="cancellation-message"
+          value={cancellationMessage}
+          onChange={(e) => setCancellationMessage(e.target.value)}
+          placeholder="Explain why this event is being cancelled..."
+          rows={4}
+          minLength={10}
+          maxLength={1000}
+          disabled={busy}
+        />
+
+        &lt;small>
+          {cancellationMessage.trim().length}/1000 characters (minimum 10)
+        &lt;/small>
+
+        &lt;div className="ga-actions">
+          &lt;button
+            className="ga-button secondary"
+            disabled={busy}
+            onClick={() => setCancelling(null)}
+          >
+            Go back
+          &lt;/button>
+
+          &lt;button
+            className="ga-button danger"
+            disabled={busy}
+            onClick={cancelEvent}
+          >
+            {busy ? "Cancelling…" : "Confirm cancellation"}
+          &lt;/button>
+        &lt;/div>
+      &lt;/dialog>
+    &lt;/>
+  );
+}
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-app_api_assistant_route.html">app/api/assistant/route</a></li><li><a href="module-app_api_events_eventId_route.html">app/api/events/eventId/route</a></li><li><a href="module-app_api_events_eventId_rsvps_me_route.html">app/api/events/eventId/rsvps/me/route</a></li><li><a href="module-app_api_events_eventId_saved_route.html">app/api/events/eventId/saved/route</a></li><li><a href="module-app_api_events_for-you_route.html">app/api/events/for-you/route</a></li><li><a href="module-app_api_events_route.html">app/api/events/route</a></li><li><a href="module-app_api_host_events_eventId_publish_route.html">app/api/host/events/eventId/publish/route</a></li><li><a href="module-app_api_host_events_eventId_route.html">app/api/host/events/eventId/route</a></li><li><a href="module-app_api_host_events_route.html">app/api/host/events/route</a></li><li><a href="module-app_api_locations_locationId_events_route.html">app/api/locations/locationId/events/route</a></li><li><a href="module-app_api_locations_locationId_route.html">app/api/locations/locationId/route</a></li><li><a href="module-app_api_locations_route.html">app/api/locations/route</a></li><li><a href="module-app_api_rooms_roomId_3d-model_route.html">app/api/rooms/roomId/3d-model/route</a></li><li><a href="module-app_api_rooms_roomId_info_route.html">app/api/rooms/roomId/info/route</a></li><li><a href="module-app_api_users_me_interests_route.html">app/api/users/me/interests/route</a></li><li><a href="module-app_api_users_me_schedule_route.html">app/api/users/me/schedule/route</a></li><li><a href="module-app_api_users_me_schedule_scan_route.html">app/api/users/me/schedule/scan/route</a></li><li><a href="module-app_page.html">app/page</a></li><li><a href="module-app_platform_error.html">app/platform/error</a></li><li><a href="module-app_platform_events_eventId_page.html">app/platform/events/eventId/page</a></li><li><a href="module-app_platform_events_for-you_page.html">app/platform/events/for-you/page</a></li><li><a href="module-app_platform_events_page.html">app/platform/events/page</a></li><li><a href="module-app_platform_host_events_eventId_edit_page.html">app/platform/host/events/eventId/edit/page</a></li><li><a href="module-app_platform_host_events_eventId_preview_page.html">app/platform/host/events/eventId/preview/page</a></li><li><a href="module-app_platform_host_events_new_page.html">app/platform/host/events/new/page</a></li><li><a href="module-app_platform_host_events_page.html">app/platform/host/events/page</a></li><li><a href="module-app_platform_interests_page.html">app/platform/interests/page</a></li><li><a href="module-app_platform_layout.html">app/platform/layout</a></li><li><a href="module-app_platform_loading.html">app/platform/loading</a></li><li><a href="module-app_platform_login_page.html">app/platform/login/page</a></li><li><a href="module-app_platform_map_page.html">app/platform/map/page</a></li><li><a href="module-app_platform_rooms_roomId_3d_page.html">app/platform/rooms/roomId/3d/page</a></li><li><a href="module-app_platform_rooms_roomId_splat_page.html">app/platform/rooms/roomId/splat/page</a></li><li><a href="module-app_rooms_roomId_embed_page.html">app/rooms/roomId/embed/page</a></li><li><a href="module-components_assistant_AssistantChat.html">components/assistant/AssistantChat</a></li><li><a href="module-components_gatoraid_EventDetails.html">components/gatoraid/EventDetails</a></li><li><a href="module-components_gatoraid_EventForm.html">components/gatoraid/EventForm</a></li><li><a href="module-components_gatoraid_EventSearch.html">components/gatoraid/EventSearch</a></li><li><a href="module-components_gatoraid_EventTable.html">components/gatoraid/EventTable</a></li><li><a href="module-components_gatoraid_PublishBar.html">components/gatoraid/PublishBar</a></li><li><a href="module-components_gatoraid_Shell.html">components/gatoraid/Shell</a></li><li><a href="module-components_gatoraid_SiteHeader.html">components/gatoraid/SiteHeader</a></li><li><a href="module-components_home_HomeMap.html">components/home/HomeMap</a></li><li><a href="module-components_home_RoomPreview.html">components/home/RoomPreview</a></li><li><a href="module-components_map_EventPlacePreview.html">components/map/EventPlacePreview</a></li><li><a href="module-components_map_Map.html">components/map/Map</a></li><li><a href="module-components_map_MapEventActions.html">components/map/MapEventActions</a></li><li><a href="module-components_map_MapEventDetail.html">components/map/MapEventDetail</a></li><li><a href="module-components_map_MapExplorer.html">components/map/MapExplorer</a></li><li><a href="module-components_map_MapQuickActions.html">components/map/MapQuickActions</a></li><li><a href="module-components_map_MapSidePanel.html">components/map/MapSidePanel</a></li><li><a href="module-components_password_password-strength.html">components/password/password-strength</a></li><li><a href="module-components_rooms_RoomScansCard.html">components/rooms/RoomScansCard</a></li><li><a href="module-components_rooms_RoomViewer3D.html">components/rooms/RoomViewer3D</a></li><li><a href="module-components_rooms_SplatCanvas.html">components/rooms/SplatCanvas</a></li><li><a href="module-components_schedule_ScheduleUploader.html">components/schedule/ScheduleUploader</a></li><li><a href="module-components_student_DataState.html">components/student/DataState</a></li><li><a href="module-components_student_EventActions.html">components/student/EventActions</a></li><li><a href="module-components_student_Interests.html">components/student/Interests</a></li><li><a href="module-components_student_ScheduleConflict.html">components/student/ScheduleConflict</a></li><li><a href="module-components_student_StudentEvents.html">components/student/StudentEvents</a></li><li><a href="module-components_student_useStudentData.html">components/student/useStudentData</a></li><li><a href="module-lib_assistant_grid.html">lib/assistant/grid</a></li><li><a href="module-lib_assistant_personalize.html">lib/assistant/personalize</a></li><li><a href="module-lib_assistant_query.html">lib/assistant/query</a></li><li><a href="module-lib_auth_auth.html">lib/auth/auth</a></li><li><a href="module-lib_events_accessibility.html">lib/events/accessibility</a></li><li><a href="module-lib_events_api.html">lib/events/api</a></li><li><a href="module-lib_events_attendance.html">lib/events/attendance</a></li><li><a href="module-lib_events_banner.html">lib/events/banner</a></li><li><a href="module-lib_events_details.html">lib/events/details</a></li><li><a href="module-lib_events_engagement.html">lib/events/engagement</a></li><li><a href="module-lib_events_page-data.html">lib/events/page-data</a></li><li><a href="module-lib_events_request-origin.html">lib/events/request-origin</a></li><li><a href="module-lib_events_search.html">lib/events/search</a></li><li><a href="module-lib_events_sort.html">lib/events/sort</a></li><li><a href="module-lib_events_time.html">lib/events/time</a></li><li><a href="module-lib_events_validation.html">lib/events/validation</a></li><li><a href="module-lib_home_home.html">lib/home/home</a></li><li><a href="module-lib_map_events.html">lib/map/events</a></li><li><a href="module-lib_map_page-data.html">lib/map/page-data</a></li><li><a href="module-lib_map_places.html">lib/map/places</a></li><li><a href="module-lib_map_view.html">lib/map/view</a></li><li><a href="module-lib_password_password-validation.html">lib/password/password-validation</a></li><li><a href="module-lib_rooms_model.html">lib/rooms/model</a></li><li><a href="module-lib_rooms_splat-view.html">lib/rooms/splat-view</a></li><li><a href="module-lib_schedule_conflicts.html">lib/schedule/conflicts</a></li><li><a href="module-lib_schedule_entries.html">lib/schedule/entries</a></li><li><a href="module-lib_student_api.html">lib/student/api</a></li><li><a href="module-lib_student_empty-state.html">lib/student/empty-state</a></li><li><a href="module-lib_student_validation.html">lib/student/validation</a></li></ul><h3>Classes</h3><ul><li><a href="module-lib_events_api.ApiError.html">ApiError</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.5</a>
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

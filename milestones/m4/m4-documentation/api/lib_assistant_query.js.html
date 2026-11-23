@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: lib/assistant/query.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: lib/assistant/query.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/**
+ * Public interfaces supporting R8.2, R8.3, R8.4, R8.5.
+ * @module lib/assistant/query
+ */
+/*
+ * lib/assistant/query.js
+ *
+ * PURPOSE:
+ * Turns a student's question for the AI Event Assistant (app/api/assistant)
+ * into filters, and applies them to published events. Everything here is
+ * plain rules, no AI, so results only ever come from real events and the
+ * same question always gives the same events. Gemini is only used afterwards
+ * to write summaries of the events found here.
+ *
+ * A question can combine any of these:
+ *  - dates:        today, tonight, tomorrow, this/next week, this/next weekend,
+ *                  this/next month, a weekday ("Friday"), a date ("Nov 5",
+ *                  "11/5"), a month ("December"), "week of Nov 16", past events
+ *  - time of day:  morning, lunch, afternoon, evening / tonight
+ *  - categories:   the GatorAid categories by name ("arts", "tech", "career")
+ *  - admission:    free, paid; "no RSVP" / "drop-in"
+ *  - access:       wheelchair accessible, ASL
+ *  - place:        a building or venue ("at the Student Center", "Creative Arts")
+ *  - topic words:  anything else ("yoga", "jazz") is matched against the
+ *                  title, description and room; if nothing mentions them,
+ *                  related words fall back to their category ("yoga" ->
+ *                  Health &amp; Wellness)
+ *  - intent:       find (default), summarize, compare, greeting, help
+ *
+ * Dates are campus time (America/Los_Angeles). No imports from the app, so it
+ * can be tested on its own.
+ */
+
+import { addDays, toPacific, weekStart } from "../calendar/week.js";
+
+const MONTHS = [
+  "january", "february", "march", "april", "may", "june",
+  "july", "august", "september", "october", "november", "december",
+];
+const MONTH_SHORT = { jan: 0, feb: 1, mar: 2, apr: 3, jun: 5, jul: 6, aug: 7, sep: 8, sept: 8, oct: 9, nov: 10, dec: 11 };
+const WEEKDAYS = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"];
+
+// Words that name a GatorAid category (categories table names): the question
+// is filtered to that category ("arts events", "tech events").
+export const CATEGORY_WORDS = {
+  Academic: ["academic", "academics"],
+  Arts: ["art", "arts", "artsy", "creative"],
+  Career: ["career", "careers", "professional development"],
+  "Health &amp; Wellness": ["health", "wellness", "wellbeing", "well being", "mental health", "self care", "health and wellness"],
+  Social: ["social", "socials", "hang out", "hangout", "make friends", "meet people"],
+  Sports: ["sport", "sports", "athletic", "athletics"],
+  Technology: ["tech", "technology", "computer science", "coding", "programming", "computers"],
+};
+
+// More specific words ("yoga", "jazz", "internship"). They are searched in event
+// titles and descriptions like any topic word, and only if no event mentions
+// them does the search fall back to their category.
+export const TOPIC_CATEGORY = Object.fromEntries(Object.entries({
+  Academic: [
+    "study", "studying", "tutoring", "tutor", "lecture", "research", "seminar", "class", "review",
+    "exam", "midterm", "finals", "writing", "math", "statistics", "advising", "poster", "symposium",
+  ],
+  Arts: [
+    "music", "concert", "theatre", "theater", "dance", "dancing", "film", "movie", "gallery",
+    "exhibition", "exhibit", "painting", "drawing", "ceramics", "poetry", "performance", "jazz",
+    "photography", "printmaking", "sculpture", "orchestra", "improv", "comedy", "watercolor",
+  ],
+  Career: [
+    "internship", "job", "resume", "networking", "interview", "recruiter", "linkedin", "pitch",
+    "panel", "headshot",
+  ],
+  "Health &amp; Wellness": [
+    "yoga", "meditation", "mindfulness", "nutrition", "stress", "sleep", "counseling", "healthy",
+    "flu", "vaccine", "relax", "relaxing",
+  ],
+  Social: [
+    "party", "mixer", "meetup", "friends", "games", "trivia", "club", "potluck", "dinner",
+    "karaoke", "dance party",
+  ],
+  Sports: [
+    "basketball", "soccer", "volleyball", "badminton", "pickleball", "frisbee", "running", "run",
+    "workout", "fitness", "climbing", "swim", "swimming", "intramural", "hiit", "softball",
+  ],
+  Technology: [
+    "software", "ai", "machine learning", "data", "cybersecurity", "security", "hackathon", "web",
+    "python", "robotics", "engineering", "github", "cloud", "3d printing", "esports", "game design",
+  ],
+}).flatMap(([category, words]) => words.map((word) => [word, category])));
+
+// Other names students use for buildings (locations.building_name).
+export const PLACE_ALIASES = {
+  "student center": "Cesar Chavez Student Center",
+  "cesar chavez": "Cesar Chavez Student Center",
+  library: "J. Paul Leonard Library",
+  "leonard library": "J. Paul Leonard Library",
+  gym: "Gymnasium",
+  mashouf: "Mashouf Wellness Center",
+  "wellness center": "Mashouf Wellness Center",
+  "rec center": "Mashouf Wellness Center",
+  seic: "Science &amp; Engineering Innovation Center",
+  "science building": "Science",
+  "business building": "Business",
+  "fine arts building": "Fine Arts",
+  "creative arts building": "Creative Arts",
+};
+
+// Words that never mean a topic (questions, filler, and words handled by filters).
+const FILLER = new Set(`
+  a an the is are was were be been am i im me my we our you your it its this that these those
+  what whats which who when where why how do does did can could would should will shall may
+  might please show find tell give list get see any some all every there here going on
+  happening happen happens event events activity activities thing things stuff something
+  anything to for of in at on by with about from into near around inside between and or but
+  not no yes so if than then also just only really very much many more most other else
+  recommend recommendation recommendations suggest suggestion suggestions good great best
+  cool fun interesting nice looking look want wanna like love need know help options option
+  sfsu campus school university college student students upcoming soon next this last later
+  today tonight tomorrow yesterday week weekend weekends month day days time times date dates
+  morning mornings afternoon afternoons evening evenings night nights lunch lunchtime noon
+  early late free paid cost costs price ticket tickets ticketed admission rsvp required
+  drop dropin wheelchair accessible accessibility asl sign language interpreter interpreted
+  summarize summary summaries overview recap describe explain compare comparison versus vs
+  past previous ended completed finished already happened held
+  first year years transfer transfers graduate grad grads undergraduate undergrad undergrads
+  freshman freshmen gen generation am pm o clock oclock
+`.trim().split(/\s+/));
+
+/**
+ * Normalize text for matching by folding case, punctuation, possessives and whitespace.
+ * @function normalize
+ * @memberof module:lib/assistant/query
+ * @static
+ * @param {string} text - Normalized text to inspect, except normalize itself accepts any string-coercible value.
+ * @returns {string} The normalized search string.
+ */
+export function normalize(text) {
+  return String(text ?? "")
+    .toLowerCase()
+    .replace(/[’']s\b/g, "")
+    .replace(/[’']/g, "")
+    .replace(/&amp;/g, " and ")
+    .replace(/[^a-z0-9/]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+// Does the normalized text contain the phrase as whole words?
+/**
+ * Find a whole-word phrase in text that has already been normalized.
+ * @function hasPhrase
+ * @memberof module:lib/assistant/query
+ * @static
+ * @param {string} text - Normalized text to inspect, except normalize itself accepts any string-coercible value.
+ * @param {string} phrase - Phrase to normalize and match as whole words.
+ * @returns {boolean} Whether the normalized phrase occurs with word boundaries.
+ */
+export function hasPhrase(text, phrase) {
+  return ` ${text} `.includes(` ${normalize(phrase)} `);
+}
+
+// Remove a phrase (whole words) from normalized text.
+function without(text, phrase) {
+  return ` ${text} `.replace(` ${normalize(phrase)} `, " ").replace(/\s+/g, " ").trim();
+}
+
+function monthIndex(word) {
+  const i = MONTHS.indexOf(word);
+  return i >= 0 ? i : (MONTH_SHORT[word] ?? -1);
+}
+
+function validDay(year, month, day) {
+  const d = new Date(Date.UTC(year, month, day));
+  if (d.getUTCMonth() !== month || d.getUTCDate() !== day) return null;
+  return d.toISOString().slice(0, 10);
+}
+
+function lastDayOfMonth(year, month) {
+  return new Date(Date.UTC(year, month + 1, 0)).toISOString().slice(0, 10);
+}
+
+const SHORT_DATE = new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", timeZone: "UTC" });
+function shortDate(day) {
+  return SHORT_DATE.format(new Date(`${day}T12:00:00Z`));
+}
+
+// The date range a question asks about:
+// { from, to, label, past, invalid } (from/to are day keys, or null for "any upcoming";
+// label reads after "events", e.g. "tomorrow", "on Fri, Nov 6", "in December").
+//  - text: normalized question, today: day key in campus time
+/**
+ * Interpret relative dates, weekdays and month/day expressions using the supplied campus date.
+ * @function parseDates
+ * @memberof module:lib/assistant/query
+ * @static
+ * @param {string} text - Normalized text to inspect, except normalize itself accepts any string-coercible value.
+ * @param {string} today - Reference campus date in YYYY-MM-DD format.
+ * @returns {Object} A range with from/to day keys, label, past and invalid flags; null bounds mean any upcoming date.
+ */
+export function parseDates(text, today) {
+  const year = Number(today.slice(0, 4));
+  const past = /\b(past|previous|ended|completed|finished|already happened|last week|yesterday)\b/.test(text);
+  const range = (from, to, label) => ({ from, to, label, past, invalid: false });
+  const monday = weekStart(today);
+
+  // Pick the year so a date without one is the next time it comes around.
+  const upcomingYear = (m, d) => {
+    const day = validDay(year, m, d);
+    return day &amp;&amp; day &lt; today &amp;&amp; !past ? year + 1 : year;
+  };
+
+  let m = text.match(/\bweek of ([a-z]+) (\d{1,2})(?:st|nd|rd|th)?\b/);
+  if (m &amp;&amp; monthIndex(m[1]) >= 0) {
+    const mi = monthIndex(m[1]);
+    const day = validDay(upcomingYear(mi, Number(m[2])), mi, Number(m[2]));
+    if (!day) return { from: null, to: null, label: "", past, invalid: true };
+    const start = weekStart(day);
+    return range(start, addDays(start, 6), `during the week of ${shortDate(start)}`);
+  }
+
+  if (/\btonight\b/.test(text) || /\btoday\b/.test(text)) return range(today, today, "today");
+  if (/\btomorrow\b/.test(text)) return range(addDays(today, 1), addDays(today, 1), "tomorrow");
+  if (/\byesterday\b/.test(text)) return range(addDays(today, -1), addDays(today, -1), "yesterday");
+  if (/\bnext weekend\b/.test(text)) {
+    const sat = addDays(monday, 12);
+    return range(sat, addDays(sat, 1), "next weekend");
+  }
+  if (/\bweekend\b/.test(text)) {
+    const sat = addDays(monday, 5);
+    return range(sat, addDays(sat, 1), "this weekend");
+  }
+  if (/\bnext week\b/.test(text)) {
+    const start = addDays(monday, 7);
+    return range(start, addDays(start, 6), `next week (${shortDate(start)} – ${shortDate(addDays(start, 6))})`);
+  }
+  if (/\blast week\b/.test(text)) {
+    const start = addDays(monday, -7);
+    return range(start, addDays(start, 6), "last week");
+  }
+  if (/\b(this|the) week\b/.test(text) || /\bweek\b/.test(text)) {
+    return range(monday, addDays(monday, 6), `this week (${shortDate(monday)} – ${shortDate(addDays(monday, 6))})`);
+  }
+  if (/\bnext month\b/.test(text)) {
+    const mi = (Number(today.slice(5, 7)) % 12);
+    const y = mi === 0 ? year + 1 : year;
+    return range(`${y}-${String(mi + 1).padStart(2, "0")}-01`, lastDayOfMonth(y, mi), `in ${MONTHS[mi][0].toUpperCase()}${MONTHS[mi].slice(1)}`);
+  }
+  if (/\bthis month\b/.test(text)) {
+    const mi = Number(today.slice(5, 7)) - 1;
+    return range(today.slice(0, 8) + "01", lastDayOfMonth(year, mi), "this month");
+  }
+
+  // "Nov 5", "November 5th"
+  m = [...text.matchAll(/\b([a-z]+) (\d{1,2})(?:st|nd|rd|th)?\b/g)].find((x) => monthIndex(x[1]) >= 0);
+  if (m) {
+    const mi = monthIndex(m[1]);
+    const day = validDay(upcomingYear(mi, Number(m[2])), mi, Number(m[2]));
+    if (!day) return { from: null, to: null, label: "", past, invalid: true };
+    return range(day, day, `on ${shortDate(day)}`);
+  }
+  // "11/5"
+  m = text.match(/\b(\d{1,2})\/(\d{1,2})\b/);
+  if (m) {
+    const mi = Number(m[1]) - 1;
+    const day = mi >= 0 &amp;&amp; mi &lt; 12 ? validDay(upcomingYear(mi, Number(m[2])), mi, Number(m[2])) : null;
+    if (!day) return { from: null, to: null, label: "", past, invalid: true };
+    return range(day, day, `on ${shortDate(day)}`);
+  }
+  // "Friday", "on thursday" (the next one, or today)
+  const weekday = WEEKDAYS.findIndex((w) => hasPhrase(text, w) || hasPhrase(text, `${w}s`));
+  if (weekday >= 0) {
+    const todayIndex = (new Date(`${today}T12:00:00Z`).getUTCDay() + 6) % 7;
+    const day = addDays(today, (weekday - todayIndex + 7) % 7);
+    const name = WEEKDAYS[weekday][0].toUpperCase() + WEEKDAYS[weekday].slice(1);
+    return range(day, day, `on ${name}, ${shortDate(day)}`);
+  }
+  // "December"
+  const month = MONTHS.findIndex((name) => hasPhrase(text, name));
+  if (month >= 0) {
+    const y = !past &amp;&amp; month &lt; Number(today.slice(5, 7)) - 1 ? year + 1 : year;
+    return range(`${y}-${String(month + 1).padStart(2, "0")}-01`, lastDayOfMonth(y, month), `in ${MONTHS[month][0].toUpperCase()}${MONTHS[month].slice(1)}`);
+  }
+  return { from: null, to: null, label: "", past, invalid: false };
+}
+
+// Morning, lunch, afternoon or evening as [from, to) minutes after midnight, or null.
+/**
+ * Interpret morning, lunch, afternoon, evening or tonight as a campus-time interval.
+ * @function parseTimeOfDay
+ * @memberof module:lib/assistant/query
+ * @static
+ * @param {string} text - Normalized text to inspect, except normalize itself accepts any string-coercible value.
+ * @returns {?Object} The interval name and from/to minutes after midnight, or null without a time filter.
+ */
+export function parseTimeOfDay(text) {
+  if (/\b(tonight|evening|evenings|night|nights|after dark)\b/.test(text)) return { name: "evening", from: 17 * 60, to: 24 * 60 };
+  if (/\b(lunch|lunchtime|noon|midday)\b/.test(text)) return { name: "around lunchtime", from: 11 * 60, to: 14 * 60 };
+  if (/\b(afternoon|afternoons)\b/.test(text)) return { name: "afternoon", from: 12 * 60, to: 17 * 60 };
+  if (/\b(morning|mornings|early)\b/.test(text)) return { name: "morning", from: 0, to: 12 * 60 };
+  return null;
+}
+
+// Categories named in the question, in the order they appear in CATEGORY_WORDS.
+/**
+ * Find recognized event category names and their synonyms in normalized question text.
+ * @function parseCategories
+ * @memberof module:lib/assistant/query
+ * @static
+ * @param {string} text - Normalized text to inspect, except normalize itself accepts any string-coercible value.
+ * @returns {Array&lt;string>} Matched category names in category-dictionary order.
+ */
+export function parseCategories(text) {
+  return Object.entries(CATEGORY_WORDS)
+    .filter(([, words]) => words.some((word) => hasPhrase(text, word)))
+    .map(([name]) => name);
+}
+
+// The building or venue a question names: { id, name } or null.
+//  - locations: [{ id, building_name }]
+// One-word names that are also topics ("Science", "Business") only count after
+// "at", "in", "inside" or "near", so "computer science events" isn't a place.
+/**
+ * Resolve a named building or alias, preferring longer matches and avoiding ambiguous topic words.
+ * @function parseLocation
+ * @memberof module:lib/assistant/query
+ * @static
+ * @param {string} text - Normalized text to inspect, except normalize itself accepts any string-coercible value.
+ * @param {Array&lt;Object>} locations - Location records with id and building_name.
+ * @returns {?Object} The matching location id, name and phrase, or null.
+ */
+export function parseLocation(text, locations) {
+  const byName = new Map(locations.map((l) => [normalize(l.building_name), l]));
+  const candidates = [
+    ...locations.map((l) => [normalize(l.building_name), l]),
+    ...Object.entries(PLACE_ALIASES).map(([alias, name]) => [alias, byName.get(normalize(name))]),
+  ].filter(([, l]) => l);
+  const found = candidates
+    .filter(([phrase]) => {
+      if (!phrase) return false;
+      if (phrase.includes(" ")) return hasPhrase(text, phrase);
+      return new RegExp(`\\b(at|in|inside|near|by) (the )?${phrase}\\b`).test(text);
+    })
+    .sort((a, b) => b[0].length - a[0].length)[0];
+  return found ? { id: found[1].id, name: found[1].building_name, phrase: found[0] } : null;
+}
+
+/**
+ * Classify a question as greeting, help, unsupported, compare, summary, details or find.
+ * @function parseIntent
+ * @memberof module:lib/assistant/query
+ * @static
+ * @param {string} text - Normalized text to inspect, except normalize itself accepts any string-coercible value.
+ * @param {Object} [options] - Query context.
+ * @param {Array&lt;string>} [options.titles] - Normalized event titles used to recognize details and summaries.
+ * @returns {string} The recognized intent; defaults to find.
+ */
+export function parseIntent(text, { titles = [] } = {}) {
+  if (/^(hi|hello|hey|hiya|good (morning|afternoon|evening)|whats up|how are you( doing)?)( allison)?$/.test(text)) return "greeting";
+  if (/\b(what can you do|how do you work|help me use|who are you)\b/.test(text) || text === "help") return "help";
+  if (/\b(weather|forecast|temperature|rain|homework|essay|stock|recipe)\b/.test(text) &amp;&amp; !/\bevents?\b/.test(text)) return "unsupported";
+  if (/\b(compare|comparison|versus|vs|difference between)\b/.test(text)) return "compare";
+  if (/\b(summarize|summary|summaries|overview|recap|tell me about|describe|explain|what is .+ about|whats .+ about|highlights)\b/.test(text)) return "summary";
+  if (titles.some((t) => t &amp;&amp; text.includes(t)) &amp;&amp; /\b(when|what time|where)\b/.test(text)) return "details";
+  return "find";
+}
+
+// Everything the question asks for. `today` is a day key in campus time.
+//  - locations: [{ id, building_name }]
+//  - titles:    normalized event titles (to tell "summarize X" from a topic search)
+/**
+ * Convert a natural-language event question into normalized intent, filters and topic terms.
+ * @function parseQuestion
+ * @memberof module:lib/assistant/query
+ * @static
+ * @param {string} question - Original natural-language question.
+ * @param {Object} options - Query context.
+ * @param {string} options.today - Reference campus date in YYYY-MM-DD format.
+ * @param {Array&lt;Object>} [options.locations] - Location records with id and building_name.
+ * @param {Array&lt;string>} [options.titles] - Normalized event titles used to recognize details and summaries.
+ * @returns {Object} The parsed text, intent, dates, timeOfDay, categories, admission, RSVP/accessibility flags, location, terms and topicCategories.
+ */
+export function parseQuestion(question, { today, locations = [], titles = [] }) {
+  const text = normalize(question);
+  const dates = parseDates(text, today);
+  const location = parseLocation(text, locations);
+
+  // Topic words: what's left after taking out filters, place and filler.
+  let rest = location ? without(text, location.phrase) : text;
+  rest = rest.replace(/\bweek of [a-z]+ \d{1,2}(st|nd|rd|th)?\b/g, " ")
+    .replace(/\b[a-z]+ \d{1,2}(st|nd|rd|th)?\b/g, (match) => (monthIndex(match.split(" ")[0]) >= 0 ? " " : match))
+    .replace(/\b\d{1,2}\/\d{1,2}\b/g, " ");
+  const categories = parseCategories(rest);
+  for (const name of categories) for (const word of CATEGORY_WORDS[name]) rest = without(rest, word);
+  // Two-word topics ("machine learning") stay together as one term.
+  const phrases = Object.keys(TOPIC_CATEGORY).filter((t) => t.includes(" ") &amp;&amp; hasPhrase(rest, t));
+  for (const phrase of phrases) rest = without(rest, phrase);
+  const terms = [...phrases, ...rest.split(" ")].filter((w) =>
+    w.length > 2 &amp;&amp; !FILLER.has(w) &amp;&amp; !/^\d+$/.test(w) &amp;&amp;
+    monthIndex(w) &lt; 0 &amp;&amp; !WEEKDAYS.includes(w) &amp;&amp; !WEEKDAYS.includes(w.replace(/s$/, "")),
+  );
+
+  return {
+    text,
+    intent: parseIntent(text, { titles }),
+    dates,
+    timeOfDay: parseTimeOfDay(text),
+    categories,
+    admission: /\bfree\b/.test(text) &amp;&amp; !/\bfree time\b/.test(text) ? "free"
+      : /\b(paid|ticketed|tickets?)\b/.test(text) ? "paid" : null,
+    dropIn: /\b(no rsvp|without (an )?rsvp|drop in|dropin|walk in)\b/.test(text),
+    wheelchair: /\b(wheelchair|accessible|accessibility)\b/.test(text),
+    asl: /\b(asl|sign language|interpreter|interpreted)\b/.test(text),
+    location,
+    terms: [...new Set(terms)],
+    // Categories the topic words belong to, used only if no event mentions them.
+    topicCategories: [...new Set(terms.map(topicCategory).filter(Boolean))],
+  };
+}
+
+// Does an event match the question's filters (everything but topic words)?
+//  - categoryNames: the event's category names
+/**
+ * Check time, category, cost, RSVP, accessibility and location constraints for an event.
+ * @function matchesFilters
+ * @memberof module:lib/assistant/query
+ * @static
+ * @param {Object} event - Event record with start/end timestamps and applicable display/filter fields.
+ * @param {Object} q - Parsed query returned by parseQuestion.
+ * @param {Array&lt;string>} categoryNames - Category names associated with this event.
+ * @param {Date} [now] - Reference instant used to distinguish upcoming from past events.
+ * @returns {boolean} Whether the event satisfies the parsed filters, excluding topic-word ranking.
+ */
+export function matchesFilters(event, q, categoryNames, now = new Date()) {
+  const start = toPacific(event.start_date_time);
+  const end = new Date(event.end_date_time);
+  // Past questions only show events that are over; everything else only
+  // shows events that haven't ended (today shows what's left of today).
+  if (q.dates.past ? end >= now : end &lt;= now) return false;
+  if (q.dates.from &amp;&amp; (start.day &lt; q.dates.from || start.day > q.dates.to)) return false;
+  if (q.timeOfDay &amp;&amp; (start.minutes &lt; q.timeOfDay.from || start.minutes >= q.timeOfDay.to)) return false;
+  if (q.categories.length &amp;&amp; !q.categories.some((name) => categoryNames.includes(name))) return false;
+  if (q.admission &amp;&amp; event.admission_type !== q.admission) return false;
+  if (q.dropIn &amp;&amp; event.rsvp_required) return false;
+  if (q.wheelchair &amp;&amp; !event.wheelchair_accessible) return false;
+  if (q.asl &amp;&amp; !event.asl_available) return false;
+  if (q.location &amp;&amp; event.location_id !== q.location.id &amp;&amp;
+    !normalize(event.room_number).includes(normalize(q.location.name))) return false;
+  return true;
+}
+
+// How well an event matches the topic words (0 = not at all).
+/**
+ * Score topic matches, giving event-title matches more weight than description or room matches.
+ * @function topicScore
+ * @memberof module:lib/assistant/query
+ * @static
+ * @param {Object} event - Event record with start/end timestamps and applicable display/filter fields.
+ * @param {Array&lt;string>} terms - Topic words or phrases to match or display.
+ * @returns {number} The accumulated match score, or zero without a matching topic.
+ */
+export function topicScore(event, terms) {
+  const title = normalize(event.title);
+  const body = `${normalize(event.description)} ${normalize(event.room_number)}`;
+  let score = 0;
+  for (const term of terms) {
+    const forms = [term, term.replace(/(ies|es|s)$/, ""), `${term}s`].filter((f) => f.length > 2);
+    if (forms.some((f) => hasPhrase(title, f))) score += 5;
+    else if (forms.some((f) => hasPhrase(body, f))) score += 1;
+  }
+  return score;
+}
+
+// The category of a topic word ("concerts" -> Arts), or null.
+function topicCategory(term) {
+  return TOPIC_CATEGORY[term] ?? TOPIC_CATEGORY[term.replace(/(ies|es|s)$/, "")] ?? TOPIC_CATEGORY[term.replace(/s$/, "")] ?? null;
+}
+
+// The events that answer the question, best first:
+// { events, ignoredTerms, usedCategories } — if no event mentions the topic
+// words, the search falls back to their categories ("yoga" -> Health &amp;
+// Wellness, usedCategories lists them) or, failing that, drops the words
+// (ignoredTerms lists them) so the student still sees events that fit the
+// rest of the question.
+//  - categoryNamesFor: (event) => [category names]
+/**
+ * Filter and rank events; fall back to related categories or explain ignored topic terms when needed.
+ * @function findEvents
+ * @memberof module:lib/assistant/query
+ * @static
+ * @param {Array&lt;Object>} allEvents - Candidate published event records.
+ * @param {Object} q - Parsed query returned by parseQuestion.
+ * @param {function} categoryNamesFor - Callback returning category names for an event.
+ * @param {Date} [now] - Reference instant used to distinguish upcoming from past events.
+ * @returns {Object} An events array plus ignoredTerms and usedCategories identifying fallback behavior.
+ */
+export function findEvents(allEvents, q, categoryNamesFor, now = new Date()) {
+  const filtered = allEvents.filter((e) => matchesFilters(e, q, categoryNamesFor(e), now));
+  const byTime = (a, b) => (q.dates.past
+    ? Date.parse(b.start_date_time) - Date.parse(a.start_date_time)
+    : Date.parse(a.start_date_time) - Date.parse(b.start_date_time));
+  if (!q.terms.length) return { events: filtered.sort(byTime), ignoredTerms: [], usedCategories: [] };
+
+  const scored = filtered
+    .map((event) => ({ event, score: topicScore(event, q.terms) }))
+    .filter((x) => x.score > 0)
+    .sort((a, b) => b.score - a.score || byTime(a.event, b.event));
+  if (scored.length) return { events: scored.map((x) => x.event), ignoredTerms: [], usedCategories: [] };
+
+  const related = (q.topicCategories ?? []);
+  if (related.length) {
+    const inCategory = filtered.filter((e) => related.some((name) => categoryNamesFor(e).includes(name)));
+    if (inCategory.length) return { events: inCategory.sort(byTime), ignoredTerms: q.terms, usedCategories: related };
+  }
+  return { events: filtered.sort(byTime), ignoredTerms: q.terms, usedCategories: [] };
+}
+
+// Did the question ask for anything specific (so an empty search means
+// "nothing matches" rather than "I don't understand")?
+/**
+ * Check whether a parsed question contains a concrete filter rather than topic words alone.
+ * @function hasFilters
+ * @memberof module:lib/assistant/query
+ * @static
+ * @param {Object} q - Parsed query returned by parseQuestion.
+ * @returns {boolean} Whether any date, time, category, admission, RSVP, accessibility or location filter is present.
+ */
+export function hasFilters(q) {
+  return Boolean(q.dates.from || q.dates.past || q.timeOfDay || q.categories.length || q.admission ||
+    q.dropIn || q.wheelchair || q.asl || q.location);
+}
+
+// A readable description of the filters, e.g. "free technology events this week in the evening".
+//  - terms: topic words to mention ("events about \"jazz\""), if they were used
+/**
+ * Build a readable description of the event filters and optional topic terms.
+ * @function describeQuery
+ * @memberof module:lib/assistant/query
+ * @static
+ * @param {Object} q - Parsed query returned by parseQuestion.
+ * @param {Array&lt;string>} [terms] - Topic words or phrases to match or display.
+ * @returns {string} A phrase describing the selected event criteria.
+ */
+export function describeQuery(q, terms = []) {
+  const kinds = q.categories.length ? q.categories.map((c) => c.toLowerCase()).join(" or ") + " " : "";
+  const words = [q.admission === "free" ? "free" : q.admission === "paid" ? "paid" : "", kinds + "events"]
+    .filter(Boolean).join(" ");
+  const parts = [words];
+  if (terms.length) parts.push(`about "${terms.join(" ")}"`);
+  if (q.location) parts.push(`at ${q.location.name}`);
+  if (q.dates.label) parts.push(q.dates.label);
+  else if (q.dates.past) parts.push("that already happened");
+  if (q.timeOfDay) parts.push(q.timeOfDay.name === "around lunchtime" ? "around lunchtime" : `in the ${q.timeOfDay.name}`);
+  const extras = [q.dropIn &amp;&amp; "no RSVP needed", q.wheelchair &amp;&amp; "wheelchair accessible", q.asl &amp;&amp; "with ASL"]
+    .filter(Boolean);
+  if (extras.length) parts.push(`(${extras.join(", ")})`);
+  return parts.join(" ");
+}
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-app_api_assistant_route.html">app/api/assistant/route</a></li><li><a href="module-app_api_events_eventId_route.html">app/api/events/eventId/route</a></li><li><a href="module-app_api_events_eventId_rsvps_me_route.html">app/api/events/eventId/rsvps/me/route</a></li><li><a href="module-app_api_events_eventId_saved_route.html">app/api/events/eventId/saved/route</a></li><li><a href="module-app_api_events_for-you_route.html">app/api/events/for-you/route</a></li><li><a href="module-app_api_events_route.html">app/api/events/route</a></li><li><a href="module-app_api_host_events_eventId_publish_route.html">app/api/host/events/eventId/publish/route</a></li><li><a href="module-app_api_host_events_eventId_route.html">app/api/host/events/eventId/route</a></li><li><a href="module-app_api_host_events_route.html">app/api/host/events/route</a></li><li><a href="module-app_api_locations_locationId_events_route.html">app/api/locations/locationId/events/route</a></li><li><a href="module-app_api_locations_locationId_route.html">app/api/locations/locationId/route</a></li><li><a href="module-app_api_locations_route.html">app/api/locations/route</a></li><li><a href="module-app_api_rooms_roomId_3d-model_route.html">app/api/rooms/roomId/3d-model/route</a></li><li><a href="module-app_api_rooms_roomId_info_route.html">app/api/rooms/roomId/info/route</a></li><li><a href="module-app_api_users_me_interests_route.html">app/api/users/me/interests/route</a></li><li><a href="module-app_api_users_me_schedule_route.html">app/api/users/me/schedule/route</a></li><li><a href="module-app_api_users_me_schedule_scan_route.html">app/api/users/me/schedule/scan/route</a></li><li><a href="module-app_page.html">app/page</a></li><li><a href="module-app_platform_error.html">app/platform/error</a></li><li><a href="module-app_platform_events_eventId_page.html">app/platform/events/eventId/page</a></li><li><a href="module-app_platform_events_for-you_page.html">app/platform/events/for-you/page</a></li><li><a href="module-app_platform_events_page.html">app/platform/events/page</a></li><li><a href="module-app_platform_host_events_eventId_edit_page.html">app/platform/host/events/eventId/edit/page</a></li><li><a href="module-app_platform_host_events_eventId_preview_page.html">app/platform/host/events/eventId/preview/page</a></li><li><a href="module-app_platform_host_events_new_page.html">app/platform/host/events/new/page</a></li><li><a href="module-app_platform_host_events_page.html">app/platform/host/events/page</a></li><li><a href="module-app_platform_interests_page.html">app/platform/interests/page</a></li><li><a href="module-app_platform_layout.html">app/platform/layout</a></li><li><a href="module-app_platform_loading.html">app/platform/loading</a></li><li><a href="module-app_platform_login_page.html">app/platform/login/page</a></li><li><a href="module-app_platform_map_page.html">app/platform/map/page</a></li><li><a href="module-app_platform_rooms_roomId_3d_page.html">app/platform/rooms/roomId/3d/page</a></li><li><a href="module-app_platform_rooms_roomId_splat_page.html">app/platform/rooms/roomId/splat/page</a></li><li><a href="module-app_rooms_roomId_embed_page.html">app/rooms/roomId/embed/page</a></li><li><a href="module-components_assistant_AssistantChat.html">components/assistant/AssistantChat</a></li><li><a href="module-components_gatoraid_EventDetails.html">components/gatoraid/EventDetails</a></li><li><a href="module-components_gatoraid_EventForm.html">components/gatoraid/EventForm</a></li><li><a href="module-components_gatoraid_EventSearch.html">components/gatoraid/EventSearch</a></li><li><a href="module-components_gatoraid_EventTable.html">components/gatoraid/EventTable</a></li><li><a href="module-components_gatoraid_PublishBar.html">components/gatoraid/PublishBar</a></li><li><a href="module-components_gatoraid_Shell.html">components/gatoraid/Shell</a></li><li><a href="module-components_gatoraid_SiteHeader.html">components/gatoraid/SiteHeader</a></li><li><a href="module-components_home_HomeMap.html">components/home/HomeMap</a></li><li><a href="module-components_home_RoomPreview.html">components/home/RoomPreview</a></li><li><a href="module-components_map_EventPlacePreview.html">components/map/EventPlacePreview</a></li><li><a href="module-components_map_Map.html">components/map/Map</a></li><li><a href="module-components_map_MapEventActions.html">components/map/MapEventActions</a></li><li><a href="module-components_map_MapEventDetail.html">components/map/MapEventDetail</a></li><li><a href="module-components_map_MapExplorer.html">components/map/MapExplorer</a></li><li><a href="module-components_map_MapQuickActions.html">components/map/MapQuickActions</a></li><li><a href="module-components_map_MapSidePanel.html">components/map/MapSidePanel</a></li><li><a href="module-components_password_password-strength.html">components/password/password-strength</a></li><li><a href="module-components_rooms_RoomScansCard.html">components/rooms/RoomScansCard</a></li><li><a href="module-components_rooms_RoomViewer3D.html">components/rooms/RoomViewer3D</a></li><li><a href="module-components_rooms_SplatCanvas.html">components/rooms/SplatCanvas</a></li><li><a href="module-components_schedule_ScheduleUploader.html">components/schedule/ScheduleUploader</a></li><li><a href="module-components_student_DataState.html">components/student/DataState</a></li><li><a href="module-components_student_EventActions.html">components/student/EventActions</a></li><li><a href="module-components_student_Interests.html">components/student/Interests</a></li><li><a href="module-components_student_ScheduleConflict.html">components/student/ScheduleConflict</a></li><li><a href="module-components_student_StudentEvents.html">components/student/StudentEvents</a></li><li><a href="module-components_student_useStudentData.html">components/student/useStudentData</a></li><li><a href="module-lib_assistant_grid.html">lib/assistant/grid</a></li><li><a href="module-lib_assistant_personalize.html">lib/assistant/personalize</a></li><li><a href="module-lib_assistant_query.html">lib/assistant/query</a></li><li><a href="module-lib_auth_auth.html">lib/auth/auth</a></li><li><a href="module-lib_events_accessibility.html">lib/events/accessibility</a></li><li><a href="module-lib_events_api.html">lib/events/api</a></li><li><a href="module-lib_events_attendance.html">lib/events/attendance</a></li><li><a href="module-lib_events_banner.html">lib/events/banner</a></li><li><a href="module-lib_events_details.html">lib/events/details</a></li><li><a href="module-lib_events_engagement.html">lib/events/engagement</a></li><li><a href="module-lib_events_page-data.html">lib/events/page-data</a></li><li><a href="module-lib_events_request-origin.html">lib/events/request-origin</a></li><li><a href="module-lib_events_search.html">lib/events/search</a></li><li><a href="module-lib_events_sort.html">lib/events/sort</a></li><li><a href="module-lib_events_time.html">lib/events/time</a></li><li><a href="module-lib_events_validation.html">lib/events/validation</a></li><li><a href="module-lib_home_home.html">lib/home/home</a></li><li><a href="module-lib_map_events.html">lib/map/events</a></li><li><a href="module-lib_map_page-data.html">lib/map/page-data</a></li><li><a href="module-lib_map_places.html">lib/map/places</a></li><li><a href="module-lib_map_view.html">lib/map/view</a></li><li><a href="module-lib_password_password-validation.html">lib/password/password-validation</a></li><li><a href="module-lib_rooms_model.html">lib/rooms/model</a></li><li><a href="module-lib_rooms_splat-view.html">lib/rooms/splat-view</a></li><li><a href="module-lib_schedule_conflicts.html">lib/schedule/conflicts</a></li><li><a href="module-lib_schedule_entries.html">lib/schedule/entries</a></li><li><a href="module-lib_student_api.html">lib/student/api</a></li><li><a href="module-lib_student_empty-state.html">lib/student/empty-state</a></li><li><a href="module-lib_student_validation.html">lib/student/validation</a></li></ul><h3>Classes</h3><ul><li><a href="module-lib_events_api.ApiError.html">ApiError</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.5</a>
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

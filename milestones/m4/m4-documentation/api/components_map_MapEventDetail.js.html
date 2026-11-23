@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: components/map/MapEventDetail.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: components/map/MapEventDetail.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/**
+ * Public interfaces supporting R6.2.
+ * @module components/map/MapEventDetail
+ */
+/*
+ * components/map/MapEventDetail.js
+ *
+ * PURPOSE:
+ * The event detail view inside the map's side panel. It opens when someone
+ * clicks an event in a building's list and shows the same information as the
+ * full event page (components/gatoraid/EventDetails.js), sized for the panel:
+ * cover, categories, date and time, location and room, audience,
+ * accessibility, host and contact email, description, admission, and the
+ * Save / RSVP buttons (MapEventActions.js).
+ *
+ */
+
+"use client";
+
+import { useEffect, useRef } from "react";
+import Image from "next/image";
+import Link from "next/link";
+import {
+  Accessibility,
+  ArrowRight,
+  CalendarDays,
+  ChevronLeft,
+  Clock,
+  Mail,
+  MapPin,
+  Users,
+} from "lucide-react";
+import { formatLongDate } from "@/lib/map/events";
+import MapEventActions from "@/components/map/MapEventActions";
+import DescriptionLinks from "@/components/gatoraid/DescriptionLinks";
+import { accessibilityText } from "@/lib/events/accessibility";
+import { bannerFor, bannerStyle } from "@/lib/events/banner";
+
+// Banner for an event without an uploaded cover: its first tag picks the colors
+// and icon, using the same rule as Explore events (lib/events/banner.js).
+/**
+ * Choose a category-based cover palette for the map event detail card.
+ * @function coverFor
+ * @memberof module:components/map/MapEventDetail
+ * @static
+ * @param {Object} event - Event record or display model used by this function.
+ * @returns {Object} The category cover palette for the event.
+ */
+export function coverFor(event) {
+  const banner = bannerFor(event.tags?.[0]);
+  return { Icon: banner.Icon, style: bannerStyle(banner) };
+}
+
+// "Oct" and "22" for the small date tile on the cover.
+function dateTile(date) {
+  const d = new Date(`${date}T12:00:00`);
+  return {
+    month: d.toLocaleDateString("en-US", { month: "short" }),
+    day: d.toLocaleDateString("en-US", { day: "numeric" }),
+  };
+}
+
+/**
+ * Render the selected map event's details, actions and related venue information.
+ * @function MapEventDetail
+ * @memberof module:components/map/MapEventDetail
+ * @static
+ * @param {Object} props - Component properties.
+ * @param {*} props.event - Event record to display.
+ * @param {*} props.placeName - The place name setting or callback.
+ * @param {*} props.backLabel - The back label setting or callback.
+ * @param {*} [props.isSample] - The is sample setting or callback.
+ * @param {function} props.onBack - The on back setting or callback.
+ * @returns {React.ReactElement} Rendered component tree.
+ */
+export default function MapEventDetail({
+  event,
+  placeName, // where the event is, e.g. "Jack Adams Hall" or "Burk Hall"
+  backLabel, // the building / room the list belongs to
+  isSample = false,
+  onBack,
+}) {
+  const headingRef = useRef(null);
+  const { Icon, style } = coverFor(event);
+  const tile = dateTile(event.date);
+
+  // Move keyboard / screen reader focus to the event title when it opens.
+  useEffect(() => {
+    headingRef.current?.focus();
+  }, [event.id]);
+
+  const facts = [
+    { Icon: CalendarDays, text: formatLongDate(event) },
+    {
+      Icon: Clock,
+      // Multi-day events: "4:48 PM – 4:48 PM" would be confusing, so say which is which.
+      text:
+        event.endDate &amp;&amp; event.endDate !== event.date
+          ? `Starts ${event.startTime} · Ends ${event.endTime} PT`
+          : `${event.startTime} – ${event.endTime} PT`,
+    },
+    {
+      Icon: MapPin,
+      text: `${placeName || "Campus location"}${event.roomNumber ? `, ${event.roomNumber}` : ""}`,
+      detail: event.locationDescription,
+    },
+    { Icon: Users, text: event.audience },
+    {
+      Icon: Accessibility,
+      text: accessibilityText({ wheelchair: event.wheelchairAccessible, asl: event.aslAvailable }),
+    },
+  ];
+
+  // We don't verify SFSU clubs yet, so events show the host's own name.
+  const hostName = event.hostName || "GatorAid organizer";
+  const mailto =
+    event.contactEmail &amp;&amp;
+    `mailto:${event.contactEmail}?subject=${encodeURIComponent(`Question about ${event.title}`)}`;
+
+  return (
+    &lt;article aria-labelledby="map-event-title">
+      &lt;button
+        type="button"
+        onClick={onBack}
+        className="-ml-1 flex items-center gap-1 rounded px-1 py-1 text-[13px] font-medium text-[#604398] hover:text-[#503581] focus-visible:outline-2 focus-visible:outline-[#604398]"
+      >
+        &lt;ChevronLeft size={16} aria-hidden="true" />
+        Back to {backLabel}
+      &lt;/button>
+
+      {/* Cover: the uploaded image, or a colored tile based on the category */}
+      &lt;div className="relative mt-3 grid h-36 place-items-center overflow-hidden rounded-[13px]" style={style}>
+        {event.coverUrl ? (
+          &lt;Image unoptimized fill src={event.coverUrl} alt={`Cover for ${event.title}`} className="object-cover" />
+        ) : (
+          &lt;Icon size={44} className="text-white/90" aria-hidden="true" />
+        )}
+        &lt;span className="absolute left-3 top-3 rounded-lg bg-white px-2.5 py-1 text-center text-[11px] font-semibold uppercase leading-tight text-[#604398] shadow-sm">
+          {tile.month}
+          &lt;span className="block text-[18px] text-[#262332]">{tile.day}&lt;/span>
+        &lt;/span>
+      &lt;/div>
+
+      {event.tags?.length > 0 &amp;&amp; (
+        &lt;div className="mt-3 flex flex-wrap gap-1.5">
+          {event.tags.map((tag) => (
+            &lt;span key={tag} className="rounded-md bg-[#f6f0fc] px-2 py-0.5 text-[11px] font-medium text-[#604398]">
+              {tag}
+            &lt;/span>
+          ))}
+        &lt;/div>
+      )}
+
+      &lt;h3
+        id="map-event-title"
+        ref={headingRef}
+        tabIndex={-1}
+        className="mt-2 text-[20px] font-bold leading-tight tracking-[-0.3px] text-[#262332] outline-none"
+      >
+        {event.title}
+      &lt;/h3>
+      {isSample &amp;&amp; &lt;p className="mt-1 text-[12px] text-[#777180]">Sample event&lt;/p>}
+
+      {/* Host right under the title; the email link opens a new message */}
+      &lt;div className="mt-3 flex items-center gap-3 rounded-[13px] bg-[#F5F1FA] p-3 text-[13px]">
+        &lt;span
+          className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-[#604398] text-[14px] font-semibold text-white"
+          aria-hidden="true"
+        >
+          {hostName[0].toUpperCase()}
+        &lt;/span>
+        &lt;div className="min-w-0">
+          &lt;p className="text-[#51475f]">
+            Hosted by &lt;span className="font-semibold text-[#262332]">{hostName}&lt;/span>
+            {event.hostedByYou &amp;&amp; " (you)"}
+          &lt;/p>
+          {mailto ? (
+            &lt;a
+              href={mailto}
+              className="flex items-center gap-1 break-all text-[12px] text-[#604398] underline underline-offset-2 hover:text-[#503581]"
+            >
+              &lt;Mail size={13} className="shrink-0" aria-hidden="true" />
+              {event.contactEmail}
+            &lt;/a>
+          ) : (
+            &lt;p className="text-[12px] text-[#777180]">No contact email listed&lt;/p>
+          )}
+        &lt;/div>
+      &lt;/div>
+
+      &lt;ul className="mt-4 space-y-2.5">
+        {facts.map(({ Icon: FactIcon, text, detail }) => (
+          &lt;li key={text} className="flex gap-2.5 text-[13px] text-[#51475f]">
+            &lt;FactIcon size={17} className="mt-px shrink-0 text-[#604398]" aria-hidden="true" />
+            &lt;span>
+              {text}
+              {detail &amp;&amp; &lt;span className="mt-0.5 block text-[12px] text-[#777180]">{detail}&lt;/span>}
+            &lt;/span>
+          &lt;/li>
+        ))}
+      &lt;/ul>
+
+      &lt;section className="mt-5">
+        &lt;h4 className="text-[14px] font-semibold text-[#262332]">About this event&lt;/h4>
+        &lt;p className="mt-1.5 whitespace-pre-line text-[13px] text-[#51475f]">&lt;DescriptionLinks text={event.description} />&lt;/p>
+      &lt;/section>
+
+      {/* Admission, capacity and the Save / Interested / Going buttons */}
+      &lt;section className="mt-5 rounded-[13px] border border-[#ebe7f0] bg-[#fbfafd] p-4">
+        &lt;p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[13px] text-[#51475f]">
+          &lt;span className="font-semibold text-[#262332]">
+            {event.admissionType === "paid" ? "Paid admission" : "Free admission"}
+          &lt;/span>
+          &lt;span aria-hidden="true">·&lt;/span>
+          &lt;span>
+            {event.capacity
+              ? event.attendingCount != null
+                ? `${Math.min(event.attendingCount, event.capacity)} of ${event.capacity} spots taken`
+                : `${event.capacity} spots`
+              : "Open capacity"}
+          &lt;/span>
+          &lt;span aria-hidden="true">·&lt;/span>
+          &lt;span>{event.rsvpRequired ? "RSVP required" : "No RSVP required"}&lt;/span>
+        &lt;/p>
+        {isSample ? (
+          &lt;p className="mt-2 text-[12px] text-[#777180]">This is a sample event, so saving and RSVP are turned off.&lt;/p>
+        ) : (
+          &lt;MapEventActions event={event} returnTo={`/map?place=${event.venueId ?? event.mapId}&amp;event=${event.id}`} />
+        )}
+      &lt;/section>
+
+      &lt;div className="mt-4 flex flex-wrap gap-2">
+        {!isSample &amp;&amp; (
+          &lt;Link
+            href={`/events/${event.id}`}
+            className="inline-flex items-center gap-1.5 rounded-full bg-[#604398] px-4 py-2 text-[13px] font-medium text-white hover:bg-[#503581] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#604398]"
+          >
+            View full event page
+            &lt;ArrowRight size={15} aria-hidden="true" />
+          &lt;/Link>
+        )}
+      &lt;/div>
+    &lt;/article>
+  );
+}
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-app_api_assistant_route.html">app/api/assistant/route</a></li><li><a href="module-app_api_events_eventId_route.html">app/api/events/eventId/route</a></li><li><a href="module-app_api_events_eventId_rsvps_me_route.html">app/api/events/eventId/rsvps/me/route</a></li><li><a href="module-app_api_events_eventId_saved_route.html">app/api/events/eventId/saved/route</a></li><li><a href="module-app_api_events_for-you_route.html">app/api/events/for-you/route</a></li><li><a href="module-app_api_events_route.html">app/api/events/route</a></li><li><a href="module-app_api_host_events_eventId_publish_route.html">app/api/host/events/eventId/publish/route</a></li><li><a href="module-app_api_host_events_eventId_route.html">app/api/host/events/eventId/route</a></li><li><a href="module-app_api_host_events_route.html">app/api/host/events/route</a></li><li><a href="module-app_api_locations_locationId_events_route.html">app/api/locations/locationId/events/route</a></li><li><a href="module-app_api_locations_locationId_route.html">app/api/locations/locationId/route</a></li><li><a href="module-app_api_locations_route.html">app/api/locations/route</a></li><li><a href="module-app_api_rooms_roomId_3d-model_route.html">app/api/rooms/roomId/3d-model/route</a></li><li><a href="module-app_api_rooms_roomId_info_route.html">app/api/rooms/roomId/info/route</a></li><li><a href="module-app_api_users_me_interests_route.html">app/api/users/me/interests/route</a></li><li><a href="module-app_api_users_me_schedule_route.html">app/api/users/me/schedule/route</a></li><li><a href="module-app_api_users_me_schedule_scan_route.html">app/api/users/me/schedule/scan/route</a></li><li><a href="module-app_page.html">app/page</a></li><li><a href="module-app_platform_error.html">app/platform/error</a></li><li><a href="module-app_platform_events_eventId_page.html">app/platform/events/eventId/page</a></li><li><a href="module-app_platform_events_for-you_page.html">app/platform/events/for-you/page</a></li><li><a href="module-app_platform_events_page.html">app/platform/events/page</a></li><li><a href="module-app_platform_host_events_eventId_edit_page.html">app/platform/host/events/eventId/edit/page</a></li><li><a href="module-app_platform_host_events_eventId_preview_page.html">app/platform/host/events/eventId/preview/page</a></li><li><a href="module-app_platform_host_events_new_page.html">app/platform/host/events/new/page</a></li><li><a href="module-app_platform_host_events_page.html">app/platform/host/events/page</a></li><li><a href="module-app_platform_interests_page.html">app/platform/interests/page</a></li><li><a href="module-app_platform_layout.html">app/platform/layout</a></li><li><a href="module-app_platform_loading.html">app/platform/loading</a></li><li><a href="module-app_platform_login_page.html">app/platform/login/page</a></li><li><a href="module-app_platform_map_page.html">app/platform/map/page</a></li><li><a href="module-app_platform_rooms_roomId_3d_page.html">app/platform/rooms/roomId/3d/page</a></li><li><a href="module-app_platform_rooms_roomId_splat_page.html">app/platform/rooms/roomId/splat/page</a></li><li><a href="module-app_rooms_roomId_embed_page.html">app/rooms/roomId/embed/page</a></li><li><a href="module-components_assistant_AssistantChat.html">components/assistant/AssistantChat</a></li><li><a href="module-components_gatoraid_EventDetails.html">components/gatoraid/EventDetails</a></li><li><a href="module-components_gatoraid_EventForm.html">components/gatoraid/EventForm</a></li><li><a href="module-components_gatoraid_EventSearch.html">components/gatoraid/EventSearch</a></li><li><a href="module-components_gatoraid_EventTable.html">components/gatoraid/EventTable</a></li><li><a href="module-components_gatoraid_PublishBar.html">components/gatoraid/PublishBar</a></li><li><a href="module-components_gatoraid_Shell.html">components/gatoraid/Shell</a></li><li><a href="module-components_gatoraid_SiteHeader.html">components/gatoraid/SiteHeader</a></li><li><a href="module-components_home_HomeMap.html">components/home/HomeMap</a></li><li><a href="module-components_home_RoomPreview.html">components/home/RoomPreview</a></li><li><a href="module-components_map_EventPlacePreview.html">components/map/EventPlacePreview</a></li><li><a href="module-components_map_Map.html">components/map/Map</a></li><li><a href="module-components_map_MapEventActions.html">components/map/MapEventActions</a></li><li><a href="module-components_map_MapEventDetail.html">components/map/MapEventDetail</a></li><li><a href="module-components_map_MapExplorer.html">components/map/MapExplorer</a></li><li><a href="module-components_map_MapQuickActions.html">components/map/MapQuickActions</a></li><li><a href="module-components_map_MapSidePanel.html">components/map/MapSidePanel</a></li><li><a href="module-components_password_password-strength.html">components/password/password-strength</a></li><li><a href="module-components_rooms_RoomScansCard.html">components/rooms/RoomScansCard</a></li><li><a href="module-components_rooms_RoomViewer3D.html">components/rooms/RoomViewer3D</a></li><li><a href="module-components_rooms_SplatCanvas.html">components/rooms/SplatCanvas</a></li><li><a href="module-components_schedule_ScheduleUploader.html">components/schedule/ScheduleUploader</a></li><li><a href="module-components_student_DataState.html">components/student/DataState</a></li><li><a href="module-components_student_EventActions.html">components/student/EventActions</a></li><li><a href="module-components_student_Interests.html">components/student/Interests</a></li><li><a href="module-components_student_ScheduleConflict.html">components/student/ScheduleConflict</a></li><li><a href="module-components_student_StudentEvents.html">components/student/StudentEvents</a></li><li><a href="module-components_student_useStudentData.html">components/student/useStudentData</a></li><li><a href="module-lib_assistant_grid.html">lib/assistant/grid</a></li><li><a href="module-lib_assistant_personalize.html">lib/assistant/personalize</a></li><li><a href="module-lib_assistant_query.html">lib/assistant/query</a></li><li><a href="module-lib_auth_auth.html">lib/auth/auth</a></li><li><a href="module-lib_events_accessibility.html">lib/events/accessibility</a></li><li><a href="module-lib_events_api.html">lib/events/api</a></li><li><a href="module-lib_events_attendance.html">lib/events/attendance</a></li><li><a href="module-lib_events_banner.html">lib/events/banner</a></li><li><a href="module-lib_events_details.html">lib/events/details</a></li><li><a href="module-lib_events_engagement.html">lib/events/engagement</a></li><li><a href="module-lib_events_page-data.html">lib/events/page-data</a></li><li><a href="module-lib_events_request-origin.html">lib/events/request-origin</a></li><li><a href="module-lib_events_search.html">lib/events/search</a></li><li><a href="module-lib_events_sort.html">lib/events/sort</a></li><li><a href="module-lib_events_time.html">lib/events/time</a></li><li><a href="module-lib_events_validation.html">lib/events/validation</a></li><li><a href="module-lib_home_home.html">lib/home/home</a></li><li><a href="module-lib_map_events.html">lib/map/events</a></li><li><a href="module-lib_map_page-data.html">lib/map/page-data</a></li><li><a href="module-lib_map_places.html">lib/map/places</a></li><li><a href="module-lib_map_view.html">lib/map/view</a></li><li><a href="module-lib_password_password-validation.html">lib/password/password-validation</a></li><li><a href="module-lib_rooms_model.html">lib/rooms/model</a></li><li><a href="module-lib_rooms_splat-view.html">lib/rooms/splat-view</a></li><li><a href="module-lib_schedule_conflicts.html">lib/schedule/conflicts</a></li><li><a href="module-lib_schedule_entries.html">lib/schedule/entries</a></li><li><a href="module-lib_student_api.html">lib/student/api</a></li><li><a href="module-lib_student_empty-state.html">lib/student/empty-state</a></li><li><a href="module-lib_student_validation.html">lib/student/validation</a></li></ul><h3>Classes</h3><ul><li><a href="module-lib_events_api.ApiError.html">ApiError</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.5</a>
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>
