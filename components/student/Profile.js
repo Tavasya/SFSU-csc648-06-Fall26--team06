@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState, useSyncExternalStore } from "react";
 import { Moon, Sun, UserRound } from "lucide-react";
-import { ACADEMIC_YEARS, GENDERS, AVATAR_COLORS } from "@/lib/student/profile";
+import { ACADEMIC_YEARS, GENDERS, AVATAR_COLORS, AVATAR_PRESENTATIONS } from "@/lib/student/profile";
 import { studentRequest, useStudentData } from "./useStudentData";
 import DataState from "./DataState";
 import Interests from "./Interests";
@@ -75,15 +75,37 @@ function ProfileForm({ data }) {
         </div>
       </fieldset>
       <fieldset disabled={busy} className="ga-card profile-avatar-settings">
-        <legend>Avatar colors</legend>
-        <p className="ga-muted">Choose colors for your avatar. Save your profile to keep them.</p>
-        <AvatarPreview skin={profile.avatar_skin_color} hair={profile.avatar_hair_color} shirt={profile.avatar_shirt_color} />
-        {[["avatar_skin_color", "Skin color", ["Light", "Medium", "Tan", "Deep"]], ["avatar_hair_color", "Hair color", ["Black", "Brown", "Light brown", "Blonde", "Red", "Gray"]], ["avatar_shirt_color", "Shirt color", ["Purple", "Blue", "Green", "Red", "Gold"]]].map(([field, label, names]) => <label className="avatar-color-field" key={field}>
-          {label}<select value={profile[field]} onChange={(e) => change(field, e.target.value)}>
-            {AVATAR_COLORS[field].map((color, index) => <option key={color} value={color}>{names[index]}</option>)}
-          </select>
-        </label>)}
-        <label className="profile-check"><span><strong>Connect with event attendees</strong><small className="ga-muted">Show your name, academic details, interests, and avatar to other opted-in attendees when you RSVP attending. They can message you about that event.</small></span>
+        <legend>Create your 3D avatar</legend>
+        <p className="ga-muted">Make your avatar your own. Save your profile to keep your choices.</p>
+        <div className="avatar-customizer">
+          <div className="avatar-stage"><span className="avatar-stage-caption">Live preview · drag to rotate</span>
+            <AvatarPreview skin={profile.avatar_skin_color} hair={profile.avatar_hair_color} shirt={profile.avatar_shirt_color} presentation={profile.avatar_presentation} />
+          </div>
+          <div className="avatar-options">
+            <fieldset className="avatar-option-group"><legend>Gender presentation</legend>
+              <p className="ga-muted">Sets your avatar&apos;s body shape. You can change it anytime.</p>
+              <div className="avatar-segments">{AVATAR_PRESENTATIONS.map((value) => <label key={value}>
+                <input type="radio" name="avatar_presentation" value={value} checked={profile.avatar_presentation === value} onChange={() => change("avatar_presentation", value)} />
+                <span>{value}</span></label>)}</div>
+            </fieldset>
+            {[["avatar_skin_color", "Skin tone", ["Light porcelain", "Light", "Medium", "Tan", "Brown", "Deep brown"]],
+              ["avatar_hair_color", "Hair color", ["Black", "Brown", "Light brown", "Blonde", "Purple"]],
+              ["avatar_shirt_color", "Outfit color", ["Purple", "Gold", "Blue", "Green", "Red", "Black"]]].map(([field, label, names]) => {
+                // Keep a previously saved color selectable even if it predates the Figma palette.
+                const colors = AVATAR_COLORS[field].includes(profile[field]) ? AVATAR_COLORS[field] : [profile[field], ...AVATAR_COLORS[field]];
+                return <fieldset className="avatar-option-group" key={field}><legend>{label}</legend>
+                  {field === "avatar_shirt_color" && <p className="ga-muted">Purple &amp; gold = SF State colors.</p>}
+                  <div className="avatar-swatches">{colors.map((color) => {
+                    const index = AVATAR_COLORS[field].indexOf(color);
+                    const name = index < 0 ? "Previously selected color" : names[index];
+                    return <label className="avatar-swatch" key={color} title={name}>
+                      <input type="radio" name={field} value={color} aria-label={`${label}: ${name}`} checked={profile[field] === color} onChange={() => change(field, color)} />
+                      <span style={{ "--swatch-color": color }} aria-hidden="true" /></label>;
+                  })}</div></fieldset>;
+              })}
+          </div>
+        </div>
+        <label className="profile-check"><span><strong>Connect with event attendees</strong><small className="ga-muted">Show your name, academic details, interests, and avatar to other opted-in attendees when you RSVP attending. Messaging is coming soon.</small></span>
           <input type="checkbox" checked={profile.attendee_visible} onChange={(event) => change("attendee_visible", event.target.checked)} /></label>
       </fieldset>
       <fieldset disabled={busy} className="ga-card profile-notifications" id="notifications">

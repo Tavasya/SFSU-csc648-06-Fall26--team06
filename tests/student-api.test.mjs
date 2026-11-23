@@ -25,6 +25,7 @@ const rsvp = await import("../app/api/events/[eventId]/rsvps/me/route.js");
 const interests = await import("../app/api/users/me/interests/route.js");
 const recommended = await import("../app/api/events/for-you/route.js");
 const profile = await import("../app/api/users/me/profile/route.js");
+const attendance = await import("../app/api/events/[eventId]/attendance/route.js");
 const id = "123e4567-e89b-42d3-a456-426614174001";
 const category = "123e4567-e89b-42d3-a456-426614174002";
 const context = { params: Promise.resolve({ eventId: id }) };
@@ -33,7 +34,7 @@ function database() {
   const tables = {
     events: [{ id, category_ids: [category], publication_status: "published", status: "active", end_date_time: "2099-01-01T00:00:00Z" }],
     categories: [{ id: category, name: "Technology" }],
-    student_preferences: [], student_profiles: [], saved_events: [], event_rsvps: [],
+    student_preferences: [], student_profiles: [], saved_events: [], event_rsvps: [], attended_events: [],
   };
   const db = {
     user: { id: "student-one" }, tables,
@@ -87,6 +88,24 @@ function request(method = "GET", input, origin = "http://localhost") {
     ...(input === undefined ? {} : { body: JSON.stringify(input) }),
   });
 }
+test("attendance is self-reported only for past non-cancelled events and stays separate per user", async () => {
+  const db = database();
+  assert.equal((await attendance.PUT(request("PUT"), context)).status, 422);
+  db.tables.events[0].end_date_time = "2020-01-01T00:00:00Z";
+  db.tables.events[0].status = "cancelled";
+  assert.equal((await attendance.PUT(request("PUT"), context)).status, 422);
+  db.tables.events[0].status = "completed";
+  assert.equal((await attendance.PUT(request("PUT"), context)).status, 200);
+  assert.equal((await attendance.PUT(request("PUT"), context)).status, 200);
+  assert.equal(db.tables.attended_events.length, 1);
+  db.user = { id: "student-two" };
+  assert.equal((await (await attendance.GET(request(), context)).json()).attended, false);
+  assert.equal((await attendance.DELETE(request("DELETE"), context)).status, 200);
+  assert.equal(db.tables.attended_events.length, 1);
+  assert.equal((await attendance.PUT(request("PUT", undefined, "https://other.example"), context)).status, 403);
+  db.user = null;
+  assert.equal((await attendance.GET(request(), context)).status, 401);
+});
 test("student endpoints reject anonymous users and foreign mutation origins", async () => {
   const db = database();
   db.user = null;
@@ -123,6 +142,17 @@ test("profiles persist only validated fields for the authenticated account", asy
   db.user = null;
   assert.equal((await profile.GET(request())).status, 401);
   assert.equal((await profile.PUT(request("PUT", input))).status, 401);
+});
+test("avatar choices save Figma colors and presentation while preserving older colors", async () => {
+  const db = database();
+  const input = { display_name: "Alex", academic_year: "", major: "", gender: "",
+    notify_cancellations: false, notify_updates: false, notify_reminders: false,
+    avatar_skin_color: "#f6d7c3", avatar_hair_color: "#7858ba", avatar_shirt_color: "#e8ac0a", avatar_presentation: "Feminine" };
+  assert.equal((await profile.PUT(request("PUT", input))).status, 200);
+  assert.equal(db.tables.student_profiles[0].avatar_presentation, "Feminine");
+  assert.equal(db.tables.student_profiles[0].avatar_hair_color, "#7858ba");
+  assert.equal((await profile.PUT(request("PUT", { ...input, avatar_presentation: "invalid" }))).status, 422);
+  assert.equal((await profile.PUT(request("PUT", { ...input, avatar_hair_color: "#563527" }))).status, 200);
 });
 test("repeat saves and RSVPs persist one row, independently and per authenticated user", async () => {
   const db = database();

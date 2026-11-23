@@ -6,12 +6,13 @@ import { canAttend, RSVP_STATUSES } from "@/lib/student/validation";
 import { useScheduleConflict } from "./ScheduleConflict";
 
 const labels = { attending: "Attending", interested: "Interested", not_attending: "Not Attending" };
-export default function EventActions({ event }) {
+export default function EventActions({ event, past = false }) {
   const [data, setData] = useState(null);
   const [error, setError] = useState(null);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
   const [attempt, setAttempt] = useState(0);
+  const [attended, setAttended] = useState(null);
   const { confirmGoing, dialog } = useScheduleConflict();
   const base = `/api/events/${event.id}`;
   useEffect(() => {
@@ -23,6 +24,23 @@ export default function EventActions({ event }) {
       .catch((error) => { if (!controller.signal.aborted) setError(error); });
     return () => controller.abort();
   }, [base, attempt]);
+  useEffect(() => {
+    if (!past) return;
+    const controller = new AbortController();
+    studentRequest(`${base}/attendance`, { signal: controller.signal })
+      .then((result) => setAttended(result.attended))
+      .catch(() => { if (!controller.signal.aborted) setAttended(null); });
+    return () => controller.abort();
+  }, [base, past]);
+  async function changeAttendance() {
+    setBusy(true); setError(null);
+    try {
+      const result = await studentRequest(`${base}/attendance`, { method: attended ? "DELETE" : "PUT" });
+      setAttended(result.attended);
+      setMessage(result.attended ? "Added to attended events." : "Removed from attended events.");
+    } catch (error) { setError(error); }
+    finally { setBusy(false); }
+  }
   async function change(url, method, body) {
     setBusy(true); setMessage(""); setError(null);
     try {
@@ -75,6 +93,8 @@ export default function EventActions({ event }) {
       </div>
     </fieldset>
     {!available && <p>This event is cancelled or completed. New attending RSVPs are closed.</p>}
+    {past && attended !== null && <button type="button" className="ga-button secondary" disabled={busy} aria-pressed={attended} onClick={changeAttendance}>
+      {attended ? "Remove from attended events" : "Mark as attended"}</button>}
     {data.rsvp?.status === "attending" && available && <Link href={`/events/${event.id}/connections`} className="ga-button secondary">Connect with attendees</Link>}
     {available && full && <p role="status">RSVP capacity has been reached. You can still save the event or mark yourself interested.</p>}
     <p className="ga-muted ga-small">Saving and RSVPing are separate. An RSVP does not complete any external registration required by the organizer.</p>

@@ -12,8 +12,9 @@ import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import SplatCanvas from "@/components/rooms/SplatCanvas";
 import { isSplatModel, roomModelUrl } from "@/lib/rooms/model";
+import { isUuid } from "@/lib/student/validation";
 
-export default async function Page({ params }) {
+export default async function Page({ params, searchParams }) {
   const { roomId } = await params;
   const db = await createClient();
   const { data: room, error } = await db
@@ -23,6 +24,7 @@ export default async function Page({ params }) {
     .maybeSingle();
   if (error || !room?.has_3d_view) notFound();
   if (!isSplatModel(room.model_view_path)) redirect(`/rooms/${room.id}/3d`);
+  const event = (await searchParams)?.event;
 
   const scanned = room.scan_date
     ? new Date(`${room.scan_date}T12:00:00`).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
@@ -42,6 +44,7 @@ export default async function Page({ params }) {
         <SplatCanvas
           url={roomModelUrl(process.env.NEXT_PUBLIC_SUPABASE_URL, room.model_view_path)}
           label={`3D scan of ${room.room_name || "room"}`}
+          eventId={isUuid(event) ? event : null}
         />
       </div>
     </div>

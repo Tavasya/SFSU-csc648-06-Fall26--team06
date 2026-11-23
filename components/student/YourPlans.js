@@ -25,17 +25,19 @@ const TABS = [
   { id: "interested", label: "Interested", test: (p) => p.rsvp === "interested" },
   { id: "saved", label: "Saved", test: (p) => p.saved },
   { id: "history", label: "RSVP history", test: (p) => Boolean(p.rsvp) && (p.event.status === "cancelled" || new Date(p.event.end_date_time).getTime() < Date.now()) },
+  { id: "attended", label: "Attended", test: (p) => p.attended },
   { id: "not_attending", label: "Not going", test: (p) => p.rsvp === "not_attending" },
 ];
 
 export default function YourPlans() {
   const saved = useStudentData("/api/users/me/saved-events");
   const rsvps = useStudentData("/api/users/me/rsvps");
+  const attended = useStudentData("/api/users/me/attended-events");
   const [tab, setTab] = useState("all");
 
   // One entry per event: { event, saved, rsvp }.
   const plans = useMemo(() => {
-    if (!saved.data || !rsvps.data) return [];
+    if (!saved.data || !rsvps.data || !attended.data) return [];
     const byId = new Map();
     for (const event of saved.data.events ?? []) byId.set(event.id, { event, saved: true, rsvp: null });
     for (const row of rsvps.data.rsvps ?? []) {
@@ -43,15 +45,19 @@ export default function YourPlans() {
       const current = byId.get(row.events.id) ?? { event: row.events, saved: false, rsvp: null };
       byId.set(row.events.id, { ...current, rsvp: row.status });
     }
+    for (const event of attended.data.events ?? []) {
+      const current = byId.get(event.id) ?? { event, saved: false, rsvp: null };
+      byId.set(event.id, { ...current, attended: true });
+    }
     return [...byId.values()].sort((a, b) => a.event.start_date_time.localeCompare(b.event.start_date_time));
-  }, [saved.data, rsvps.data]);
+  }, [saved.data, rsvps.data, attended.data]);
 
-  const loading = saved.loading || rsvps.loading;
-  const error = saved.error || rsvps.error;
+  const loading = saved.loading || rsvps.loading || attended.loading;
+  const error = saved.error || rsvps.error || attended.error;
   const active = TABS.find((t) => t.id === tab);
   const shown = plans.filter(active.test).map((p) => ({
     ...p.event,
-    plan_labels: [p.rsvp && RSVP_LABELS[p.rsvp], p.saved && "Saved"].filter(Boolean),
+    plan_labels: [p.rsvp && RSVP_LABELS[p.rsvp], p.saved && "Saved", p.attended && "Attended"].filter(Boolean),
   }));
 
   return (
@@ -75,6 +81,7 @@ export default function YourPlans() {
           retry={() => {
             saved.retry();
             rsvps.retry();
+            attended.retry();
           }}
         />
       ) : (
@@ -100,7 +107,7 @@ export default function YourPlans() {
             <section className="ga-card ga-empty">
               <h2>{tab === "all" ? "Nothing saved yet" : `No “${active.label}” events`}</h2>
               <p className="ga-muted">
-                Open an event and choose Save, Interested or Going to add it here.
+                {tab === "attended" ? "Open a past event and mark it as attended to add it here." : "Open an event and choose Save, Interested or Going to add it here."}
               </p>
               <Link className="ga-button" href="/events">
                 Explore events

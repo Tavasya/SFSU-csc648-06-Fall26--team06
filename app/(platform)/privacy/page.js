@@ -118,7 +118,7 @@ export default function Page() {
         <p className="ga-doc-note">
           Cover images are stored privately and shown through links that expire after an hour.
         </p>
-        <p className="ga-doc-note">Attendee connections are off by default. If you enable them in your profile and RSVP attending, other opted-in attendees can see your name, academic details, interests and avatar colors and exchange event messages with you. Your email is not shared. You can turn connections off at any time.</p>
+        <p className="ga-doc-note">Attendee connections are off by default. If you enable them in your profile and RSVP attending, other opted-in attendees can see your name, academic details, interests and avatar colors. Messaging is coming soon. Your email is not shared. You can turn connections off at any time.</p>
       </section>
 
       <section>

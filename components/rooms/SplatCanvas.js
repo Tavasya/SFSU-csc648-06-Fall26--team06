@@ -21,6 +21,8 @@
 import { useEffect, useRef, useState } from "react";
 import { Loader2 } from "lucide-react";
 import { startView } from "@/lib/rooms/splat-view";
+import { createClient } from "@/lib/supabase/client";
+import Link from "next/link";
 
 // Downloads a file and reports progress (0 to 1) while it arrives.
 async function download(url, onProgress, signal) {
@@ -153,10 +155,12 @@ function createWalkControls(camera, canvas) {
 export default function SplatCanvas({
   url, // public link to the .spz file (roomModelUrl in lib/rooms/model.js)
   label = "3D room scan",
+  eventId = null,
 }) {
   const containerRef = useRef(null);
   const [progress, setProgress] = useState(0);
   const [status, setStatus] = useState("loading"); // "loading" | "ready" | "error"
+  const [attendees, setAttendees] = useState([]);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -180,6 +184,7 @@ export default function SplatCanvas({
       container.appendChild(canvas);
 
       const scene = new THREE.Scene();
+      const avatarResources = [];
       const camera = new THREE.PerspectiveCamera(65, 1, 0.01, 1000);
       camera.rotation.order = "YXZ"; // turn left/right first, then look up/down
       const walk = createWalkControls(camera, canvas);
@@ -204,6 +209,7 @@ export default function SplatCanvas({
         renderer.setAnimationLoop(null);
         walk.dispose();
         splat.dispose();
+        avatarResources.forEach((resource) => resource.dispose());
         renderer.dispose();
         canvas.remove();
       };
@@ -226,6 +232,38 @@ export default function SplatCanvas({
         camera.near = view.length / 2000;
         camera.far = view.length * 20;
         camera.updateProjectionMatrix();
+
+        if (eventId) {
+          // The positions are illustrative, not live physical locations.
+          let result;
+          try { result = await createClient().rpc("event_attendees", { p_event: eventId }); }
+          catch { result = { data: [], error: true }; }
+          if (abort.signal.aborted) return;
+          const people = result.error ? [] : (result.data || []).slice(0, 12);
+          setAttendees(people);
+          const dx = view.target[0] - view.position[0], dz = view.target[2] - view.position[2];
+          const length = Math.hypot(dx, dz) || 1;
+          const forward = [dx / length, dz / length], right = [-forward[1], forward[0]];
+          const size = Math.max(view.length * 0.05, 0.01);
+          people.forEach((person, index) => {
+            const group = new THREE.Group();
+            const body = new THREE.CapsuleGeometry(size * 0.42, size * 0.55, 4, 12);
+            const head = new THREE.SphereGeometry(size * 0.35, 16, 12);
+            const hair = new THREE.SphereGeometry(size * 0.36, 16, 8, 0, Math.PI * 2, 0, Math.PI * 0.43);
+            const materials = [person.avatar_shirt_color, person.avatar_skin_color, person.avatar_hair_color]
+              .map((color) => new THREE.MeshBasicMaterial({ color }));
+            avatarResources.push(body, head, hair, ...materials);
+            const torso = new THREE.Mesh(body, materials[0]); torso.position.y = size * 0.7;
+            const face = new THREE.Mesh(head, materials[1]); face.position.y = size * 1.6;
+            const cap = new THREE.Mesh(hair, materials[2]); cap.position.y = size * 1.65;
+            group.add(torso, face, cap);
+            const lateral = ((index % 4) - 1.5) * size * 1.3;
+            const distance = view.length * (0.2 + Math.floor(index / 4) * 0.08);
+            group.position.set(view.position[0] + forward[0] * distance + right[0] * lateral,
+              view.position[1] - size * 1.3, view.position[2] + forward[1] * distance + right[1] * lateral);
+            scene.add(group);
+          });
+        }
       }
 
       let last = performance.now();
@@ -245,7 +283,7 @@ export default function SplatCanvas({
       abort.abort();
       cleanup();
     };
-  }, [url, label]);
+  }, [url, label, eventId]);
 
   return (
     <div className="relative h-full w-full">
@@ -256,6 +294,10 @@ export default function SplatCanvas({
           Drag to look around · Click, then W A S D or arrow keys to walk · Scroll to step
         </p>
       )}
+      {status === "ready" && attendees.length > 0 && <div className="absolute left-2 top-2 max-w-[85%] rounded-xl bg-black/75 px-3 py-2 text-xs text-white">
+        <strong>Attending avatars</strong><span> · Illustrative positions</span>
+        <div className="mt-1 flex flex-wrap gap-2">{attendees.map((person) => <Link key={person.user_id} href={`/events/${eventId}/connections`} title={`${person.display_name}${person.major ? ` · ${person.major}` : ""}${person.interests?.length ? ` · ${person.interests.join(", ")}` : ""}`} className="underline">{person.display_name}</Link>)}</div>
+      </div>}
 
       {status !== "ready" && (
         <div className="absolute inset-0 grid place-items-center bg-[#1f1a2b] text-center text-[12px] text-white/85">

@@ -5,6 +5,7 @@ import EventDetails from "@/components/gatoraid/EventDetails";
 import { loadHostNames, loadRoomScans } from "@/lib/map/page-data";
 import { buildLocationLookup, placeForLocation } from "@/lib/map/events";
 import { toCampusPlaces } from "@/lib/map/places";
+import { canMarkAttended } from "@/lib/student/validation";
 export default async function Page({ params, searchParams }) {
   // ?from=assistant: opened from Allison's answers, so "Back" returns to the chat
   const from = (await searchParams)?.from === "assistant" ? "assistant" : null;
@@ -49,6 +50,7 @@ export default async function Page({ params, searchParams }) {
       rooms={rooms}
       places={places}
       from={from}
+      past={canMarkAttended(event)}
     />
   );
 }

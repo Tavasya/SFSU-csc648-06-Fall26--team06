@@ -30,6 +30,7 @@ export default function EventDetails({
   rooms = [],
   places, // the Campus Map places, for the Location section's small map
   from = null, // "assistant" when opened from the AI Assistant (Allison)
+  past = false,
 }) {
   // Categories in the host's order; the first one picks the banner.
   const categoryNames = orderedCategoryNames(event.category_ids, categories);
@@ -189,7 +190,7 @@ export default function EventDetails({
               ? "This is how your event will appear to students."
               : "Manage your saved event and RSVP below."}
           </p>
-          {!preview && !isHost && <EventActions event={event} />}
+          {!preview && !isHost && <EventActions event={event} past={past} />}
           {isHost && !preview && (
             <p className="ga-small ga-muted">
               Hosts can&apos;t save or RSVP to their own events. See how many students are coming on{" "}
