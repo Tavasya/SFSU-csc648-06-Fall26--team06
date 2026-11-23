@@ -1,7 +1,20 @@
+/**
+ * Public interfaces supporting R4.3.
+ * @module app/platform/host/events/eventId/edit/page
+ */
 import { notFound } from "next/navigation";
 import { pageContext, options } from "@/lib/events/page-data";
 import Access from "@/components/gatoraid/Access";
 import EventForm from "@/components/gatoraid/EventForm";
+/**
+ * Require ownership and load an existing event into the organizer edit form.
+ * @function Page
+ * @memberof module:app/platform/host/events/eventId/edit/page
+ * @static
+ * @param {Object} props - Component properties.
+ * @param {Promise<Object>} props.params - Promise resolving the dynamic route parameters.
+ * @returns {Promise<React.ReactElement>} Rendered component tree.
+ */
 export default async function Page({ params }) {
   const { db, user, host } = await pageContext();
   if (!host) return <Access user={user} />;

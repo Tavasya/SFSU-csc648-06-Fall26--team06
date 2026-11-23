@@ -1,3 +1,7 @@
+/**
+ * Public interfaces supporting R3.4.
+ * @module components/student/ScheduleConflict
+ */
 /*
  * components/student/ScheduleConflict.js
  *
@@ -34,6 +38,13 @@ function loadClasses() {
 
 const className = (course) => course.name || course.class_name || "something on your schedule";
 
+/**
+ * Load schedule availability and expose a confirmation dialog before conflicting RSVP actions.
+ * @function useScheduleConflict
+ * @memberof module:components/student/ScheduleConflict
+ * @static
+ * @returns {Object} The confirmGoing callback and dialog element.
+ */
 export function useScheduleConflict() {
   const [pending, setPending] = useState(null); // { event, conflicts, resolve }
   const dialogRef = useRef(null);

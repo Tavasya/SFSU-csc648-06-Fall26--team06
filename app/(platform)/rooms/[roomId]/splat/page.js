@@ -1,3 +1,7 @@
+/**
+ * Public interfaces supporting R7.1, R7.3.
+ * @module app/platform/rooms/roomId/splat/page
+ */
 /*
  * app/(platform)/rooms/[roomId]/splat/page.js
  *
@@ -13,6 +17,15 @@ import { createClient } from "@/lib/supabase/server";
 import SplatCanvas from "@/components/rooms/SplatCanvas";
 import { isSplatModel, roomModelUrl } from "@/lib/rooms/model";
 
+/**
+ * Load the selected scan and render the splat viewer with a return link to its campus location.
+ * @function Page
+ * @memberof module:app/platform/rooms/roomId/splat/page
+ * @static
+ * @param {Object} props - Component properties.
+ * @param {Promise<Object>} props.params - Promise resolving the dynamic route parameters.
+ * @returns {Promise<React.ReactElement>} Rendered component tree.
+ */
 export default async function Page({ params }) {
   const { roomId } = await params;
   const db = await createClient();

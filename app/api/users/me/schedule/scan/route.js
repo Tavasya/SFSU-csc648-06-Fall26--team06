@@ -1,3 +1,7 @@
+/**
+ * Public interfaces supporting R9.1, R9.5.
+ * @module app/api/users/me/schedule/scan/route
+ */
 
 import { GoogleGenAI } from "@google/genai";
 import { NextResponse } from "next/server";
@@ -91,6 +95,14 @@ async function generateWithRetry(ai, options) {
 }
 
 // API endpoint for schedule scanning
+/**
+ * Require sign-in and a PNG/JPEG/WebP image up to 5 MB, extract structured classes with Gemini and normalize the result; this does not save the schedule.
+ * @function POST
+ * @memberof module:app/api/users/me/schedule/scan/route
+ * @static
+ * @param {Request} request - Incoming multipart request with an image File field.
+ * @returns {Promise<Response>} JSON with classes (name, days, startTime, endTime), or an authentication, upload, model, quota, timeout or service error.
+ */
 export async function POST(request) {
     try {
         // 0. Only signed-in students can scan (schedules belong to an account)

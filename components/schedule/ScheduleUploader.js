@@ -1,3 +1,7 @@
+/**
+ * Public interfaces supporting R9.1, R9.2, R9.3, R9.4, R9.5.
+ * @module components/schedule/ScheduleUploader
+ */
 
 /*
  * components/schedule/ScheduleUploader.js
@@ -87,6 +91,13 @@ function StepIndicator({ step }) {
     );
 }
 
+/**
+ * Render schedule upload, scan review/correction and confirmation steps, including saved schedules and manual-entry/error recovery.
+ * @function ScheduleUploader
+ * @memberof module:components/schedule/ScheduleUploader
+ * @static
+ * @returns {React.ReactElement} The schedule editor, upload controls and feedback states.
+ */
 export default function ScheduleUploader() {
     const [step, setStep] = useState(1);
     const [image, setImage] = useState(null);

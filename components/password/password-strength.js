@@ -1,8 +1,21 @@
+/**
+ * Public interfaces supporting R12.1.
+ * @module components/password/password-strength
+ */
 "use client";
 
 import { validatePassword, requirementLabels } from "@/lib/password/password-validation";
 import { passwordStrength } from "@/lib/auth/auth";
 
+/**
+ * Render password-strength feedback from the shared validation checks.
+ * @function PasswordStrength
+ * @memberof module:components/password/password-strength
+ * @static
+ * @param {Object} props - Component properties.
+ * @param {*} props.password - Password entered in the form.
+ * @returns {React.ReactElement} Rendered component tree.
+ */
 export default function PasswordStrength({ password }) {
   const requirements = validatePassword(password);
 

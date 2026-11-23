@@ -1,4 +1,19 @@
+/**
+ * Public interfaces supporting R2.6.
+ * @module components/student/DataState
+ */
 import Link from "next/link";
+/**
+ * Render a loading indicator or a retryable error; render nothing when neither applies.
+ * @function DataState
+ * @memberof module:components/student/DataState
+ * @static
+ * @param {Object} props - Component properties.
+ * @param {*} props.loading - The loading setting or callback.
+ * @param {*} props.error - The error setting or callback.
+ * @param {*} props.retry - The retry setting or callback.
+ * @returns {?React.ReactElement} Rendered component tree.
+ */
 export default function DataState({ loading, error, retry }) {
   if (loading) return <p role="status">Loading your student account…</p>;
   if (error?.status === 401) return (

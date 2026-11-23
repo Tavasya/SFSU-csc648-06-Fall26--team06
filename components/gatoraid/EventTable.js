@@ -1,9 +1,21 @@
+/**
+ * Public interfaces supporting R4.5.
+ * @module components/gatoraid/EventTable
+ */
 "use client";
 
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { CalendarDays, MoreHorizontal, Plus, Trash2, X, Ban } from "lucide-react";
-
+/**
+ * Render the organizer event table with status tabs and per-event management actions.
+ * @function EventTable
+ * @memberof module:components/gatoraid/EventTable
+ * @static
+ * @param {Object} props - Component properties.
+ * @param {*} props.initialEvents - Initial organizer event records.
+ * @returns {React.ReactElement} Rendered component tree.
+ */
 export default function EventTable({ initialEvents }) {
   const [events, setEvents] = useState(initialEvents),
     [tab, setTab] = useState("Published"),

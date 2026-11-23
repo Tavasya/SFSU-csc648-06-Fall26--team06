@@ -1,3 +1,7 @@
+/**
+ * Public interfaces supporting R6.1.
+ * @module app/api/locations/route
+ */
 /*
  * app/api/locations/route.js  —  GET /api/locations
  *
@@ -11,6 +15,13 @@
  */
 
 import { createClient } from "@/lib/supabase/server";
+/**
+ * Return supported campus map locations and location categories.
+ * @function GET
+ * @memberof module:app/api/locations/route
+ * @static
+ * @returns {Promise<Response>} HTTP response containing the result or an error.
+ */
 export async function GET() {
   const db = await createClient();
   const { data, error } = await db

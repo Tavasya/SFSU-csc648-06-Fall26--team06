@@ -1,3 +1,7 @@
+/**
+ * Public interfaces supporting R6.2.
+ * @module components/map/MapEventActions
+ */
 /*
  * components/map/MapEventActions.js
  *
@@ -18,6 +22,16 @@ import MapQuickActions, { useEventStatuses } from "@/components/map/MapQuickActi
 const linkClass =
   "inline-flex items-center rounded-full px-3 py-1.5 text-[12px] font-medium focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#604398]";
 
+/**
+ * Adapt a map event to the shared Save/RSVP controls.
+ * @function MapEventActions
+ * @memberof module:components/map/MapEventActions
+ * @static
+ * @param {Object} props - Component properties.
+ * @param {*} props.event - Event record to display.
+ * @param {*} props.returnTo - Same-site return path after authentication.
+ * @returns {React.ReactElement} Rendered component tree.
+ */
 export default function MapEventActions({ event, returnTo }) {
   const statuses = useEventStatuses();
 

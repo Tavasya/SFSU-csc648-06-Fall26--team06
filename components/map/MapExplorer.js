@@ -1,3 +1,7 @@
+/**
+ * Public interfaces supporting R1.3, R6.1.
+ * @module components/map/MapExplorer
+ */
 /*
  * components/map/MapExplorer.js
  *
@@ -52,6 +56,23 @@ const chipClass = (active) =>
       : "border-[#ebe7f0] bg-white text-[#51475f] hover:border-[#d9cfe8]"
   }`;
 
+/**
+ * Coordinate map selection, filters, event details and 3D previews in the campus explorer.
+ * @function MapExplorer
+ * @memberof module:components/map/MapExplorer
+ * @static
+ * @param {Object} props - Component properties.
+ * @param {*} props.places - Campus buildings, outdoor places and venues.
+ * @param {*} [props.events] - Event records to display.
+ * @param {*} [props.unmatched] - The unmatched setting or callback.
+ * @param {*} [props.scans] - Available room scans indexed by location.
+ * @param {*} [props.isSample] - The is sample setting or callback.
+ * @param {*} [props.signedIn] - Whether the current viewer is authenticated.
+ * @param {*} [props.loadError] - The load error setting or callback.
+ * @param {*} [props.initialPlaceId] - The initial place id setting or callback.
+ * @param {*} [props.initialEventId] - The initial event id setting or callback.
+ * @returns {React.ReactElement} Rendered component tree.
+ */
 export default function MapExplorer({
   places, // buildings, outdoor spaces and venues from the "locations" table
   events = [],

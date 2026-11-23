@@ -11,6 +11,11 @@
 
 # Software Stack
 
+For the M4 documentation-generation deliverable, see
+[source-code documentation instructions](docs/api-documentation.md).
+Run `npm run docs:check` and `npm run docs:build` to verify coverage and generate
+the HTML reference at `docs/generated/api/index.html`.
+
 | Category | Technology |
 | --- | --- |
 | **Hosting Platform** | Vercel |

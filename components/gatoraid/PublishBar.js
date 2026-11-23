@@ -1,8 +1,21 @@
+/**
+ * Public interfaces supporting R4.3.
+ * @module components/gatoraid/PublishBar
+ */
 "use client";
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Eye, CheckCircle2 } from "lucide-react";
+/**
+ * Render the publish action for a draft event and display API validation failures.
+ * @function PublishBar
+ * @memberof module:components/gatoraid/PublishBar
+ * @static
+ * @param {Object} props - Component properties.
+ * @param {*} props.event - Event record to display.
+ * @returns {React.ReactElement} Rendered component tree.
+ */
 export default function PublishBar({ event }) {
   const router = useRouter(),
     [busy, setBusy] = useState(false),

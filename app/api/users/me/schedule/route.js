@@ -1,3 +1,7 @@
+/**
+ * Public interfaces supporting R9.3, R9.4.
+ * @module app/api/users/me/schedule/route
+ */
 
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
@@ -34,6 +38,13 @@ async function authenticatedClient() {
 }
 
 // GET: Load the current student's schedule
+/**
+ * Load the signed-in student's schedule, falling back to class entries when the optional kind column is missing.
+ * @function GET
+ * @memberof module:app/api/users/me/schedule/route
+ * @static
+ * @returns {Promise<Response>} JSON with classes containing id, name, kind, days, startTime and endTime; 401 without a session or 500 on loading failure.
+ */
 export async function GET() {
     try {
         const { supabase, user } = await authenticatedClient();
@@ -86,6 +97,14 @@ export async function GET() {
 }
 
 // PUT: Replace the current student's schedule
+/**
+ * Validate at most 50 named commitments with supported types, weekdays and increasing HH:mm times; atomically replace the current student's saved schedule.
+ * @function PUT
+ * @memberof module:app/api/users/me/schedule/route
+ * @static
+ * @param {Request} request - Incoming JSON request with a classes array.
+ * @returns {Promise<Response>} JSON with success, count and typesSaved, or a 400 validation, 401 authentication or 500 persistence error.
+ */
 export async function PUT(request) {
     try {
         const { supabase, user } = await authenticatedClient();

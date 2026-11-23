@@ -1,3 +1,7 @@
+/**
+ * Public interfaces supporting R3.1, R3.2, R3.6.
+ * @module components/gatoraid/EventDetails
+ */
 import Image from "next/image";
 import {
   CalendarDays,
@@ -20,6 +24,24 @@ import {
   orderedCategoryNames,
 } from "@/lib/events/banner";
 import { backLink, capacityText, contactHref, hostLabel } from "@/lib/events/details";
+/**
+ * Render event details, status, accessibility, organizer information, map and available scan previews.
+ * @function EventDetails
+ * @memberof module:components/gatoraid/EventDetails
+ * @static
+ * @param {Object} props - Component properties.
+ * @param {*} props.event - Event record to display.
+ * @param {*} props.categories - Available event categories.
+ * @param {*} props.location - The location setting or callback.
+ * @param {*} props.coverUrl - The cover url setting or callback.
+ * @param {*} props.hostName - The host name setting or callback.
+ * @param {*} [props.preview] - The preview setting or callback.
+ * @param {*} [props.isHost] - The is host setting or callback.
+ * @param {*} [props.rooms] - The rooms setting or callback.
+ * @param {*} props.places - Campus buildings, outdoor places and venues.
+ * @param {*} [props.from] - The from setting or callback.
+ * @returns {React.ReactElement} Rendered component tree.
+ */
 export default function EventDetails({
   event,
   categories,

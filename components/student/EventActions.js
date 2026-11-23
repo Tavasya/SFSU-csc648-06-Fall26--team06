@@ -1,3 +1,7 @@
+/**
+ * Public interfaces supporting R3.4.
+ * @module components/student/EventActions
+ */
 "use client";
 import { useEffect, useState } from "react";
 import Link from "next/link";
@@ -6,6 +10,15 @@ import { canAttend, RSVP_STATUSES } from "@/lib/student/validation";
 import { useScheduleConflict } from "./ScheduleConflict";
 
 const labels = { attending: "Attending", interested: "Interested", not_attending: "Not Attending" };
+/**
+ * Render independent Save and RSVP controls with authentication, capacity and schedule-conflict handling.
+ * @function EventActions
+ * @memberof module:components/student/EventActions
+ * @static
+ * @param {Object} props - Component properties.
+ * @param {*} props.event - Event record to display.
+ * @returns {React.ReactElement} Rendered component tree.
+ */
 export default function EventActions({ event }) {
   const [data, setData] = useState(null);
   const [error, setError] = useState(null);

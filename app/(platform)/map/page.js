@@ -1,3 +1,7 @@
+/**
+ * Public interfaces supporting R6.1, R6.3.
+ * @module app/platform/map/page
+ */
 /*
  * app/(platform)/map/page.js  —  the /map route (Map page)
  *
@@ -30,6 +34,15 @@ export const metadata = {
   description: "Find where events are happening at San Francisco State University.",
 };
 
+/**
+ * Load campus map data and validate deep-linked location/event selections for the explorer.
+ * @function MapPage
+ * @memberof module:app/platform/map/page
+ * @static
+ * @param {Object} props - Component properties.
+ * @param {Promise<Object>} props.searchParams - Promise resolving the URL query parameters.
+ * @returns {Promise<React.ReactElement>} Rendered component tree.
+ */
 export default async function MapPage({ searchParams }) {
   const { sample, place, event } = await searchParams;
   const isSample = sample === "1";

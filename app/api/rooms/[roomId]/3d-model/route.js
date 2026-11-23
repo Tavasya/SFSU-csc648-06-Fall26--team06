@@ -1,7 +1,21 @@
+/**
+ * Public interfaces supporting R7.3.
+ * @module app/api/rooms/roomId/3d-model/route
+ */
 import { createClient } from "@/lib/supabase/server";
 
 const BUCKET = "rooms";
 
+/**
+ * Download the selected room's GLB model as a binary response, with errors for missing rooms or models.
+ * @function GET
+ * @memberof module:app/api/rooms/roomId/3d-model/route
+ * @static
+ * @param {Request} request - Incoming HTTP request.
+ * @param {Object} options - Grouped function options.
+ * @param {Promise<Object>} options.params - Promise resolving the dynamic route parameters.
+ * @returns {Promise<Response>} HTTP response containing the result or an error.
+ */
 export async function GET(request, { params }) {
   try {
     const db = await createClient();

@@ -1,3 +1,7 @@
+/**
+ * Public interfaces supporting R3.2, R6.3.
+ * @module components/map/EventPlacePreview
+ */
 /*
  * components/map/EventPlacePreview.js
  *
@@ -23,6 +27,18 @@ import { buildLocationLookup, placeForLocation } from "@/lib/map/events";
 import { NO_PLACES } from "@/lib/map/places";
 import "@/components/map/map.css";
 
+/**
+ * Render a compact map preview that links to the selected event location.
+ * @function EventPlacePreview
+ * @memberof module:components/map/EventPlacePreview
+ * @static
+ * @param {Object} props - Component properties.
+ * @param {*} props.buildingName - The building name setting or callback.
+ * @param {*} [props.eventId] - The event id setting or callback.
+ * @param {*} [props.rooms] - The rooms setting or callback.
+ * @param {*} [props.places] - Campus buildings, outdoor places and venues.
+ * @returns {React.ReactElement} Rendered component tree.
+ */
 export default function EventPlacePreview({
   buildingName, // the event's Supabase locations.building_name
   eventId = null,
