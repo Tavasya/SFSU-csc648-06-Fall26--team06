@@ -1,0 +1,616 @@
+/* About GatorAid page (app/(platform)/about-gatoraid/page.js) */
+
+.ga-about-hero {
+  padding: 40px 44px;
+  border-radius: 18px;
+  background: linear-gradient(135deg, #604398 0%, #7b5bb8 100%);
+  color: #fff;
+}
+.ga-about-eyebrow {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.16);
+  color: #f5c242;
+  font-size: 12px;
+  font-weight: 650;
+  letter-spacing: 0.4px;
+}
+.ga .ga-about-hero h1 {
+  max-width: 760px;
+  margin: 16px 0 24px;
+  font-size: 34px;
+  line-height: 1.2;
+}
+.ga-about-hero-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.ga-about-hero .ga-button {
+  background: #f5c242;
+  border-color: #f5c242;
+  color: #262332 !important;
+}
+.ga-about-hero .ga-button:hover {
+  background: #e9b52f;
+}
+.ga-about-hero .ga-button.secondary {
+  background: transparent;
+  border-color: rgba(255, 255, 255, 0.5);
+  color: #fff !important;
+}
+.ga-about-hero .ga-button.secondary:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.ga-about-section {
+  margin-top: 44px;
+}
+.ga .ga-about-section h2 {
+  font-size: 22px;
+  margin-bottom: 16px;
+}
+.ga-about-lead {
+  max-width: 820px;
+  margin: 0 0 20px;
+  font-size: 15px;
+  line-height: 1.65;
+  color: var(--muted);
+}
+.ga-about-lead strong {
+  color: var(--ink);
+}
+
+.ga-about-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+.ga-about-card {
+  display: flex;
+  flex-direction: column;
+}
+.ga-about-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  margin-bottom: 14px;
+  background: var(--accent-soft);
+  color: var(--purple);
+}
+.ga .ga-about-card h3 {
+  font-size: 15px;
+  margin: 0 0 4px;
+}
+.ga .ga-about-card p {
+  margin: 0;
+}
+
+.ga-about-cta {
+  margin-top: 44px;
+  padding: 32px;
+  border-radius: 16px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  text-align: center;
+}
+.ga .ga-about-cta h2 {
+  font-size: 22px;
+}
+.ga-about-cta .ga-about-hero-actions {
+  justify-content: center;
+}
+.ga-about-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--purple) !important;
+  font-weight: 550;
+}
+
+/* FAQ, Privacy and Accessibility: text pages with a narrow reading column */
+.ga-doc {
+  max-width: 820px;
+}
+.ga .ga-doc h2 {
+  font-size: 20px;
+  margin: 36px 0 12px;
+}
+.ga-doc p,
+.ga-doc li {
+  font-size: 15px;
+  line-height: 1.65;
+  color: var(--muted);
+}
+.ga-doc ul {
+  padding-left: 20px;
+  margin: 8px 0;
+}
+.ga-doc li {
+  margin: 6px 0;
+}
+.ga-doc li strong,
+.ga-doc p strong {
+  color: var(--ink);
+}
+.ga-doc-updated {
+  display: inline-block;
+  margin-top: 4px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  background: var(--accent-soft);
+  color: var(--purple);
+  font-size: 12px;
+  font-weight: 550;
+}
+
+/* FAQ accordion */
+.ga-faq-list {
+  display: grid;
+  gap: 12px;
+}
+.ga-faq-item {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+}
+.ga-faq-item summary {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  padding: 20px 24px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  list-style: none;
+}
+.ga-faq-item summary::-webkit-details-marker {
+  display: none;
+}
+.ga-faq-item summary svg {
+  color: var(--purple);
+  transition: transform 0.15s;
+}
+.ga-faq-item[open] summary svg {
+  transform: rotate(180deg);
+}
+.ga-faq-item summary:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+  border-radius: 12px;
+}
+.ga .ga-faq-item p {
+  margin: 0;
+  padding: 0 24px 22px;
+  line-height: 1.7;
+}
+
+/* Page hero for FAQ, Privacy and Accessibility */
+.ga-doc-wide {
+  max-width: none;
+}
+.ga-page-hero {
+  position: relative;
+  padding: 44px 48px;
+  border-radius: 20px;
+  border: 1px solid var(--line);
+  background:
+    radial-gradient(70% 120% at 100% 0%, var(--hero-glow) 0%, transparent 60%),
+    var(--surface);
+  margin-bottom: 40px;
+}
+.ga-page-hero-icon {
+  position: absolute;
+  right: 40px;
+  top: 40px;
+  width: 64px;
+  height: 64px;
+  border-radius: 18px;
+  display: grid;
+  place-items: center;
+  background: var(--brand);
+  color: var(--gold);
+  box-shadow: 0 16px 32px -16px var(--shadow);
+}
+.ga-page-hero .ga-about-eyebrow {
+  background: var(--accent-soft);
+  color: var(--purple);
+}
+.ga .ga-page-hero h1 {
+  font-size: clamp(28px, 4vw, 40px);
+  letter-spacing: -1px;
+  margin: 14px 0 10px;
+  max-width: 680px;
+}
+.ga .ga-page-hero p {
+  max-width: 620px;
+  font-size: 16px;
+  margin: 0;
+}
+.ga-page-hero .ga-doc-updated {
+  margin-top: 16px;
+}
+.ga-hero-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.ga-doc-updated.muted {
+  background: var(--surface-2);
+  color: var(--muted);
+}
+.ga .ga-doc section > h2 {
+  margin-top: 40px;
+}
+.ga-doc-note {
+  font-size: 13px !important;
+  margin-top: 10px !important;
+}
+
+/* At a glance (Privacy) */
+.ga-glance {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+}
+.ga .ga-glance-card h3 {
+  font-size: 15px;
+  margin: 0 0 4px;
+}
+.ga .ga-glance-card p {
+  font-size: 13.5px;
+  margin: 0;
+}
+
+/* Who can see what (Privacy) */
+.ga-matrix-wrap {
+  padding: 0;
+  overflow-x: auto;
+}
+.ga .ga-matrix {
+  width: 100%;
+  min-width: 560px;
+}
+.ga .ga-matrix th,
+.ga .ga-matrix td {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--line);
+  text-align: center;
+  vertical-align: middle;
+  font-size: 13px;
+}
+.ga .ga-matrix thead th {
+  background: var(--surface-2);
+  font-weight: 600;
+  color: var(--muted);
+  font-size: 12px;
+}
+.ga .ga-matrix th[scope="row"],
+.ga .ga-matrix thead th:first-child {
+  text-align: left;
+  width: 52%;
+}
+.ga .ga-matrix th,
+.ga .ga-matrix th:first-child,
+.ga .ga-matrix th:last-child {
+  border-radius: 0;
+}
+.ga .ga-matrix tbody th {
+  background: var(--surface-2);
+}
+.ga .ga-matrix tbody tr:last-child > * {
+  border-bottom: 0;
+}
+.ga-matrix th[scope="row"] strong {
+  display: block;
+  color: var(--ink);
+  font-size: 14px;
+}
+.ga .ga-matrix th[scope="row"] small {
+  font-size: 12.5px;
+  font-weight: 400;
+  margin-top: 2px;
+}
+.ga-matrix-yes,
+.ga-matrix-no {
+  display: inline-grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+}
+.ga-matrix-yes {
+  background: var(--success-soft);
+  color: var(--success);
+}
+.ga-matrix-no {
+  color: var(--line-strong);
+}
+.ga-matrix-some {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--gold-soft);
+  color: var(--gold-ink);
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* Two cards side by side */
+.ga-split {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 14px;
+}
+.ga .ga-split-card h3 {
+  font-size: 15px;
+  margin: 0 0 4px;
+}
+.ga .ga-split-card p {
+  margin: 0;
+  font-size: 14px;
+}
+
+/* Help links at the bottom of a page */
+.ga-help-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 16px;
+  margin-top: 56px;
+}
+.ga-help-card {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  padding: 22px;
+  border-radius: 16px;
+  background: var(--accent-soft);
+  border: 1px solid transparent;
+  transition: border-color 0.15s;
+}
+.ga-help-card:hover {
+  border-color: var(--line-strong);
+}
+.ga-help-card > svg {
+  flex-shrink: 0;
+  box-sizing: content-box;
+  padding: 9px;
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--purple);
+}
+.ga .ga-help-card h2 {
+  font-size: 16px;
+  margin: 0 0 4px;
+}
+.ga .ga-help-card p {
+  margin: 0;
+  font-size: 14px;
+}
+
+/* FAQ search, topics and answers (components/about/FaqBrowser.js) */
+.ga-faq-search {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center;
+  gap: 10px !important;
+  margin: 0 0 40px !important;
+  padding: 6px 8px 6px 20px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--muted);
+  box-shadow: 0 10px 30px -24px var(--shadow);
+}
+.ga-faq-search:focus-within {
+  border-color: var(--purple);
+}
+.ga .ga-faq-search input,
+.ga .ga-faq-search input:focus {
+  border: 0;
+  box-shadow: none;
+  background: transparent;
+  font-size: 15px;
+  padding: 12px 0;
+}
+.ga-faq-search button {
+  border: 0;
+  background: var(--surface-2);
+  color: var(--muted);
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+.ga-faq-layout {
+  display: grid;
+  grid-template-columns: 264px minmax(0, 1fr);
+  gap: 56px;
+  align-items: start;
+}
+.ga-faq-topics {
+  position: sticky;
+  top: calc(var(--site-header-height) + 24px);
+  display: grid;
+  gap: 6px;
+}
+.ga-faq-topics button {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 12px 14px;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--muted);
+  text-align: left;
+  font-size: 14px;
+}
+.ga-faq-topics button span {
+  flex: 1;
+}
+.ga .ga-faq-topics small {
+  font-size: 12px;
+  background: var(--surface-2);
+  padding: 1px 8px;
+  border-radius: 999px;
+}
+.ga-faq-topics button:hover {
+  background: var(--surface-2);
+  color: var(--ink);
+}
+.ga-faq-topics button.active {
+  background: var(--accent-soft);
+  color: var(--purple);
+  font-weight: 600;
+}
+.ga-faq-topics button.active small {
+  background: var(--surface);
+}
+.ga-faq-group + .ga-faq-group {
+  margin-top: 48px;
+}
+.ga .ga-faq-group h2 {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 18px;
+  margin: 0 0 18px;
+}
+.ga-faq-group h2 .ga-about-icon {
+  margin: 0;
+  width: 34px;
+  height: 34px;
+}
+.ga-faq-item[open] {
+  border-color: var(--line-strong);
+}
+.ga-faq-empty {
+  text-align: center;
+  padding: 40px 20px;
+  border: 1px dashed var(--line-strong);
+  border-radius: 16px;
+}
+
+/* Accessibility */
+.ga-about-grid.two {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.ga-progress-list {
+  list-style: none;
+  padding: 0 !important;
+  display: grid;
+  gap: 12px;
+}
+.ga-progress-list li {
+  display: flex;
+  gap: 16px;
+  margin: 0 !important;
+}
+.ga-progress-list .ga-about-icon {
+  margin: 0;
+  flex-shrink: 0;
+}
+.ga .ga-progress-list h3 {
+  color: var(--ink);
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  font-size: 15px;
+  margin: 0 0 4px;
+}
+.ga .ga-progress-list p {
+  margin: 0;
+  font-size: 14px;
+}
+.ga-status {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 9px;
+  border-radius: 999px;
+  background: var(--gold-soft);
+  color: var(--gold-ink);
+}
+.ga-report {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 24px;
+  margin-top: 40px;
+  padding: 28px 32px;
+  border-radius: 20px;
+  background: var(--accent-soft);
+}
+.ga .ga-report h2 {
+  margin: 0 0 6px;
+}
+.ga-report p {
+  margin: 0 0 8px !important;
+}
+.ga-report ol {
+  margin: 0;
+  padding-left: 20px;
+  list-style: decimal;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+@media (max-width: 1100px) {
+  .ga-glance {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .ga-about-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 800px) {
+  .ga-glance,
+  .ga-split,
+  .ga-about-grid.two,
+  .ga-faq-layout {
+    grid-template-columns: 1fr;
+  }
+  .ga-faq-topics {
+    position: static;
+    display: flex;
+    overflow-x: auto;
+    gap: 6px;
+  }
+  .ga-faq-topics button {
+    width: auto;
+    white-space: nowrap;
+  }
+  .ga-page-hero {
+    padding: 28px 22px 24px;
+  }
+  .ga-page-hero-icon {
+    position: static;
+    width: 52px;
+    height: 52px;
+    margin-bottom: 14px;
+  }
+  .ga-report {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .ga-about-hero {
+    padding: 28px 22px;
+  }
+  .ga .ga-about-hero h1 {
+    font-size: 26px;
+  }
+  .ga-about-grid {
+    grid-template-columns: 1fr;
+  }
+}

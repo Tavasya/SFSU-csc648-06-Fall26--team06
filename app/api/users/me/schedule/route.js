@@ -1,6 +1,11 @@
+/**
+ * Public interfaces supporting R9.3, R9.4.
+ * @module app/api/users/me/schedule/route
+ */
 
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { SCHEDULE_KINDS, scheduleKind } from "@/lib/schedule/kinds";
 
 const TABLE = "student_class_schedules";
 
@@ -10,6 +15,12 @@ const VALID_DAYS = new Set([
 ]);
 
 const TIME_PATTERN = /^([01]\d|2[0-3]):[0-5]\d$/;
+
+const VALID_KINDS = new Set(SCHEDULE_KINDS.map((kind) => kind.id));
+
+// Undefined column: the schedule kind migration
+// (20261107140000_schedule_kind.sql) hasn't been applied yet.
+const MISSING_COLUMN = "42703";
 
 async function authenticatedClient() {
     const supabase = await createClient();
@@ -27,6 +38,13 @@ async function authenticatedClient() {
 }
 
 // GET: Load the current student's schedule
+/**
+ * Load the signed-in student's schedule, falling back to class entries when the optional kind column is missing.
+ * @function GET
+ * @memberof module:app/api/users/me/schedule/route
+ * @static
+ * @returns {Promise<Response>} JSON with classes containing id, name, kind, days, startTime and endTime; 401 without a session or 500 on loading failure.
+ */
 export async function GET() {
     try {
         const { supabase, user } = await authenticatedClient();
@@ -38,19 +56,30 @@ export async function GET() {
             );
         }
 
-        const { data, error } = await supabase
-            .from(TABLE)
-            .select(
+        const load = (columns) =>
+            supabase
+                .from(TABLE)
+                .select(columns)
+                .eq("user_id", user.id)
+                .order("start_time");
+
+        let { data, error } = await load(
+            "id, class_name, kind, meeting_days, start_time, end_time"
+        );
+
+        // Before the migration every entry is a class.
+        if (error?.code === MISSING_COLUMN) {
+            ({ data, error } = await load(
                 "id, class_name, meeting_days, start_time, end_time"
-            )
-            .eq("user_id", user.id)
-            .order("start_time");
+            ));
+        }
 
         if (error) throw error;
 
         const classes = data.map((course) => ({
             id: course.id,
             name: course.class_name,
+            kind: scheduleKind(course.kind),
             days: course.meeting_days.join(", "),
             startTime: course.start_time.slice(0, 5),
             endTime: course.end_time.slice(0, 5),
@@ -68,6 +97,14 @@ export async function GET() {
 }
 
 // PUT: Replace the current student's schedule
+/**
+ * Validate at most 50 named commitments with supported types, weekdays and increasing HH:mm times; atomically replace the current student's saved schedule.
+ * @function PUT
+ * @memberof module:app/api/users/me/schedule/route
+ * @static
+ * @param {Request} request - Incoming JSON request with a classes array.
+ * @returns {Promise<Response>} JSON with success, count and typesSaved, or a 400 validation, 401 authentication or 500 persistence error.
+ */
 export async function PUT(request) {
     try {
         const { supabase, user } = await authenticatedClient();
@@ -109,12 +146,15 @@ export async function PUT(request) {
                     ? course.days.split(",").map((day) => day.trim())
                     : [];
 
+            const kind = course.kind ?? "class";
+
             const startTime = course.startTime;
             const endTime = course.endTime;
 
             if (
                 !name ||
                 name.length > 150 ||
+                !VALID_KINDS.has(kind) ||
                 days.length === 0 ||
                 !days.every((day) => VALID_DAYS.has(day)) ||
                 !TIME_PATTERN.test(startTime) ||
@@ -130,6 +170,7 @@ export async function PUT(request) {
             normalized.push({
                 user_id: user.id,
                 class_name: name,
+                kind,
                 meeting_days: [...new Set(days)],
                 start_time: startTime,
                 end_time: endTime,
@@ -142,6 +183,7 @@ export async function PUT(request) {
             await supabase.rpc("replace_student_schedule", {
                 p_classes: normalized.map((course) => ({
                     class_name: course.class_name,
+                    kind: course.kind,
                     meeting_days: course.meeting_days,
                     start_time: course.start_time,
                     end_time: course.end_time,
@@ -152,9 +194,16 @@ export async function PUT(request) {
             throw saveError;
         }
 
+        // Entry types are only stored once the kind column exists.
+        const { error: kindError } = await supabase
+            .from(TABLE)
+            .select("kind")
+            .limit(0);
+
         return NextResponse.json({
             success: true,
             count: savedCount,
+            typesSaved: kindError?.code !== MISSING_COLUMN,
         });
 
 

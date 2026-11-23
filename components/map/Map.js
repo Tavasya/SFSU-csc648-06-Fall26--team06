@@ -1,3 +1,7 @@
+/**
+ * Public interfaces supporting R6.3, R6.5.
+ * @module components/map/Map
+ */
 /*
 * components/map/Map.js
 *
@@ -15,10 +19,16 @@ import { useCallback, useEffect, useImperativeHandle, useRef, useState } from "r
 import { Box, MapPin, Maximize2, Minus, Navigation2, Plus } from "lucide-react";
 import geometry from "@/lib/map/geometry";
 import { createCampus, NO_PLACES } from "@/lib/map/places";
+import {
+  MAX_ZOOM,
+  clampView as clampCampusView,
+  fullView as fullCampusView,
+  keyPan,
+  zoomAround,
+} from "@/lib/map/view";
 
 const W = geometry.width;
 const H = geometry.height;
-const MAX_ZOOM = 6;
 const LABEL_ZOOM = 1.8; // plain building names appear from this zoom level
 const PIN_NAME_ZOOM = 1.5; // pins show their names from this zoom level
 
@@ -47,27 +57,37 @@ const SHAPES = new Map(
 
 // The lookups the map components use (see createCampus in lib/map/places.js),
 // for the places loaded from the "locations" table.
+/**
+ * Combine campus places with the prepared map geometry to create the map's lookup model.
+ * @function campusFrom
+ * @memberof module:components/map/Map
+ * @static
+ * @param {Object} [places] - Campus buildings, outdoor places and venues.
+ * @returns {Object} The campus lookup model used by MapView.
+ */
 export const campusFrom = (places = NO_PLACES) => createCampus(places, SHAPES);
 const EMPTY_CAMPUS = campusFrom();
 
-// Calculates the viewport needed to show the entire campus.
-function fullView(aspect) {
-  const w = Math.max(W, H / aspect);
-  const h = w * aspect;
-  return { x: (W - w) / 2, y: (H - h) / 2, w, h };
-}
+// The whole campus, and the pan/zoom limits (lib/map/view.js).
+const fullView = (aspect) => fullCampusView(aspect, W, H);
+const clampView = (v, aspect) => clampCampusView(v, aspect, W, H, MAX_ZOOM);
 
-// Limits zooming and panning so users cannot zoom beyond the allowed range 
-// or move the campus completely out of view.
-function clampView(v, aspect) {
-  const maxW = fullView(aspect).w;
-  const w = Math.min(maxW, Math.max(W / MAX_ZOOM, v.w));
-  const h = w * aspect;
-  const clampAxis = (pos, size, total) =>
-    size >= total ? (total - size) / 2 : Math.min(total - size, Math.max(0, pos));
-  return { w, h, x: clampAxis(v.x, w, W), y: clampAxis(v.y, h, H) };
-}
-
+/**
+ * Render the campus SVG map with selection, pins, constrained pan/zoom and imperative focus controls.
+ * @function MapView
+ * @memberof module:components/map/Map
+ * @static
+ * @param {Object} props - Component properties.
+ * @param {*} props.ref - The ref setting or callback.
+ * @param {*} props.selectedId - The selected id setting or callback.
+ * @param {function} props.onSelect - Callback invoked when a place is selected.
+ * @param {*} [props.pins] - The pins setting or callback.
+ * @param {*} [props.initialFocusId] - The initial focus id setting or callback.
+ * @param {*} [props.compact] - The compact setting or callback.
+ * @param {*} [props.quiet] - The quiet setting or callback.
+ * @param {*} [props.campus] - The campus setting or callback.
+ * @returns {React.ReactElement} Rendered component tree.
+ */
 export default function MapView({
   ref,
   selectedId,
@@ -75,6 +95,7 @@ export default function MapView({
   pins = [], // [{ id, label, count, has3D }] — buildings that get a pill pin
   initialFocusId = null, // start zoomed in on this building / place / room
   compact = false, // smaller card without the legend (event page preview)
+  quiet = false, // names only on hover and for the selected building (homepage preview)
   campus = EMPTY_CAMPUS, // buildings, outdoor spaces and venues, from campusFrom()
 }) {
   // Buildings, outdoor spaces and venues from the "locations" table.
@@ -169,11 +190,7 @@ export default function MapView({
   const zoomAt = useCallback(
     (factor, mx, my) => {
       cancelAnimationFrame(animation.current);
-      setView((v) => {
-        const target = clamp({ ...v, w: v.w * factor });
-        const k = target.w / v.w;
-        return clamp({ w: target.w, x: mx - (mx - v.x) * k, y: my - (my - v.y) * k });
-      });
+      setView((v) => zoomAround(v, factor, mx, my, clamp));
     },
     [clamp],
   );
@@ -295,8 +312,7 @@ export default function MapView({
   // Arrow keys pan, +/- zoom, 0 resets (when the map has keyboard focus).
   const onMapKey = (e) => {
     if (e.target !== e.currentTarget) return;
-    const step = viewRef.current.w * 0.1;
-    const pan = { ArrowLeft: [-step, 0], ArrowRight: [step, 0], ArrowUp: [0, -step], ArrowDown: [0, step] }[e.key];
+    const pan = keyPan(e.key, viewRef.current.w);
     if (pan) {
       e.preventDefault();
       setView((v) => clamp({ ...v, x: v.x + pan[0], y: v.y + pan[1] }));
@@ -309,7 +325,7 @@ export default function MapView({
   const activeId = selectedId ? mapIdFor(selectedId) : null;
   const pinIds = new Set(pins.map((p) => p.id));
   const showLabel = (id) =>
-    !pinIds.has(id) && (zoom >= LABEL_ZOOM || id === activeId || id === hoverId);
+    !pinIds.has(id) && ((!quiet && zoom >= LABEL_ZOOM) || id === activeId || id === hoverId);
   const selectedShape = activeId ? SHAPES.get(activeId) : null;
   const L = geometry.layers;
 
@@ -515,7 +531,7 @@ export default function MapView({
           const pos = toScreen(shape);
           if (!pos.visible) return null;
           const selected = pin.id === activeId;
-          const showName = selected || zoom >= PIN_NAME_ZOOM || pin.id === hoverId;
+          const showName = selected || (!quiet && zoom >= PIN_NAME_ZOOM) || pin.id === hoverId;
           const name = META.get(pin.id)?.name ?? pin.label;
           return (
             <button

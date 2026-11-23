@@ -1,0 +1,101 @@
+/**
+ * Public interfaces supporting R12.1.
+ * @module components/password/password-strength
+ */
+"use client";
+
+import { validatePassword, requirementLabels } from "@/lib/password/password-validation";
+import { passwordStrength } from "@/lib/auth/auth";
+
+/**
+ * Render password-strength feedback from the shared validation checks.
+ * @function PasswordStrength
+ * @memberof module:components/password/password-strength
+ * @static
+ * @param {Object} props - Component properties.
+ * @param {*} props.password - Password entered in the form.
+ * @returns {React.ReactElement} Rendered component tree.
+ */
+export default function PasswordStrength({ password }) {
+  const requirements = validatePassword(password);
+
+  const { score: strength, label: strengthLabel } = passwordStrength(password);
+
+  const strengthColor =
+    strength <= 2
+      ? "#DC2626"
+      : strength === 3
+        ? "#D97706"
+        : strength === 4
+          ? "#2563EB"
+          : "#16A34A";
+
+  return (
+    <div className="ga-muted ga-small">
+      <div style={{ marginTop: "8px", marginBottom: "12px" }}>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            marginBottom: "6px",
+          }}
+        >
+          <strong>Password strength</strong>
+
+          <span
+            style={{
+              color: password ? strengthColor : "inherit",
+              fontWeight: "600",
+            }}
+          >
+            {strengthLabel}
+          </span>
+        </div>
+
+        <div
+          role="progressbar"
+          aria-label="Password strength"
+          aria-valuemin={0}
+          aria-valuemax={5}
+          aria-valuenow={strength}
+          style={{
+            display: "flex",
+            gap: "5px",
+            width: "100%",
+          }}
+        >
+          {[1, 2, 3, 4, 5].map((level) => (
+            <div
+              key={level}
+              style={{
+                height: "6px",
+                flex: 1,
+                borderRadius: "4px",
+                backgroundColor:
+                  strength >= level ? strengthColor : "#D1D5DB",
+                transition: "background-color 0.2s ease",
+              }}
+            />
+          ))}
+        </div>
+      </div>
+
+      <p>Your password must contain:</p>
+
+      <ul style={{ listStyle: "none", padding: 0 }}>
+        {requirementLabels.map(([key, label]) => (
+          <li
+            key={key}
+            style={{
+              color: requirements[key] ? "#16A34A" : "inherit",
+              marginBottom: "4px",
+            }}
+          >
+            {requirements[key] ? "✓" : "○"} {label}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}

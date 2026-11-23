@@ -26,8 +26,8 @@ export default async function Page() {
       <LockKeyhole size={32} />
       <h2>Sign in to upload your schedule</h2>
       <p>
-        Your class schedule is saved to your GatorAid account, so it can show on My calendar
-        and help you find events that fit around your classes.
+        Your schedule (classes, work and any other commitments) is saved to your GatorAid account,
+        so it can show on Your calendar and help you find events that fit around it.
       </p>
       <Link className="ga-button" href="/login?next=/schedule">
         <CalendarDays size={16} /> Sign in to upload your schedule

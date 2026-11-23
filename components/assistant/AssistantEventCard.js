@@ -25,6 +25,7 @@ import { Bookmark, BookmarkCheck, Box, CalendarDays, Check, MapPin, Star, X } fr
 import { bannerFor, bannerStyle, orderedCategoryNames } from "@/lib/events/banner";
 import { canAttend } from "@/lib/student/validation";
 import { studentRequest } from "@/components/student/useStudentData";
+import { useScheduleConflict } from "@/components/student/ScheduleConflict";
 
 const DATE = new Intl.DateTimeFormat("en-US", {
   weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit",
@@ -34,6 +35,7 @@ const DATE = new Intl.DateTimeFormat("en-US", {
 function EventActions({ event, status, onStatus, signedIn }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const { confirmGoing, dialog } = useScheduleConflict();
   const base = `/api/events/${event.id}`;
   const rsvp = status?.rsvp ?? null;
 
@@ -54,7 +56,10 @@ function EventActions({ event, status, onStatus, signedIn }) {
     () => studentRequest(`${base}/saved`, { method: status?.saved ? "DELETE" : "PUT" }),
     (result) => ({ saved: result.saved }),
   );
-  const setRsvp = (next) => run(
+  const setRsvp = async (next) => {
+    // Going to an event during a class: remind them, but let them decide.
+    if (next === "attending" && rsvp !== "attending" && !(await confirmGoing(event))) return;
+    return run(
     () => studentRequest(`${base}/rsvps/me`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
@@ -62,6 +67,7 @@ function EventActions({ event, status, onStatus, signedIn }) {
     }),
     (result) => ({ rsvp: result.rsvp?.status === "not_attending" ? null : result.rsvp?.status ?? null }),
   );
+  };
 
   // Saving and RSVPing need an account; chatting doesn't.
   if (!signedIn) {
@@ -94,6 +100,7 @@ function EventActions({ event, status, onStatus, signedIn }) {
         </button>
       </div>
       {error && <p role="alert" className="ga-assistant-card-error">{error}</p>}
+      {dialog}
     </div>
   );
 }

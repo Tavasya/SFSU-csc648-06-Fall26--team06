@@ -1,3 +1,7 @@
+/**
+ * Public interfaces supporting R1.3, R6.1.
+ * @module components/map/MapExplorer
+ */
 /*
  * components/map/MapExplorer.js
  *
@@ -52,12 +56,30 @@ const chipClass = (active) =>
       : "border-[#ebe7f0] bg-white text-[#51475f] hover:border-[#d9cfe8]"
   }`;
 
+/**
+ * Coordinate map selection, filters, event details and 3D previews in the campus explorer.
+ * @function MapExplorer
+ * @memberof module:components/map/MapExplorer
+ * @static
+ * @param {Object} props - Component properties.
+ * @param {*} props.places - Campus buildings, outdoor places and venues.
+ * @param {*} [props.events] - Event records to display.
+ * @param {*} [props.unmatched] - The unmatched setting or callback.
+ * @param {*} [props.scans] - Available room scans indexed by location.
+ * @param {*} [props.isSample] - The is sample setting or callback.
+ * @param {*} [props.signedIn] - Whether the current viewer is authenticated.
+ * @param {*} [props.loadError] - The load error setting or callback.
+ * @param {*} [props.initialPlaceId] - The initial place id setting or callback.
+ * @param {*} [props.initialEventId] - The initial event id setting or callback.
+ * @returns {React.ReactElement} Rendered component tree.
+ */
 export default function MapExplorer({
   places, // buildings, outdoor spaces and venues from the "locations" table
   events = [],
   unmatched = [],
   scans = {},
   isSample = false,
+  signedIn = false, // shows the "Show my events" chip
   loadError = false,
   initialPlaceId = null,
   initialEventId = null,
@@ -68,6 +90,10 @@ export default function MapExplorer({
   const [today] = useState(() => new Date());
   const [range, setRange] = useState("all");
   const [category, setCategory] = useState("all");
+  // Events the signed-in user hosts are hidden unless they turn this on
+  // (handy for checking how your own events look on the map).
+  const [showMine, setShowMine] = useState(false);
+  const myEventCount = useMemo(() => events.filter((e) => e.hostedByYou).length, [events]);
   const [selectedId, setSelectedId] = useState(initialPlaceId);
   // The event open in the side panel's detail view (null = show the list).
   const [openEventId, setOpenEventId] = useState(initialEventId);
@@ -81,13 +107,14 @@ export default function MapExplorer({
   const filtered = useMemo(() => {
     const byBuilding = new Map();
     for (const e of events) {
+      if (e.hostedByYou && !showMine) continue;
       if (!inRange(e, range, today)) continue;
       if (category !== "all" && !(e.tags ?? []).includes(category)) continue;
       if (!byBuilding.has(e.mapId)) byBuilding.set(e.mapId, []);
       byBuilding.get(e.mapId).push(e);
     }
     return byBuilding;
-  }, [events, range, category, today]);
+  }, [events, range, category, today, showMine]);
 
   // Buildings that get a pin on the map and a row in the side panel.
   const buildingsWithEvents = [...filtered.entries()]
@@ -208,6 +235,24 @@ export default function MapExplorer({
           </select>
           <ChevronDown size={15} className="pointer-events-none absolute right-3.5" aria-hidden="true" />
         </label>
+
+        {signedIn && (
+          <button
+            type="button"
+            aria-pressed={showMine}
+            onClick={() => setShowMine((on) => !on)}
+            disabled={myEventCount === 0}
+            className={`${chipClass(showMine)} disabled:opacity-50`}
+            title={
+              myEventCount
+                ? "Include the events you host, to see how they look to students"
+                : "You don't host any upcoming published events"
+            }
+          >
+            {showMine && <Check size={15} aria-hidden="true" />}
+            Show my events ({myEventCount})
+          </button>
+        )}
 
         <label className="relative flex w-full min-w-0 items-center sm:ml-auto sm:w-auto">
           <span className="sr-only">Find a place</span>

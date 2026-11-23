@@ -131,6 +131,24 @@ test("classBlocks repeats a class on each of its meeting days", () => {
   );
 });
 
+test("classBlocks keeps each entry's type, and older entries are classes", () => {
+  const days = weekDays("2026-10-26");
+  const blocks = classBlocks(
+    [
+      { name: "Library shift", kind: "work", days: "Tue", startTime: "09:00", endTime: "12:00" },
+      { name: "CSC 648", days: "Mon", startTime: "14:00", endTime: "15:15" },
+    ],
+    days,
+  );
+  assert.deepEqual(
+    blocks.map((b) => [b.title, b.kind, b.scheduleKind]),
+    [
+      ["Library shift", "class", "work"],
+      ["CSC 648", "class", "class"],
+    ],
+  );
+});
+
 test("classBlocks skips entries the scanner could not read", () => {
   const days = weekDays("2026-10-26");
   const blocks = classBlocks(

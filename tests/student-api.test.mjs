@@ -24,6 +24,7 @@ const saved = await import("../app/api/events/[eventId]/saved/route.js");
 const rsvp = await import("../app/api/events/[eventId]/rsvps/me/route.js");
 const interests = await import("../app/api/users/me/interests/route.js");
 const recommended = await import("../app/api/events/for-you/route.js");
+const profile = await import("../app/api/users/me/profile/route.js");
 const id = "123e4567-e89b-42d3-a456-426614174001";
 const category = "123e4567-e89b-42d3-a456-426614174002";
 const context = { params: Promise.resolve({ eventId: id }) };
@@ -32,17 +33,26 @@ function database() {
   const tables = {
     events: [{ id, category_ids: [category], publication_status: "published", status: "active", end_date_time: "2099-01-01T00:00:00Z" }],
     categories: [{ id: category, name: "Technology" }],
-    student_preferences: [], saved_events: [], event_rsvps: [],
+    student_preferences: [], student_profiles: [], saved_events: [], event_rsvps: [],
   };
   const db = {
     user: { id: "student-one" }, tables,
     auth: { getUser: async () => ({ data: { user: db.user } }) },
+    // event_attendance(): attending counts, like the database function.
+    async rpc(name, args) {
+      if (name !== "event_attendance") return { data: null, error: { message: "unknown function" } };
+      return { data: args.event_ids.map((eventId) => ({
+        event_id: eventId,
+        attending: tables.event_rsvps.filter((r) => r.event_id === eventId && r.status === "attending").length,
+      })) };
+    },
     from(table) {
       const filters = [];
       let operation = "read", value, options, single = false;
       const query = {
         select() { return this; },
         eq(key, target) { filters.push((row) => row[key] === target); return this; },
+        neq(key, target) { filters.push((row) => row[key] !== target); return this; },
         gt(key, target) { filters.push((row) => row[key] > target); return this; },
         in(key, targets) { filters.push((row) => targets.includes(row[key])); return this; },
         overlaps(key, targets) { filters.push((row) => row[key].some((item) => targets.includes(item))); return this; },
@@ -85,6 +95,34 @@ test("student endpoints reject anonymous users and foreign mutation origins", as
   db.user = { id: "student-one" };
   assert.equal((await rsvp.PUT(request("PUT", { status: "attending" }, "https://other.example"), context)).status, 403);
 });
+
+test("profiles persist only validated fields for the authenticated account", async () => {
+  const db = database();
+  const input = {
+    display_name: " Alex Rivera ", academic_year: "Junior", major: " Computer Science ", gender: "",
+    notify_cancellations: true, notify_updates: false, notify_reminders: true,
+    user_id: "student-two", email: "other@example.com", role: "admin",
+  };
+  assert.equal((await profile.PUT(request("PUT", input))).status, 200);
+  assert.equal(db.tables.student_profiles[0].user_id, "student-one");
+  assert.equal(db.tables.student_profiles[0].display_name, "Alex Rivera");
+  assert.equal(db.tables.student_profiles[0].major, "Computer Science");
+  assert.equal(db.tables.student_profiles[0].email, undefined);
+  assert.equal(db.tables.student_profiles[0].role, undefined);
+  assert.equal((await (await profile.GET(request())).json()).profile.notify_reminders, true);
+  for (const invalid of [{ display_name: " " }, { major: "x".repeat(121) }, { academic_year: "invalid" }, { gender: "invalid" }, { notify_updates: "false" }]) {
+    assert.equal((await profile.PUT(request("PUT", { ...input, ...invalid }))).status, 422);
+  }
+  assert.equal(db.tables.student_profiles[0].major, "Computer Science");
+  db.user = { id: "student-two", email: "two@example.com" };
+  const other = await (await profile.GET(request())).json();
+  assert.equal(other.profile.major, "");
+  assert.equal(other.email, "two@example.com");
+  assert.equal((await profile.PUT(request("PUT", input, "https://other.example"))).status, 403);
+  db.user = null;
+  assert.equal((await profile.GET(request())).status, 401);
+  assert.equal((await profile.PUT(request("PUT", input))).status, 401);
+});
 test("repeat saves and RSVPs persist one row, independently and per authenticated user", async () => {
   const db = database();
   for (let i = 0; i < 2; i++) {
@@ -103,6 +141,36 @@ test("repeat saves and RSVPs persist one row, independently and per authenticate
   db.user = { id: "student-two" };
   assert.equal((await (await saved.GET(request(), context)).json()).saved, false);
   assert.equal((await (await rsvp.GET(request(), context)).json()).rsvp, null);
+});
+test("a full event refuses new attending RSVPs but keeps existing ones", async () => {
+  const db = database();
+  db.tables.events[0].capacity = 1;
+  db.user = { id: "student-two" };
+  assert.equal((await rsvp.PUT(request("PUT", { status: "attending" }), context)).status, 200);
+  assert.equal((await (await rsvp.GET(request(), context)).json()).full, true);
+  // Already attending: saving the same RSVP again still works.
+  assert.equal((await rsvp.PUT(request("PUT", { status: "attending" }), context)).status, 200);
+  db.user = { id: "student-one" };
+  const refused = await rsvp.PUT(request("PUT", { status: "attending" }), context);
+  assert.equal(refused.status, 409);
+  assert.match((await refused.json()).error, /capacity has been reached/);
+  // Interested is still allowed when the event is full.
+  assert.equal((await rsvp.PUT(request("PUT", { status: "interested" }), context)).status, 200);
+});
+test("hosts can't save or RSVP to their own event", async () => {
+  const db = database();
+  db.tables.events[0].host_id = "student-one";
+  for (const response of [
+    await saved.PUT(request("PUT"), context),
+    await rsvp.PUT(request("PUT", { status: "attending" }), context),
+  ]) {
+    assert.equal(response.status, 403);
+    assert.match((await response.json()).error, /your own event/);
+  }
+  assert.equal(db.tables.saved_events.length + db.tables.event_rsvps.length, 0);
+  // Anyone else still can.
+  db.user = { id: "student-two" };
+  assert.equal((await saved.PUT(request("PUT"), context)).status, 200);
 });
 test("cancelled events reject attending but allow withdrawing; drafts are inaccessible", async () => {
   const db = database();

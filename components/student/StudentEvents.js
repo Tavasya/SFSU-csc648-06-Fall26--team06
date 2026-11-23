@@ -1,3 +1,7 @@
+/**
+ * Public interfaces supporting R5.6.
+ * @module components/student/StudentEvents
+ */
 "use client";
 
 import { useEffect, useState } from "react";
@@ -5,7 +9,17 @@ import Link from "next/link";
 import EventSearch from "@/components/gatoraid/EventSearch";
 import DataState from "./DataState";
 import { useStudentData } from "./useStudentData";
+import { studentEmptyState } from "@/lib/student/empty-state";
 
+/**
+ * Render saved or personalized events with sign-in, loading, error and empty states.
+ * @function StudentEvents
+ * @memberof module:components/student/StudentEvents
+ * @static
+ * @param {Object} props - Component properties.
+ * @param {*} [props.saved] - The saved setting or callback.
+ * @returns {React.ReactElement} Rendered component tree.
+ */
 export default function StudentEvents({ saved = false }) {
   const state = useStudentData(saved ? "/api/users/me/saved-events" : "/api/events/for-you");
 
@@ -69,19 +83,31 @@ export default function StudentEvents({ saved = false }) {
     {state.loading || state.error ? <DataState {...state} /> :
       state.data.events.length ?
         <EventSearch
-          events={state.data.events}
+          events={[...state.data.events, ...(state.data.own_events ?? [])]}
           categories={state.data.categories}
           schedule={schedule}
           scheduleStatus={scheduleStatus}
+          signedIn={!saved}
+          interestIds={saved ? null : state.data.category_ids}
         />
         :
-        <section className="ga-card ga-empty">
-          <h2>{saved ? "No saved events yet" : state.data.category_ids.length ? "No matching recommendations yet" : "Start with your interests"}</h2>
-          <p className="ga-muted">{saved ? "Open an event and choose Save event to add it here." : "Choose or update your interests, or explore all campus events while you wait for a match."}</p>
-          <div className="student-actions">
-            {!saved && <Link className="ga-button" href="/interests">Choose interests</Link>}
-            <Link className="ga-button secondary" href="/events">Explore all events</Link>
-          </div>
-        </section>}
+        <EmptyState {...studentEmptyState({ saved, hasInterests: Boolean(state.data.category_ids?.length) })} />}
   </>;
+}
+
+// R5.6: an empty list explains why and links to interests and all events.
+function EmptyState({ title, text, links }) {
+  return (
+    <section className="ga-card ga-empty">
+      <h2>{title}</h2>
+      <p className="ga-muted">{text}</p>
+      <div className="student-actions">
+        {links.map((link, index) => (
+          <Link className={index === 0 && links.length > 1 ? "ga-button" : "ga-button secondary"} href={link.href} key={link.href}>
+            {link.label}
+          </Link>
+        ))}
+      </div>
+    </section>
+  );
 }

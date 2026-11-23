@@ -14,15 +14,19 @@ import {
   ArrowRight,
   BookOpen,
   Bookmark,
+  Briefcase,
+  CalendarClock,
   CalendarDays,
   ChevronLeft,
   ChevronRight,
   CircleCheck,
   Info,
   Star,
+  Users,
 } from "lucide-react";
 import DataState from "@/components/student/DataState";
 import { useStudentData } from "@/components/student/useStudentData";
+import { scheduleKindLabel } from "@/lib/schedule/kinds";
 import {
   classBlocks,
   eventBlocks,
@@ -48,11 +52,13 @@ function useClasses() {
 }
 
 const KIND = {
-  class: { label: "Class", Icon: BookOpen },
   saved: { label: "Saved", Icon: Bookmark },
   attending: { label: "RSVP'd", Icon: CircleCheck },
   interested: { label: "Interested", Icon: Star },
 };
+
+// Schedule entries are tagged with their type: Class, Work, Practice or club, Other.
+const SCHEDULE_ICONS = { class: BookOpen, work: Briefcase, practice: Users, other: CalendarClock };
 
 export default function CalendarView() {
   const saved = useStudentData("/api/users/me/saved-events");
@@ -107,8 +113,8 @@ export default function CalendarView() {
     <div className="ga-calendar">
       <div className="ga-heading">
         <div>
-          <h1>My calendar</h1>
-          <p className="ga-muted">Your RSVPs, saved events, and class schedule in one week.</p>
+          <h1>Your calendar</h1>
+          <p className="ga-muted">Your RSVPs, saved events, classes, work and other commitments in one week.</p>
         </div>
         <Link className="ga-button secondary" href="/events">
           Explore events
@@ -143,7 +149,7 @@ export default function CalendarView() {
               )}
             </div>
             <ul className="ga-calendar-legend" aria-label="Legend">
-              <li><span className="ga-calendar-swatch is-class" />Class (schedule entry)</li>
+              <li><span className="ga-calendar-swatch is-class" />Your schedule (classes, work and more)</li>
               <li><span className="ga-calendar-swatch is-saved" />Saved</li>
               <li><span className="ga-calendar-swatch is-rsvp" />RSVP&apos;d / registered</li>
             </ul>
@@ -239,9 +245,9 @@ export default function CalendarView() {
           <aside className="ga-calendar-note">
             <Info size={18} />
             <div>
-              <strong>Classes come from your confirmed schedule</strong>
+              <strong>Your classes, work and other commitments come from your schedule</strong>
               <p className="ga-muted">
-                Class entries are read-only schedule blocks. Overlaps are shown side by side, never blocked.
+                Schedule blocks are read-only here. Overlaps are shown side by side, never blocked.
               </p>
             </div>
             <Link href="/schedule">
@@ -257,7 +263,10 @@ export default function CalendarView() {
 function CalendarBlock({ block }) {
   // "class", "saved", "attending" or "interested"
   const variant = block.kind === "rsvp" ? block.rsvpStatus : block.kind;
-  const kind = KIND[variant] ?? KIND.saved;
+  const kind =
+    variant === "class"
+      ? { label: scheduleKindLabel(block.scheduleKind), Icon: SCHEDULE_ICONS[block.scheduleKind] ?? BookOpen }
+      : KIND[variant] ?? KIND.saved;
   const style = {
     top: (block.start / 60) * HOUR_HEIGHT,
     height: Math.max(((block.end - block.start) / 60) * HOUR_HEIGHT, 24),

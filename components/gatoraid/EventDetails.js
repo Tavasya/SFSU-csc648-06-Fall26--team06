@@ -1,3 +1,7 @@
+/**
+ * Public interfaces supporting R3.1, R3.2, R3.6.
+ * @module components/gatoraid/EventDetails
+ */
 import Image from "next/image";
 import {
   CalendarDays,
@@ -7,15 +11,38 @@ import {
   Accessibility,
   Mail,
   ArrowLeft,
+  Megaphone,
+  Pencil,
 } from "lucide-react";
 import Link from "next/link";
 import EventPlacePreview from "@/components/map/EventPlacePreview";
 import EventActions from "@/components/student/EventActions";
+import DescriptionLinks from "@/components/gatoraid/DescriptionLinks";
+import { accessibilityText } from "@/lib/events/accessibility";
 import {
   bannerFor,
   bannerStyle,
   orderedCategoryNames,
 } from "@/lib/events/banner";
+import { backLink, capacityText, contactHref, hostLabel } from "@/lib/events/details";
+/**
+ * Render event details, status, accessibility, organizer information, map and available scan previews.
+ * @function EventDetails
+ * @memberof module:components/gatoraid/EventDetails
+ * @static
+ * @param {Object} props - Component properties.
+ * @param {*} props.event - Event record to display.
+ * @param {*} props.categories - Available event categories.
+ * @param {*} props.location - The location setting or callback.
+ * @param {*} props.coverUrl - The cover url setting or callback.
+ * @param {*} props.hostName - The host name setting or callback.
+ * @param {*} [props.preview] - The preview setting or callback.
+ * @param {*} [props.isHost] - The is host setting or callback.
+ * @param {*} [props.rooms] - The rooms setting or callback.
+ * @param {*} props.places - Campus buildings, outdoor places and venues.
+ * @param {*} [props.from] - The from setting or callback.
+ * @returns {React.ReactElement} Rendered component tree.
+ */
 export default function EventDetails({
   event,
   categories,
@@ -23,6 +50,7 @@ export default function EventDetails({
   coverUrl,
   hostName,
   preview = false,
+  isHost = false, // the signed-in user created this event
   rooms = [],
   places, // the Campus Map places, for the Location section's small map
   from = null, // "assistant" when opened from the AI Assistant (Allison)
@@ -35,15 +63,36 @@ export default function EventDetails({
       timeZone: "America/Los_Angeles",
       ...opts,
     }).format(new Date(v));
+  // We don't verify SFSU clubs yet, so events show the host's own name.
+  const host = hostLabel(hostName);
+  // Opens a new email to the host, with the event in the subject.
+  const mailto = contactHref(event);
+  const back = backLink({ preview, from });
   return (
     <>
       <Link
         className="ga-back"
-        href={preview ? "/host/events" : from === "assistant" ? "/assistant" : "/events"}
+        href={back.href}
       >
         <ArrowLeft size={16} />
-        {preview ? "Back to My Events" : from === "assistant" ? "Back to chat with Allison" : "Back to events"}
+        {back.label}
       </Link>
+      {/* The host sees their own event as theirs, with links to manage it. */}
+      {isHost && !preview && (
+        <div className="ga-preview-bar ga-host-bar">
+          <span>
+            <Megaphone size={17} /> You&apos;re hosting this event. Students see this page as shown below.
+          </span>
+          <div className="ga-actions">
+            <Link className="ga-button secondary" href={"/host/events/" + event.id + "/edit"}>
+              <Pencil size={14} /> Edit event
+            </Link>
+            <Link className="ga-button" href="/host/events">
+              Your events
+            </Link>
+          </div>
+        </div>
+      )}
       <div className="ga-detail-grid">
         <div>
           <div
@@ -74,7 +123,15 @@ export default function EventDetails({
             ))}
           </div>
           <h1>{event.title}</h1>
-          <p className="ga-muted">Hosted by {hostName || "SFSU organizer"}</p>
+          <p className="ga-muted">Hosted by {host}</p>
+          {event.status === "cancelled" && (
+            <div className="ga-detail-cancelled-notice">
+              <span className="ga-badge cancelled">Cancelled</span>
+              {event.cancellation_message && (
+                <p>{event.cancellation_message}</p>
+              )}
+            </div>
+          )}
           <div className="ga-detail-facts">
             {[
               [
@@ -92,28 +149,35 @@ export default function EventDetails({
                   hour: "numeric",
                   minute: "2-digit",
                 }) +
-                  " – " +
-                  fmt(event.end_date_time, {
-                    hour: "numeric",
-                    minute: "2-digit",
-                  }) +
-                  " PT",
+                " – " +
+                fmt(event.end_date_time, {
+                  hour: "numeric",
+                  minute: "2-digit",
+                }) +
+                " PT",
               ],
               [
                 MapPin,
                 (location?.building_name || "Campus location") +
-                  (event.room_number ? ", " + event.room_number : ""),
+                (event.room_number ? ", " + event.room_number : ""),
               ],
               [Users, event.audience],
               [
                 Accessibility,
-                event.wheelchair_accessible
-                  ? "Wheelchair accessible"
-                  : "Contact organizer for access information",
+                accessibilityText({ wheelchair: event.wheelchair_accessible, asl: event.asl_available }),
               ],
-              [Mail, event.contact_email || "Contact the event organizer"],
-            ].map(([Icon, value]) => (
-              <div key={value}>
+              [
+                Mail,
+                mailto ? (
+                  <a className="ga-detail-email" href={mailto}>
+                    {event.contact_email}
+                  </a>
+                ) : (
+                  "No contact email listed"
+                ),
+              ],
+            ].map(([Icon, value], i) => (
+              <div key={i}>
                 <Icon size={19} />
                 <span>{value}</span>
               </div>
@@ -121,7 +185,7 @@ export default function EventDetails({
           </div>
           <section className="ga-detail-section">
             <h2>About this event</h2>
-            <p>{event.description}</p>
+            <p><DescriptionLinks text={event.description} /></p>
           </section>
           <section className="ga-detail-section">
             <h2>Location</h2>
@@ -144,9 +208,7 @@ export default function EventDetails({
         <aside className="ga-card ga-registration">
           <h2>{event.admission_type === "free" ? "Free" : "Paid admission"}</h2>
           <p className="ga-muted">
-            {event.capacity
-              ? event.capacity + " attendee capacity"
-              : "Open capacity"}
+            {capacityText(event.capacity)}
           </p>
           <span className="ga-badge">
             {event.rsvp_required ? "RSVP required" : "No RSVP required"}
@@ -156,14 +218,12 @@ export default function EventDetails({
               ? "This is how your event will appear to students."
               : "Manage your saved event and RSVP below."}
           </p>
-          {!preview && <EventActions event={event} />}
-          {event.contact_email && (
-            <a
-              className="ga-button secondary"
-              href={"mailto:" + event.contact_email}
-            >
-              Contact organizer
-            </a>
+          {!preview && !isHost && <EventActions event={event} />}
+          {isHost && !preview && (
+            <p className="ga-small ga-muted">
+              Hosts can&apos;t save or RSVP to their own events. See how many students are coming on{" "}
+              <Link href="/host/events">Your events</Link>.
+            </p>
           )}
         </aside>
       </div>

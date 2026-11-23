@@ -1,3 +1,7 @@
+/**
+ * Public interfaces supporting R5.2.
+ * @module components/student/Interests
+ */
 "use client";
 import Link from "next/link";
 import { useState } from "react";
@@ -45,11 +49,20 @@ function InterestForm({ data }) {
     </div>
   </form>;
 }
-export default function Interests() {
+/**
+ * Render the signed-in student's interest picker and save category preferences.
+ * @function Interests
+ * @memberof module:components/student/Interests
+ * @static
+ * @param {Object} props - Component properties.
+ * @param {*} [props.embedded] - The embedded setting or callback.
+ * @returns {React.ReactElement} Rendered component tree.
+ */
+export default function Interests({ embedded = false }) {
   const state = useStudentData("/api/users/me/interests");
   return <>
-    <div className="ga-heading"><div><h1>Your interests</h1>
-      <p className="ga-muted">Find events that feel like you.</p></div></div>
+    {!embedded && <div className="ga-heading"><div><h1>Your interests</h1>
+      <p className="ga-muted">Find events that feel like you.</p></div></div>}
     {state.loading || state.error ? <DataState {...state} /> : <InterestForm data={state.data} />}
   </>;
 }

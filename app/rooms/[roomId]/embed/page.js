@@ -1,9 +1,20 @@
+/**
+ * Public interfaces supporting R7.1.
+ * @module app/rooms/roomId/embed/page
+ */
 "use client";
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import RoomViewer3D from "@/components/rooms/RoomViewer3D";
 
+/**
+ * Render an embedded room viewer using the room ID in the route.
+ * @function RoomEmbedPage
+ * @memberof module:app/rooms/roomId/embed/page
+ * @static
+ * @returns {React.ReactElement} Rendered component tree.
+ */
 export default function RoomEmbedPage() {
   const { roomId } = useParams();
 

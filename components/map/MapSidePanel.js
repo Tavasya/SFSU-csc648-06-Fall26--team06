@@ -1,3 +1,7 @@
+/**
+ * Public interfaces supporting R6.1, R6.5.
+ * @module components/map/MapSidePanel
+ */
 /*
  * components/map/MapSidePanel.js
  *
@@ -15,7 +19,8 @@ import { formatWhen, groupEventsByVenue } from "@/lib/map/events";
 
 const plural = (n, word) => `${n} ${word}${n === 1 ? "" : "s"}`;
 
-// One event in a building's list. Clicking it opens the event detail view.
+// One event in a building's list. Clicking it opens the event detail view,
+// where Save / Interested / Going are.
 // (Only <span>s inside the button, because headings and <div>s aren't allowed in buttons.)
 function EventRow({ event, onOpen }) {
   const { Icon, style } = coverFor(event);
@@ -35,9 +40,19 @@ function EventRow({ event, onOpen }) {
             {formatWhen(event)}
             {event.roomNumber ? ` · ${event.roomNumber}` : ""}
           </span>
-          <span className="rounded-md bg-[#fff4d1] px-2 py-0.5 text-[11px] font-medium text-[#78672e]">
+          <span className="mt-1 flex flex-wrap gap-1.5">
+            <span className="rounded-md bg-[#fff4d1] px-2 py-0.5 text-[11px] font-medium text-[#78672e]">
               {event.admissionType === "paid" ? "Paid" : "Free"}
             </span>
+            {event.full && (
+              <span className="rounded-md bg-[#FFF0EE] px-2 py-0.5 text-[11px] font-medium text-red-700">Full</span>
+            )}
+            {event.hostedByYou && (
+              <span className="rounded-md bg-[#604398] px-2 py-0.5 text-[11px] font-medium text-white">
+                You&apos;re hosting
+              </span>
+            )}
+          </span>
           <span className="mt-1.5 flex flex-wrap items-center gap-2">
             {(event.tags ?? []).slice(0, 2).map((tag) => (
               <span key={tag} className="rounded-md bg-[#f6f0fc] px-2 py-0.5 text-[11px] font-medium text-[#604398]">
@@ -58,6 +73,24 @@ function EventRow({ event, onOpen }) {
   );
 }
 
+/**
+ * Render the map's location picker, filters and selected-location/event information.
+ * @function MapSidePanel
+ * @memberof module:components/map/MapSidePanel
+ * @static
+ * @param {Object} props - Component properties.
+ * @param {*} props.campus - The campus setting or callback.
+ * @param {*} props.selection - The selection setting or callback.
+ * @param {*} props.buildings - Campus building records.
+ * @param {*} props.rangeText - The range text setting or callback.
+ * @param {*} [props.isSample] - The is sample setting or callback.
+ * @param {function} props.onSelect - Callback invoked when a place is selected.
+ * @param {function} props.onBack - The on back setting or callback.
+ * @param {*} [props.openEvent] - The open event setting or callback.
+ * @param {function} props.onOpenEvent - The on open event setting or callback.
+ * @param {function} props.onCloseEvent - The on close event setting or callback.
+ * @returns {React.ReactElement} Rendered component tree.
+ */
 export default function MapSidePanel({
   campus, // from campusFrom() in components/map/Map.js
   selection, // null, or { id, name, venue, parent, events, scannedRooms }
@@ -151,6 +184,14 @@ export default function MapSidePanel({
             {isSample ? " · sample data" : ""}
           </p>
 
+          {/* Only buildings with a scanned room (Supabase "rooms" table) show this card.
+              It comes first so the 3D preview is easy to find. */}
+          {selection.scannedRooms.length > 0 && (
+            <div className="mt-4">
+              <RoomScansCard rooms={selection.scannedRooms} />
+            </div>
+          )}
+
           <div className="mt-4">
             {selection.events.length === 0 && (
               <p className="rounded-[13px] border border-dashed border-[#ebe7f0] p-4 text-center text-[13px] text-[#777180]">
@@ -176,12 +217,6 @@ export default function MapSidePanel({
             ))}
           </div>
 
-          {/* Only buildings with a scanned room (Supabase "rooms" table) show this card. */}
-          {selection.scannedRooms.length > 0 && (
-            <div className="mt-2">
-              <RoomScansCard rooms={selection.scannedRooms} />
-            </div>
-          )}
         </>
       )}
     </aside>

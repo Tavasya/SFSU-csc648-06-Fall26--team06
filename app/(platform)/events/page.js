@@ -1,3 +1,7 @@
+/**
+ * Public interfaces supporting R2.1, R2.6.
+ * @module app/platform/events/page
+ */
 import Link from "next/link";
 import { CalendarDays, MapPin } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
@@ -7,19 +11,33 @@ import {
   bannerStyle,
   orderedCategoryNames,
 } from "@/lib/events/banner";
+/**
+ * Load published upcoming events and render Explore with error and empty states.
+ * @function Page
+ * @memberof module:app/platform/events/page
+ * @static
+ * @returns {Promise<React.ReactElement>} Rendered component tree.
+ */
 export default async function Page() {
   const db = await createClient();
+  const {
+    data: { user },
+  } = await db.auth.getUser();
+
+  // A signed-in host's own events are marked and hidden until they choose
+  // "Show my events"; they manage them on Your events.
+  const eventsQuery = db
+    .from("events")
+    .select("*, locations(building_name)")
+    .eq("publication_status", "published")
+    .eq("status", "active")
+    .gte("end_date_time", new Date().toISOString())
+    .order("start_date_time");
 
   // Category names are needed to pick each event's banner (its first category).
   const [{ data: events, error }, { data: categories }] =
     await Promise.all([
-      db
-        .from("events")
-        .select("*, locations(building_name)")
-        .eq("publication_status", "published")
-        .eq("status", "active")
-        .gte("end_date_time", new Date().toISOString())
-        .order("start_date_time"),
+      eventsQuery,
       db.from("categories").select("id, name"),
     ]);
 
@@ -41,8 +59,9 @@ export default async function Page() {
       ) : events?.length > 0 ? (
         // EventSearch handles filtering and renders the event cards.
         <EventSearch
-          events={events}
+          events={events.map((event) => ({ ...event, hosted_by_you: Boolean(user) && event.host_id === user.id }))}
           categories={categories ?? []}
+          signedIn={Boolean(user)}
         />
       ) : (
         <div className="ga-empty ga-card">

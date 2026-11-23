@@ -1,3 +1,7 @@
+/**
+ * Public interfaces supporting R8.1, R8.2, R8.3, R8.4, R8.5, R9.5.
+ * @module app/api/assistant/route
+ */
 /*
  * app/api/assistant/route.js
  *
@@ -191,6 +195,14 @@ async function attachRooms(db, events) {
   }
 }
 
+/**
+ * Answer campus-event questions, comparisons and summaries using application data; return clear validation/query failures.
+ * @function POST
+ * @memberof module:app/api/assistant/route
+ * @static
+ * @param {Request} request - Incoming JSON request with a question string.
+ * @returns {Promise<Response>} JSON containing reply, events, categories and total, or an error with an HTTP status.
+ */
 export async function POST(request) {
   try {
     const body = await request.json().catch(() => null);
@@ -217,6 +229,9 @@ export async function POST(request) {
     const today = toPacific(now).day;
     const first = parseQuestion(question, { today, locations: locationsResult.data ?? [] });
     let eventsQuery = db.from("events").select(EVENT_COLUMNS).eq("publication_status", "published");
+    // A signed-in host's own events are left out; they manage them on Your events.
+    const { data: auth } = await db.auth.getUser();
+    if (auth?.user) eventsQuery = eventsQuery.neq("host_id", auth.user.id);
     eventsQuery = first.dates.past
       ? eventsQuery.lt("end_date_time", now.toISOString()).order("start_date_time", { ascending: false })
       : eventsQuery.eq("status", "active").gt("end_date_time", now.toISOString()).order("start_date_time");

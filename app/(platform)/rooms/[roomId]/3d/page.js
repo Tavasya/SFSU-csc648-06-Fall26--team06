@@ -1,8 +1,19 @@
+/**
+ * Public interfaces supporting R7.1.
+ * @module app/platform/rooms/roomId/3d/page
+ */
 "use client";
 
 import { useEffect, useRef, useState } from 'react';
 import { useParams } from 'next/navigation';
 
+/**
+ * Render the Unity room exploration page and its navigation links.
+ * @function Page
+ * @memberof module:app/platform/rooms/roomId/3d/page
+ * @static
+ * @returns {React.ReactElement} Rendered component tree.
+ */
 export default function Page() {
 
     const canvasRef = useRef(null)

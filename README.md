@@ -66,6 +66,15 @@ Next, we're making those spaces social: students who RSVP will appear as customi
 
 ---
 
+### Team communication
+
+| Communication Method | Details |
+| --- | --- |
+| **Discord** | Primary platform for project updates, technical support, study resources and assignment information. |
+| **When2Meet** | Coordinate additional meetings based on team availability. |
+| **Soft-Fixed Meeting** | Fridays at 7:00 PM. |
+| **Meeting Format** | Virtual meetings. |
+
 ## Milestones
 
 | Milestone | Date | Report | What we accomplished |
@@ -373,6 +382,13 @@ Never commit `.env.local` or paste keys into issues, PRs or chat.
 Database rules (RLS, triggers) are checked manually with two test accounts, as described in `docs/student-features.md`.
 
 ---
+
+### M4 source-code documentation
+
+For the documentation-generation deliverable, see the
+[source-code documentation instructions](docs/api-documentation.md).
+Run `npm run docs:check` and `npm run docs:build` to verify coverage and generate
+the HTML reference at `docs/generated/api/index.html`.
 
 ## Git Workflow
 

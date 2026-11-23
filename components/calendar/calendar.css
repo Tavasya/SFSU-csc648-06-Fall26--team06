@@ -20,13 +20,13 @@
   height: 32px;
   border-radius: 50%;
   border: 1px solid var(--line);
-  background: #fff;
+  background: var(--surface);
   color: var(--ink);
   display: grid;
   place-items: center;
 }
 .ga-calendar-arrow:hover {
-  border-color: #cfc4df;
+  border-color: var(--line-strong);
 }
 .ga-calendar-legend {
   display: flex;
@@ -49,21 +49,21 @@
   border-radius: 3px;
 }
 .ga-calendar-swatch.is-class {
-  background: #efedf3;
-  border: 1px solid #d9d4e1;
+  background: var(--surface-2);
+  border: 1px solid var(--line-strong);
 }
 .ga-calendar-swatch.is-saved {
   border: 1.5px dashed var(--purple);
 }
 .ga-calendar-swatch.is-rsvp {
-  background: var(--purple);
+  background: var(--brand);
 }
 
 /* Week grid: a time column and 7 day columns. It shows the full day and
    scrolls inside the frame; the day headers stay pinned at the top. */
 .ga-calendar-frame {
   position: relative;
-  background: #fff;
+  background: var(--surface);
   border: 1px solid var(--line);
   border-radius: 13px;
   overflow: hidden;
@@ -79,7 +79,7 @@
   position: sticky;
   top: 0;
   z-index: 4;
-  background: #fff;
+  background: var(--surface);
   border-bottom: 1px solid var(--line);
   height: 44px;
 }
@@ -89,7 +89,7 @@
   padding: 0 8px;
   border-left: 1px solid var(--line);
   font-size: 12px;
-  color: #51475f;
+  color: var(--muted);
 }
 .ga-calendar-dayhead.is-today {
   color: var(--purple);
@@ -169,15 +169,15 @@
   white-space: nowrap;
 }
 .ga-calendar-block.is-class {
-  background: #efedf3;
-  border: 1px solid #d9d4e1;
+  background: var(--surface-2);
+  border: 1px solid var(--line-strong);
   color: var(--ink);
 }
 .ga-calendar-block.is-class .ga-calendar-tag {
   color: var(--muted);
 }
 .ga-calendar-block.is-saved {
-  background: #fff;
+  background: var(--surface);
   border: 1.5px dashed var(--purple);
   color: var(--ink);
 }
@@ -185,24 +185,25 @@
   color: var(--purple);
 }
 .ga-calendar-block.is-rsvp {
-  background: var(--purple);
+  background: var(--brand);
   border: 1px solid var(--purple);
   color: #fff;
 }
 .ga-calendar-block.is-rsvp:hover {
-  background: #503581;
+  background: var(--brand-hover);
 }
 /* "Interested" RSVPs: same family as RSVP'd, lighter */
 .ga-calendar-block.is-interested {
-  background: #ece5f7;
-  border: 1px solid #cdbfe6;
-  color: #3f2b66;
+  background: var(--accent-soft);
+  border: 1px solid var(--line-strong);
+  color: var(--accent);
 }
 .ga-calendar-block.is-interested:hover {
-  background: #e2d8f3;
+  background: var(--accent-soft);
+  filter: brightness(0.97);
 }
 .ga-calendar-block.is-saved:hover {
-  background: #f7f3fd;
+  background: var(--accent-soft);
 }
 .ga-calendar-block.is-cancelled strong {
   text-decoration: line-through;
@@ -220,7 +221,7 @@
   transform: translate(-50%, -40%);
   width: min(420px, calc(100% - 32px));
   z-index: 5;
-  background: #fff;
+  background: var(--surface);
   border: 1px solid var(--line);
   border-radius: 13px;
   padding: 26px 22px;
@@ -230,7 +231,7 @@
 .ga-calendar-empty > svg {
   display: block;
   margin: 0 auto;
-  color: #baa8d5;
+  color: var(--line-strong);
 }
 .ga .ga-calendar-empty h2 {
   margin: 8px 0 4px;
@@ -246,8 +247,8 @@
   align-items: flex-start;
   margin-top: 20px;
   padding: 16px 18px;
-  background: #f1f4fd;
-  border: 1px solid #dfe5f7;
+  background: var(--accent-soft);
+  border: 1px solid var(--line);
   border-radius: 12px;
 }
 .ga-calendar-note > svg {
@@ -288,14 +289,14 @@
     padding: 8px 0;
     border: 1px solid var(--line);
     border-radius: 10px;
-    background: #fff;
+    background: var(--surface);
     color: var(--ink);
   }
   .ga-calendar-daystrip button.is-today {
     color: var(--purple);
   }
   .ga-calendar-daystrip button[aria-selected="true"] {
-    background: var(--purple);
+    background: var(--brand);
     border-color: var(--purple);
     color: #fff;
   }
