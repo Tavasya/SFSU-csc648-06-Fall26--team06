@@ -1,0 +1,8 @@
+# Generated files: keep them in the repo, but leave them out of GitHub's
+# language statistics and collapse them in pull request diffs.
+
+# JSDoc HTML reference generated for the M4 submission (npm run docs:build)
+milestones/m4/m4-documentation/** linguist-generated
+
+# Compiled Unity WebGL build served from public/unity
+public/unity/Build/** linguist-generated
