@@ -10,7 +10,6 @@ export default function EventAttendees({ event }) {
   const router = useRouter();
   const [attendees, setAttendees] = useState(null);
   const [error, setError] = useState(null);
-  const [busyUserId, setBusyUserId] = useState(null);
   const [attempt, setAttempt] = useState(0);
 
   // Fetch the attendee list when the event changes or a refresh is requested.
@@ -56,26 +55,10 @@ export default function EventAttendees({ event }) {
     };
   }, [event.id]);
 
-  async function startConversation(otherUserId) {
-    setBusyUserId(otherUserId);
-    setError(null);
-
-    try {
-      const result = await studentRequest("/api/conversations", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          event_id: event.id,
-          other_user_id: otherUserId,
-        }),
-      });
-
-      router.push(`/messages?conversation=${result.conversation.id}`);
-    } catch (requestError) {
-      setError(requestError);
-    } finally {
-      setBusyUserId(null);
-    }
+  function startConversation(otherUserId) {
+    router.push(
+      `/messages?recipient=${otherUserId}&event=${event.id}`
+    );
   }
 
   return (
@@ -174,16 +157,11 @@ export default function EventAttendees({ event }) {
                 <button
                   type="button"
                   className="ga-attendee-message"
-                  disabled={busyUserId !== null}
-                  onClick={() =>
-                    startConversation(attendee.user_id)
-                  }
+                  onClick={() => startConversation(attendee.user_id)}
                   aria-label={`Message ${attendee.display_name}`}
                 >
                   <MessageCircle size={15} />
-                  {busyUserId === attendee.user_id
-                    ? "Opening…"
-                    : "Message"}
+                  Message
                 </button>
               )}
             </li>

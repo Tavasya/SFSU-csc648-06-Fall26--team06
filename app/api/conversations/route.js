@@ -1,7 +1,8 @@
 
 /**
  * List the signed-in user's one-to-one conversations
- * and create or retrieve conversations.
+ * and create or retrieve conversations when the first
+ * message is actually sent.
  */
 import { respond, ApiError } from "@/lib/events/api";
 import { studentContext, checked, body } from "@/lib/student/api";
@@ -57,7 +58,7 @@ export const GET = respond(async (request) => {
     profiles.map((profile) => [profile.user_id, profile])
   );
 
-  // Retrieve incoming messages from all of the user's conversations.
+  // Retrieve incoming messages from all conversations.
   const incomingMessages = checked(
     await admin.from("messages")
       .select("id, conversation_id")
@@ -68,7 +69,7 @@ export const GET = respond(async (request) => {
       .neq("sender_id", user.id)
   );
 
-  // Find which incoming messages have already been read by this user.
+  // Find which incoming messages have already been read.
   let readMessageIds = new Set();
 
   if (incomingMessages.length > 0) {
@@ -87,7 +88,7 @@ export const GET = respond(async (request) => {
     );
   }
 
-  // Count unread incoming messages for each conversation.
+  // Count unread incoming messages per conversation.
   const unreadCounts = new Map();
 
   for (const message of incomingMessages) {
@@ -127,21 +128,23 @@ export const GET = respond(async (request) => {
     })
   );
 
+  // Do not display conversations that have no messages.
   return {
     conversations: result.filter(
-      (conversation) => conversation.other_user
+      (conversation) =>
+        conversation.other_user && conversation.last_message
     ),
   };
 });
 
 export const POST = respond(async (request) => {
   const { user } = await studentContext(request);
-
   const input = await body(request);
 
   const {
     event_id: eventId,
     other_user_id: otherUserId,
+    content,
   } = input;
 
   if (!isUuid(eventId) || !isUuid(otherUserId)) {
@@ -151,6 +154,23 @@ export const POST = respond(async (request) => {
   if (otherUserId === user.id) {
     throw new ApiError(
       "You cannot start a conversation with yourself.",
+      422
+    );
+  }
+
+  // Message content is optional when checking whether a
+  // conversation already exists. It is required to create
+  // a new conversation.
+  if (
+    content !== undefined &&
+    (
+      typeof content !== "string" ||
+      content.trim().length < 1 ||
+      content.trim().length > 2000
+    )
+  ) {
+    throw new ApiError(
+      "Messages must contain between 1 and 2,000 characters.",
       422
     );
   }
@@ -176,7 +196,7 @@ export const POST = respond(async (request) => {
   // The person receiving the message must always be attending.
   const requiredUserIds = [otherUserId];
 
-  // Non-host students must also be attending the event.
+  // Non-host students must also be attending.
   if (!isHost) {
     requiredUserIds.push(user.id);
   }
@@ -208,7 +228,21 @@ export const POST = respond(async (request) => {
     );
   }
 
-  // Normalize the pair so the same two users always reuse one conversation.
+  // Retrieve the recipient's profile for the draft window.
+  const otherUser = checkedWithLog(
+    await admin.from("student_profiles")
+      .select("user_id, display_name, academic_year, major")
+      .eq("user_id", otherUserId)
+      .maybeSingle(),
+    "Recipient profile query"
+  );
+
+  if (!otherUser) {
+    throw new ApiError("Student profile not found.", 404);
+  }
+
+  // Normalize the pair so the same two users always reuse
+  // the same conversation.
   const [userOneId, userTwoId] = [user.id, otherUserId].sort();
 
   let conversation = checkedWithLog(
@@ -220,6 +254,34 @@ export const POST = respond(async (request) => {
     "Existing conversation query"
   );
 
+  // Check whether the existing conversation actually has messages.
+  let hasMessages = false;
+
+  if (conversation) {
+    const existingMessage = checkedWithLog(
+      await admin.from("messages")
+        .select("id")
+        .eq("conversation_id", conversation.id)
+        .limit(1)
+        .maybeSingle(),
+      "Existing conversation message query"
+    );
+
+    hasMessages = Boolean(existingMessage);
+  }
+
+  // No message content means this is only a request to open
+  // a conversation window. Do not create a database record.
+  if (content === undefined) {
+    return {
+      conversation: hasMessages ? conversation : null,
+      other_user: otherUser,
+    };
+  }
+
+  let createdByRequest = false;
+
+  // Create the conversation only when the first message is sent.
   if (!conversation) {
     const inserted = await admin.from("conversations")
       .insert({
@@ -245,6 +307,7 @@ export const POST = respond(async (request) => {
 
     if (inserted.data) {
       conversation = inserted.data;
+      createdByRequest = true;
     } else {
       conversation = checkedWithLog(
         await admin.from("conversations")
@@ -257,5 +320,47 @@ export const POST = respond(async (request) => {
     }
   }
 
-  return { conversation };
+  // Save the first message.
+  const insertedMessage = await admin.from("messages")
+    .insert({
+      conversation_id: conversation.id,
+      sender_id: user.id,
+      content: content.trim(),
+    })
+    .select("id, conversation_id, sender_id, content, created_at")
+    .single();
+
+  if (insertedMessage.error) {
+    console.error("[Conversations] First message insert failed:", {
+      message: insertedMessage.error.message,
+      details: insertedMessage.error.details,
+      hint: insertedMessage.error.hint,
+      code: insertedMessage.error.code,
+    });
+
+    // If this request created the conversation but failed to
+    // save the first message, remove the empty conversation.
+    if (createdByRequest) {
+      const cleanup = await admin.from("conversations")
+        .delete()
+        .eq("id", conversation.id);
+
+      if (cleanup.error) {
+        console.error(
+          "[Conversations] Empty conversation cleanup failed:",
+          cleanup.error
+        );
+      }
+    }
+
+    throw new ApiError(
+      "Could not send your message. Please try again.",
+      503
+    );
+  }
+
+  return {
+    conversation,
+    message: insertedMessage.data,
+  };
 });
