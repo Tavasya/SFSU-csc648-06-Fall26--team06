@@ -118,10 +118,11 @@ body {
 [data-theme="dark"] .text-gray-400 {
   color: var(--muted);
 }
+[data-theme="dark"] .text-\[\#302344\],
 [data-theme="dark"] .text-\[\#604398\],
 [data-theme="dark"] .text-\[\#65449B\],
 [data-theme="dark"] .hover\:text-\[\#503581\]:hover {
-  color: var(--accent);
+  color: #C5A6FF;
 }
 [data-theme="dark"] .text-\[\#78672e\] {
   color: var(--gold-ink);
@@ -251,4 +252,24 @@ body {
 }
 [data-theme="dark"] .campus-map .group:hover .group-hover\:fill-\[\#E0B65A\] {
   fill: #93752f;
+}
+
+/* Message bubble outlines */
+
+/* Light mode */
+.message-bubble--incoming {
+  border-color: #D8CDE9;
+}
+
+.message-bubble--outgoing {
+  border-color: #503581;
+}
+
+/* Dark mode */
+[data-theme="dark"] .message-bubble--incoming {
+  border-color: #5B506D;
+}
+
+[data-theme="dark"] .message-bubble--outgoing {
+  border-color: #A68AE6;
 }

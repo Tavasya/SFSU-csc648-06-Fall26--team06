@@ -36,7 +36,7 @@ export default function EventActions({ event }) {
       .catch((error) => { if (!controller.signal.aborted) setError(error); });
     return () => controller.abort();
   }, [base, attempt]);
-  async function change(url, method, body) {
+  async function change(url, method, body, refreshAttendees = false) {
     setBusy(true); setMessage(""); setError(null);
     try {
       const result = await studentRequest(url, {
@@ -46,6 +46,13 @@ export default function EventActions({ event }) {
       setData((current) => ({ ...current, ...result }));
       setMessage(result.rsvp ? `RSVP updated: ${labels[result.rsvp.status]}.` :
         result.saved ? "Event saved." : "Event removed from saved events.");
+      if (refreshAttendees) {
+        window.dispatchEvent(
+          new CustomEvent("gatoraid:rsvp-updated", {
+            detail: { eventId: event.id },
+          })
+        );
+      }
     } catch (error) { setError(error); }
     finally { setBusy(false); }
   }
@@ -71,15 +78,15 @@ export default function EventActions({ event }) {
             type="button"
             key={status}
             className={`rounded-full border px-3 py-2 text-xs font-semibold transition ${data.rsvp?.status === status
-                ? "border-[#65449B] bg-[#65449B] text-white"
-                : "border-[#D8CDE9] bg-white text-[#65449B] hover:bg-[#F3EEFA]"
+              ? "border-[#65449B] bg-[#65449B] text-white"
+              : "border-[#D8CDE9] bg-white text-[#65449B] hover:bg-[#F3EEFA]"
               }`}
             aria-pressed={data.rsvp?.status === status}
             disabled={busy || (status === "attending" && (!available || full))}
             onClick={async () => {
               // Attending during a class: remind them, but let them decide.
               if (status === "attending" && data.rsvp?.status !== "attending" && !(await confirmGoing(event))) return;
-              change(`${base}/rsvps/me`, "PUT", { status });
+              change(`${base}/rsvps/me`, "PUT", { status }, true);
             }}
           >
             {labels[status]}
