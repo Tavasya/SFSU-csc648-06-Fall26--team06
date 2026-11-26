@@ -12,6 +12,7 @@ const root = new URL("../../", import.meta.url);
 const MOCKS = {
   "@/lib/supabase/server": "export async function createClient() { return globalThis.__testDb; }",
   "@/lib/supabase/client": "export function createClient() { return globalThis.__testDb; }",
+  "@/lib/supabase/admin": "export function createAdminClient() { return globalThis.__testDb; }",
   "next/server": `
     export const NextResponse = {
       json: (body, init) => Response.json(body, init),
@@ -29,6 +30,7 @@ const MOCKS = {
       }
     }`,
   "@supabase/ssr": "export function createServerClient(...args) { return globalThis.__ssr(...args); }",
+  "@supabase/supabase-js": "export function createClient() { return globalThis.__testDb; }",
 };
 
 registerHooks({
@@ -105,6 +107,14 @@ export function createDb({ tables = {}, user = null, fail = {}, rpc = {}, files 
       const query = {
         select() { return this; },
         eq(key, target) { filters.push((row) => row[key] === target); return this; },
+        or(expression) {
+          const alternatives = expression.split(",").map((part) => {
+            const [key, operator, target] = part.split(".");
+            return (row) => operator === "eq" && row[key] === target;
+          });
+          filters.push((row) => alternatives.some((matches) => matches(row)));
+          return this;
+        },
         neq(key, target) { filters.push((row) => row[key] !== target); return this; },
         gt(key, target) { filters.push((row) => row[key] > target); return this; },
         gte(key, target) { filters.push((row) => row[key] >= target); return this; },
@@ -130,6 +140,20 @@ export function createDb({ tables = {}, user = null, fail = {}, rpc = {}, files 
           if (operation === "insert") {
             rows = [].concat(value).map((row, i) => ({ id: `new-${tables[table].length + i}`, ...row }));
             tables[table].push(...rows);
+          } else if (operation === "upsert") {
+            rows = [];
+            for (const item of [].concat(value)) {
+              const existing = tables[table].find((row) =>
+                row.message_id === item.message_id && row.user_id === item.user_id
+              );
+              if (!existing) {
+                const inserted = { id: `new-${tables[table].length}`, ...item };
+                tables[table].push(inserted);
+                rows.push(inserted);
+              } else {
+                rows.push(existing);
+              }
+            }
           } else {
             rows = tables[table].filter((row) => filters.every((filter) => filter(row)));
             if (operation === "update") rows.forEach((row) => Object.assign(row, value));

@@ -17,6 +17,7 @@ import {
 import Link from "next/link";
 import EventPlacePreview from "@/components/map/EventPlacePreview";
 import EventActions from "@/components/student/EventActions";
+import EventAttendees from "@/components/student/EventAttendees";
 import DescriptionLinks from "@/components/gatoraid/DescriptionLinks";
 import { accessibilityText } from "@/lib/events/accessibility";
 import {
@@ -218,11 +219,15 @@ export default function EventDetails({
               ? "This is how your event will appear to students."
               : "Manage your saved event and RSVP below."}
           </p>
-          {!preview && !isHost && <EventActions event={event} />}
+          {!preview && !isHost && (
+            <EventActions event={event} />
+          )}
+
+          {!preview && <EventAttendees event={event} />}
+
           {isHost && !preview && (
             <p className="ga-small ga-muted">
-              Hosts can&apos;t save or RSVP to their own events. See how many students are coming on{" "}
-              <Link href="/host/events">Your events</Link>.
+              Hosts can&apos;t save or RSVP to their own events.
             </p>
           )}
         </aside>

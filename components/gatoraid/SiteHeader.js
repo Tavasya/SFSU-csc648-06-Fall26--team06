@@ -116,6 +116,12 @@ export default function SiteHeader() {
 
   const organizer = path.startsWith("/host");
 
+  // Messages is only displayed to signed-in users.
+  const navigationLinks = [
+    ...MAIN,
+    ...(user ? [{ href: "/messages", label: "Messages" }] : []),
+  ];
+
   return (
     <header className="site-header">
       <div className="site-wrap site-header-inner">
@@ -125,7 +131,7 @@ export default function SiteHeader() {
         </Link>
 
         <nav className="site-nav" aria-label="Main">
-          {MAIN.map((link) => (
+          {navigationLinks.map((link) => (
             <Link
               key={link.href}
               href={link.href}
@@ -196,17 +202,23 @@ export default function SiteHeader() {
       {menu === "mobile" && (
         <nav className="site-mobile" id="site-mobile-menu" aria-label="Menu">
           <div className="site-wrap">
-            {[...MAIN, ...ACCOUNT, { href: "/host/events", label: "For organizers", match: (p) => p.startsWith("/host") }].map(
-              (link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  className={isActive(link, path) ? "active" : ""}
-                >
-                  {link.label}
-                </Link>
-              ),
-            )}
+          {[
+              ...navigationLinks,
+              ...ACCOUNT,
+              {
+                href: "/host/events",
+                label: "For organizers",
+                match: (p) => p.startsWith("/host"),
+              },
+            ].map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className={isActive(link, path) ? "active" : ""}
+              >
+                {link.label}
+              </Link>
+            ))}
             {user && (
               <button type="button" onClick={signOut}>
                 <LogOut size={15} /> Sign out
